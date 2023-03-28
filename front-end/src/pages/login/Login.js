@@ -1,23 +1,17 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
 import logo_ueb from "../../assets/images/logo_ueb.png";
 import { Button } from "reactstrap";
-import { Recuperar } from "./Recuperar";
+import { Recuperar1 } from "./ventanas/recuperar contrasena1/Recuperar1";
 
-export class Login extends React.Component {
+export const Login = () => {
 
-  state = {
-    abierto: false,
-  }
+  const [showModal, setShowModal] = useState(false);
 
-  abrirRecuperar() {
-    this.setState({ abierto: !this.state.abierto })
-  }
+  return (
 
-  render() {
-    return (
-      <Fragment>
+    <Fragment>
       <div className="todo">
         <div class="container">
           <div class="logo">
@@ -31,10 +25,8 @@ export class Login extends React.Component {
 
               <p class="texto_correo">Contraseña *</p>
               <input type="text" id="contrasena" />
-              <Button>
-                Iniciar Sesión
-              </Button>
-              <p>Recuperar Contraseña</p>
+              <Button>Iniciar Sesión</Button>
+              <p onClick={() => setShowModal(true)}>Recuperar Contraseña</p>
               <p>Inscribir Propuesta</p>
             </div>
           </div>
@@ -55,13 +47,11 @@ export class Login extends React.Component {
           </footer>
         </div>
 
-        <Recuperar/>
+        <Recuperar1 isVisible={showModal} onClose={() => setShowModal(false)} />
 
       </div>
-      </Fragment>
-    );
-  }
-
+    </Fragment>
+  );
 }
 
 export default Login;

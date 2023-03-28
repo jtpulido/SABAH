@@ -68,6 +68,7 @@ body {
 
 .login p {
     color: #576A3D;
+    cursor: pointer;
 }
 
 .texto_correo {

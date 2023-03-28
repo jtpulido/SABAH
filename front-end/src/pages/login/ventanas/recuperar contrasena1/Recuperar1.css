@@ -1,14 +1,16 @@
 .container {
     font-family: 'Montserrat', sans-serif;
     position: fixed;
-    backdrop-filter: blur(10px);
     justify-content: center;
     align-items: center;
+    position: fixed;
+    backdrop-filter: blur(8px);
 }
 
 .content {
+    opacity: 1;
     height: 95%;
-    margin: 20%;
+    margin: 25%;
     background-color: white;
     border-radius: 25px;
     border: 0.5mm solid;
@@ -20,20 +22,19 @@
 
 .content>* {
     flex: 1 1 auto;
-  }
+}
 
 .div_boton_cerrar {
     height: 10px;
-    position: fixed;
+    position: relative;
     margin-top: 8px;
-    background-color: #576A3D;
-   
+    display: inline-flex;
 }
 
 .modal {
     padding-bottom: 10px;
-    margin-left: 70px;
-    margin-right: 70px;
+    margin-left: 60px;
+    margin-right: 60px;
     background-color: blackq;
 }
 
@@ -54,12 +55,13 @@
 
 .modal p {
     color: #576A3D;
+    cursor: pointer;
 }
 
 .input {
     margin-top: 10px;
     line-height: 35px;
-    width: 65%;
+    width: 70%;
     background-color: #EFEFF4;
     border-style: ridge;
     border-color: #576A3D;
