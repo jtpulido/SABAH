@@ -1,7 +1,5 @@
 import './App.css';
-
-import { Login } from './pages/login/Login';
-import { Recuperar2 } from "./pages/login/ventanas/recuperar contrasena2/Recuperar2"
+import { Login } from './pages/inicio de sesion y registro/ventanas/login/Login'
 
 function App() {
   return (

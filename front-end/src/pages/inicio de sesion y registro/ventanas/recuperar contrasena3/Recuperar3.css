@@ -1,0 +1,66 @@
+.modal_recuperar3 {
+    font-family: 'Montserrat', sans-serif;
+    color: #576A3D;
+}
+
+:where(.css-dev-only-do-not-override-1e3x2xa).ant-modal .ant-modal-title {
+    margin: 0;
+    color: rgba(87, 106, 61, 1);
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.div {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    align-content: center;
+    text-align: center;
+}
+
+.boton_enviar {
+    align-content: center;
+    text-align: center;
+    line-height: 28px;
+    width: 30%;
+    background-color: #8DB33A;
+    color: white;
+    border: none;
+    justify-content: center;
+    margin: auto;
+    display: grid;
+    margin-top: 28px;
+    margin-bottom: 20px;
+}
+
+.text {
+    justify-content: center;
+    color: #576A3D;
+}
+
+.div_input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.input1 {
+    border-color: #576A3D;
+    border-width: thin;
+    font-size: 16px;
+    line-height: 30px;
+    width: 70%;
+    outline: none;
+    margin-bottom: 5%;
+}
+
+.input2 {
+    border-color: #576A3D;
+    border-width: thin;
+    font-size: 16px;
+    line-height: 30px;
+    width: 70%;
+    outline: none;
+}

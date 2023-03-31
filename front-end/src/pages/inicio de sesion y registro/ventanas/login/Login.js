@@ -1,13 +1,17 @@
 import React, { Fragment, useState } from "react";
 import "./Login.css";
-import logo from "../../assets/images/logo.png";
-import logo_ueb from "../../assets/images/logo_ueb.png";
+import logo from "../../../../assets/images/logo.png";
+import logo_ueb from "../../../../assets/images/logo_ueb.png";
 import { Button } from "reactstrap";
-import { Recuperar1 } from "./ventanas/recuperar contrasena1/Recuperar1";
+import { Recuperar1 } from "../recuperar contrasena1/Recuperar1";
 
 export const Login = () => {
 
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setModalOpen] = useState(false);
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
 
   return (
 
@@ -23,11 +27,11 @@ export const Login = () => {
               <p class="texto_correo">Correo o código de proyecto *</p>
               <input type="text" id="correo_codigo" />
 
-              <p class="texto_correo">Contraseña *</p>
+              <p class="texto_cont">Contraseña *</p>
               <input type="text" id="contrasena" />
               <Button>Iniciar Sesión</Button>
-              <p onClick={() => setShowModal(true)}>Recuperar Contraseña</p>
-              <p>Inscribir Propuesta</p>
+              <p onClick={() => setModalOpen(true)} className="p_recuperar">Recuperar Contraseña</p>
+              <p className="p_propuesta">Inscribir Propuesta</p>
             </div>
           </div>
         </div>
@@ -47,7 +51,7 @@ export const Login = () => {
           </footer>
         </div>
 
-        <Recuperar1 isVisible={showModal} onClose={() => setShowModal(false)} />
+        <Recuperar1 isVisible={showModal} closeModal={closeModal} />
 
       </div>
     </Fragment>

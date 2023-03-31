@@ -68,11 +68,24 @@ body {
 
 .login p {
     color: #576A3D;
+}
+
+.p_recuperar {
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.p_propuesta {
     cursor: pointer;
 }
 
 .texto_correo {
     text-align: left;
+}
+
+.texto_cont {
+    text-align: left;
+    margin-top: 15px;
 }
 
 .footer {
@@ -92,7 +105,7 @@ body {
     width: 100%;
     display: flex;
     flex-direction: row;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .footer p {
