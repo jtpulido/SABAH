@@ -1,0 +1,12 @@
+  .drawer {
+    flex-shrink: 0;
+  }
+  
+  .drawerPaper {
+    width: 240px;
+  }
+  
+  .content {
+    flex-grow: 1;
+  }
+  

@@ -25,7 +25,12 @@ app.use(session({
   }),
   secret: 'sabahproject',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000, // tiempo de vida de la cookie en milisegundos
+    httpOnly: true,              // no se permite acceso a la cookie desde el navegador
+    secure: false                // establece si la cookie debe ser enviada solo sobre HTTPS
+  }
 }));
 
 // Configura Passport.js

@@ -1,10 +1,14 @@
 import React, { Fragment, useState } from "react";
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
-import logo_ueb from "../../assets/images/logo_ueb.png";
 import { Button, TextField, Alert, Snackbar } from "@mui/material";
+import { useNavigate } from 'react-router-dom';
+
+import Footer from '../pie_de_pagina/Footer';
 
 export const Login = () => {
+  const navigate = useNavigate();
+
   const [usuario, setUsuario] = useState({
     username: "",
     password: "",
@@ -17,20 +21,26 @@ export const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch("http://192.168.1.9:5000/login", {
+      const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(usuario),
       });
       const data = await response.json();
       if (!data.success) {
-        setError("Credenciales incorrectas");
+        setError(data.message);
       } else {
-        setError("");
+        console.log(data.user.id_tipo_usuario)
+        if (data.user.id_tipo_usuario === 'admin') {
+          navigate('/admin');
+        } else if (data.user.id_tipo_usuario === 'normal') {
+          navigate('/bienvenida');
+        }
+        setError(data.message);
       }
     } catch (error) {
       console.error(error);
-      setError("Ocurrió un error al intentar iniciar sesión");
+      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
 
@@ -57,25 +67,11 @@ export const Login = () => {
                 <TextField name="password" id="password" type="password" value={usuario.password} onChange={handleChange} />
                 <Button type="submit" disabled={!usuario.username || !usuario.password}>Iniciar Sesión</Button>
               </form>
-
-
             </div>
           </div>
         </div>
-        <div className="footer">
-          <footer>
-            <div className="copyright">
-              <p>
-                © 2023 Sistema para la gestión de proyectos - Programa Ingeniería de Sistemas, Universidad El Bosque
-              </p>
-            </div>
-            <div className="facultad">
-              <p>Facultad de Ingeniería</p>
-              <img src={logo_ueb} alt="" />
-            </div>
-          </footer>
-        </div>
       </div>
+      <Footer/>
     </Fragment>
   );
 };
