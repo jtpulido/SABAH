@@ -1,35 +1,31 @@
-  footer {
-    display: flex;
-    justify-content: space-between;
+footer {
+    
     background-color: #EC8A01;
     padding: 10px;
-    width: 100%;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     font-size: 14px;
+    position: fixed;
     bottom: 0;
     border: none;
   }
-
-  footer .copyright {
-    width: 70%;
-  }
-
-  footer .facultad {
-    width: 30%;
-  }
-
 
   footer p {
     margin: 0;
     color: white;
   }
 
+  .copyright {
+    max-width: 50%;
+  }
 
   .facultad {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding-right: 20px;
+    max-width: 50%;
   }
 
   .facultad p {

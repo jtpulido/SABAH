@@ -1,12 +1,16 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState,useContext } from "react";
+
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
 import { Button, TextField, Alert, Snackbar } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
-
 import Footer from '../pie_de_pagina/Footer';
+import AuthContext from "../../AuthContext";
 
 export const Login = () => {
+
+  const { setIsAuthenticated, setUser } = useContext(AuthContext);
+
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState({
@@ -30,13 +34,16 @@ export const Login = () => {
       if (!data.success) {
         setError(data.message);
       } else {
-        console.log(data.user.id_tipo_usuario)
+        setIsAuthenticated(true);
+        setUser(data.user);
         if (data.user.id_tipo_usuario === 'admin') {
           navigate('/admin');
         } else if (data.user.id_tipo_usuario === 'normal') {
-          navigate('/bienvenida');
+          navigate('/usuario');
+        } else if (data.user.id_tipo_usuario === 'comite') {
+          navigate('/comite');
         }
-        setError(data.message);
+
       }
     } catch (error) {
       console.error(error);
@@ -71,7 +78,7 @@ export const Login = () => {
           </div>
         </div>
       </div>
-      <Footer/>
+      <Footer />
     </Fragment>
   );
 };
