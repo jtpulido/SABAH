@@ -8,7 +8,7 @@ export default function RoutesProyect() {
     return (
         <Routes>
             <Route path="/" element={<InicioPro />} />
-            <Route path="*" element={<Navigate to="/proyecto" replace />} />
+            <Route path="*" element={<Navigate to="" replace />} />
         </Routes>
     );
 }

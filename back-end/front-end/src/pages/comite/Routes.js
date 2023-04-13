@@ -10,7 +10,7 @@ export default function RoutesCmt() {
 
         <Routes>
             <Route path="/" element={<InicioCmt />} />
-            <Route path="*" element={<Navigate to="/comite" replace />} />
+            <Route path="*" element={<Navigate to="" replace />} />
         </Routes>
     );
 }

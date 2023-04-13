@@ -10,7 +10,7 @@ export default function RoutesUsers() {
 
         <Routes>
             <Route path="/" element={<InicioUser />} />
-            <Route path="*" element={<Navigate to="/inicio" replace />} />
+            <Route path="*" element={<Navigate to="" replace />} />
         </Routes>
     );
 }
