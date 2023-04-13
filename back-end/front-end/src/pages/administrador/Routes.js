@@ -9,7 +9,7 @@ export default function RoutesAdmin() {
     return (
         <Routes>
             <Route path="/" element={<InicioAdmin />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="admin" replace />} />
 
             <Route path="inbox" element={<Inbox />} />
         </Routes>

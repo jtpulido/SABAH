@@ -4,9 +4,12 @@ const morgan = require('morgan')
 const path = require('path')
 const cors = require('cors')
 const session = require('express-session')
-const pgPool = require('./database')
 const passport = require('passport')
-const inicioRoutes = require('./routes/inicio.routes')
+const loginRoutes = require('./routes/login.routes')
+const usersRoutes = require('./routes/usuarios.routes')
+const adminRoutes = require('./routes/admin.routes')
+const cmtRoutes = require('./routes/comite.routes')
+const proyectosRoutes = require('./routes/proyecto.routes')
 
 
 //inicialización
@@ -38,7 +41,11 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
 //Rutas
-app.use(inicioRoutes)
+app.use(adminRoutes)
+app.use(cmtRoutes)
+app.use(loginRoutes)
+app.use(usersRoutes)
+app.use(proyectosRoutes)
 
 //Publicos
 app.use(express.static(path.join(__dirname, 'public')))

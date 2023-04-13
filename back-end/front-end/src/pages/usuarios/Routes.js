@@ -1,15 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 
+import { Navigate } from 'react-router-dom';
 
 import InicioUser from "./InicioUser";
-export default function RoutesUser() {
+
+export default function RoutesUsers() {
 
     return (
 
         <Routes>
-            <Route path="/inicio" element={<PrivateRoute >
-                <InicioUser />
-            </PrivateRoute>} />
+            <Route path="/" element={<InicioUser />} />
+            <Route path="*" element={<Navigate to="/inicio" replace />} />
         </Routes>
     );
 }
