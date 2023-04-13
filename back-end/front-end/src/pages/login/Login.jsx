@@ -9,13 +9,14 @@ import Footer from '../pie_de_pagina/Footer';
 export const Login = () => {
 
   const { setUser } = useContext(MyContext);
-  
+
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState({
     username: "",
     password: "",
   });
+
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
@@ -32,7 +33,7 @@ export const Login = () => {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.user);
+        setError(data.message);
         setUser(null)
         localStorage.removeItem('user');
       } else {
