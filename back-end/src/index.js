@@ -4,7 +4,6 @@ const morgan = require('morgan')
 const path = require('path')
 const cors = require('cors')
 const session = require('express-session')
-const pgSession = require('connect-pg-simple')(session);
 const pgPool = require('./database')
 const passport = require('passport')
 const inicioRoutes = require('./routes/inicio.routes')
@@ -19,10 +18,6 @@ app.set('port', process.env.PORT || 5000)
 
 // Configura la sesión de Express
 app.use(session({
-  store: new pgSession({
-    pool: pgPool,
-    tableName: 'session',
-  }),
   secret: 'sabahproject',
   resave: false,
   saveUninitialized: false,

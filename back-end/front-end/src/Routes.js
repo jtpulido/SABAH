@@ -1,26 +1,37 @@
-import { useContext } from "react";
 import { Routes, Route } from "react-router-dom";
-import AuthContext from "./AuthContext";
-import {PrivateRoute} from "./PrivateRoute";
+import { PrivateRoute } from "./components/PrivateRoute";
 import InicioPro from "./pages/proyecto/InicioPro";
-import InicioAdmin from "./pages/administrador/InicioAdmin";
+import InicioCmt from "./pages/comite/InicioCmt";
+import InicioUser from "./pages/usuarios/InicioUser";
 import Login from "./pages/login/Login";
+import { AuthProvider } from "./components/AuthContext";
 
+
+import { Navigate } from 'react-router-dom';
+import RoutesAdmin from "./pages/administrador/Routes";
 export default function AppRoutes() {
 
-    const { isAuthenticated, user } = useContext(AuthContext);
-
     return (
-        <Routes>
-            <Route index path="/" element={<Login />} />
+        <AuthProvider>
+            <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/admin/*" element={<PrivateRoute >
+                    <RoutesAdmin />
+                </PrivateRoute>} />
 
-            <Route path="/proyecto" element={<PrivateRoute user={user} isAuthenticated={isAuthenticated}>
-                <InicioPro />
-            </PrivateRoute>} />
+                <Route path="/proyecto" element={<PrivateRoute >
+                    <InicioPro />
+                </PrivateRoute>} />
 
-            <Route path="/admin" element={<PrivateRoute user={user} isAuthenticated={isAuthenticated}>
-                <InicioAdmin />
-            </PrivateRoute>} />
-        </Routes>
+                <Route path="/comite" element={<PrivateRoute >
+                    <InicioCmt />
+                </PrivateRoute>} />
+
+                <Route path="/inicio" element={<PrivateRoute >
+                    <InicioUser />
+                </PrivateRoute>} />
+            </Routes>
+        </AuthProvider>
     );
 }

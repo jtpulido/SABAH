@@ -8,13 +8,13 @@ passport.use('local.login', new LocalStrategy(async function (username, password
   try {
     const result = await pool.query('SELECT u.*, tu.tipo AS id_tipo_usuario FROM usuario u JOIN tipo_usuario tu ON u.id_tipo_usuario= tu.id WHERE LOWER(u.correo)=LOWER($1)', [username])
     const user = result.rows[0]
-    
+
     if (!user) {
-      return done(null, false, { message: 'Autenticación fallida: usuario no encontrado' })
+      return done(null, false, { message: 'Autenticación fallida: Usuario no encontrado' })
     }
     const validPassword = await helpers.matchPassword(password, user.contrasena)
     if (!validPassword) {
-      return done(null, false, { message: 'Autenticación fallida: contraseña inválida' })
+      return done(null, false, { message: 'Autenticación fallida: Contraseña inválida' })
     }
     return done(null, user);
   } catch (err) {
@@ -22,13 +22,12 @@ passport.use('local.login', new LocalStrategy(async function (username, password
   }
 }));
 
-
-
-passport.serializeUser((user, done) => {
+passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
-  const rows = (await (pool.query('SELECT * FROM users WHERE id=$1', [id]))).rows;
-  done(null, { row: rows[0] });
-}); 
+passport.deserializeUser(function (id, done) {
+  User.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
