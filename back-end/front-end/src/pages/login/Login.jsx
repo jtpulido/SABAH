@@ -4,7 +4,6 @@ import "./Login.css";
 import logo from "../../assets/images/logo.png";
 import { Button, TextField, Alert, Snackbar } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
-import Footer from '../pie_de_pagina/Footer';
 
 export const Login = () => {
 
@@ -81,7 +80,6 @@ export const Login = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </Fragment>
   );
 };

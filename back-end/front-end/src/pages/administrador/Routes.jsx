@@ -10,7 +10,6 @@ export default function RoutesAdmin() {
         <Routes>
             <Route path="/" element={<InicioAdmin />} />
             <Route path="*" element={<Navigate to="" replace />} />
-
             <Route path="inbox" element={<Inbox />} />
         </Routes>
     );

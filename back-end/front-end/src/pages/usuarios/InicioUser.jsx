@@ -29,23 +29,24 @@ function InicioUser() {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box >
 
-      <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
-        <Drawer variant="permanent" sx={{ display: 'block', '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }, }} open        >
-          {drawer}
-        </Drawer>
+      <div className="todo">
+        <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+          <Drawer variant="permanent" sx={{ display: 'block', '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }, }} open        >
+            {drawer}
+          </Drawer>
 
-      </Box>
+        </Box>
 
-      <Box
-        sx={{ p: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh', display: 'flex', flexDirection: 'column', }}      >
-        <Typography paragraph>
-          Inicio Usuarios
-        </Typography>
+        <Box
+          sx={{ p: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh', display: 'flex', flexDirection: 'column', }}      >
+          <Typography paragraph>
+            Inicio Usuarios
+          </Typography>
 
-      </Box>
-
+        </Box>
+      </div>
     </Box>
   );
 }
