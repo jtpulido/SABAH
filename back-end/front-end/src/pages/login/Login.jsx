@@ -1,6 +1,7 @@
 import React, { Fragment, useState } from "react";
 
 import { useDispatch } from "react-redux";
+import Footer from "../pie_de_pagina/Footer"
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
 import { Button, TextField, Alert, Snackbar } from "@mui/material";
@@ -77,6 +78,7 @@ export const Login = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </Fragment>
   );
 };
