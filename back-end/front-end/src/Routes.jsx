@@ -1,7 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import { PrivateRoute } from "./components/PrivateRoute";
-
-import { AuthProvider } from "./components/AuthContext";
 
 import Login from "./pages/login/Login";
 import RoutesAdmin from "./pages/administrador/Routes";
@@ -10,39 +7,25 @@ import RoutesCmt from "./pages/comite/Routes";
 import RoutesUsers from "./pages/usuarios/Routes";
 import NotFoundPage from "./pages/NotFoundPage";
 import UnauthorizedPage from "./pages/Unauthorized";
-import Layout from "./layouts/layout";
+import { ProtectedRoute } from "./store/ProtectedRoute";
+import { Provider } from 'react-redux';
+import store from './store/store';
 
 export default function AppRoutes() {
 
     return (
-        <AuthProvider>
+        <Provider store={store}>
             <Routes>
-
-                <Route path='/' element={<Layout />}>
+                <Route path="/">
                     <Route path="" element={<Login />} />
-
-                    <Route path="/admin/*" element={
-                        <PrivateRoute >
-                            <RoutesAdmin />
-                        </PrivateRoute>} />
-
-                    <Route path="/proyecto/*" element={<PrivateRoute >
-                        <RoutesProyect />
-                    </PrivateRoute>} />
-
-                    <Route path="/comite/*" element={<PrivateRoute >
-                        <RoutesCmt />
-                    </PrivateRoute>} />
-
-                    <Route path="/inicio/*" element={<PrivateRoute >
-                        <RoutesUsers />
-                    </PrivateRoute>} />
+                    <Route path="/admin/*" element={<ProtectedRoute roles={["admin"]} element={<RoutesAdmin />} />} />
+                    <Route path="/proyecto/*" element={<ProtectedRoute roles={["proyecto"]} element={<RoutesProyect />} />} />
+                    <Route path="/comite/*" element={<ProtectedRoute roles={["comite"]} element={<RoutesCmt />} />} />
+                    <Route path="/inicio/*" element={<ProtectedRoute roles={["normal"]} element={<RoutesUsers />} />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 </Route>
-
-                <Route path="*" element={<NotFoundPage />} />
-
-                <Route path="/unauthorized" element={<UnauthorizedPage />} />
             </Routes>
-        </AuthProvider>
+        </Provider >
     );
 }

@@ -4,6 +4,7 @@ import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 
 import "./InicioUser.css";
+import Footer from '../pie_de_pagina/Footer';
 
 const drawerWidth = 240;
 
@@ -29,24 +30,23 @@ function InicioUser() {
   );
 
   return (
-    <Box >
+    <Box sx={{ display: 'flex' }}>
 
-      <div className="todo">
-        <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
-          <Drawer variant="permanent" sx={{ display: 'block', '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }, }} open        >
-            {drawer}
-          </Drawer>
+      <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+        <Drawer variant="permanent" sx={{ display: 'block', '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }, }} open        >
+          {drawer}
+        </Drawer>
 
-        </Box>
+      </Box>
 
-        <Box
-          sx={{ p: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh', display: 'flex', flexDirection: 'column', }}      >
-          <Typography paragraph>
-            Inicio Usuarios
-          </Typography>
+      <Box
+        sx={{ p: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, minHeight: '100vh', display: 'flex', flexDirection: 'column', }}      >
+        <Typography paragraph>
+          Inicio Usuarios
+        </Typography>
 
-        </Box>
-      </div>
+      </Box>
+      <Footer />
     </Box>
   );
 }

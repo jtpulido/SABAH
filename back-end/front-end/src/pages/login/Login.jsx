@@ -1,14 +1,15 @@
-import React, { Fragment, useState, useContext } from "react";
-import { MyContext } from "../../components/AuthContext";
+import React, { Fragment, useState } from "react";
+
+import { useDispatch } from "react-redux";
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
 import { Button, TextField, Alert, Snackbar } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
-
+import { setUser } from '../../store/authSlice';
 export const Login = () => {
 
-  const { setUser } = useContext(MyContext);
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState({
@@ -22,7 +23,6 @@ export const Login = () => {
   const handleChange = (e) => setUsuario({ ...usuario, [e.target.name]: e.target.value });
 
   const handleSubmit = async (event) => {
-    setUser(null)
     event.preventDefault();
     try {
       const response = await fetch("http://localhost:5000/login", {
@@ -33,11 +33,9 @@ export const Login = () => {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
-        setUser(null)
-        localStorage.removeItem('user');
+
       } else {
-        setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        dispatch(setUser(data.user))
         if (data.user.id_tipo_usuario === 'admin') {
           navigate('/admin');
         } else if (data.user.id_tipo_usuario === 'normal') {
@@ -48,7 +46,6 @@ export const Login = () => {
 
       }
     } catch (error) {
-      console.error(error);
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
