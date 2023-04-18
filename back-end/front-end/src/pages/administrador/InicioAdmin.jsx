@@ -1,10 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { useDispatch } from 'react-redux';
+import { clearUser } from '../../store/authSlice';
 import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
 
 import InboxIcon from '@mui/icons-material/Inbox';
-
+import LogoutIcon from '@mui/icons-material/Logout';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
 import "./InicioAdmin.css";
@@ -14,10 +15,15 @@ const drawerWidth = 240;
 function InicioAdmin() {
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const cerrarSesion = () => {
+    dispatch(clearUser());
+    navigate('/')
+  };
 
   return (<div><CssBaseline />
-    <Box sx={{ display: 'flex', height: 'calc(100vh - 60px)' }} >
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 50px)' }} >
       <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
 
         <Drawer
@@ -32,15 +38,24 @@ function InicioAdmin() {
           <Box sx={{ overflow: 'auto' }}>
             <List>
               <ListItem disablePadding>
-                <ListItemButton onClick={() => navigate('/admin/inbox')} >
+                <ListItemButton onClick={() =>navigate('/admin/inbox')} >
                   <ListItemIcon>
                     <InboxIcon />
                   </ListItemIcon>
                   <ListItemText primary="Inbox" />
                 </ListItemButton>
               </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton onClick={() => cerrarSesion()} >
+                  <ListItemIcon>
+                    <LogoutIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Cerrar Sesión" />
+                </ListItemButton>
+              </ListItem>
             </List>
           </Box>
+          <Toolbar />
         </Drawer>
       </Box>
       <Box component="main" sx={{ p: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, overflow: 'auto', minHeight: '100%' }}>
@@ -54,9 +69,11 @@ function InicioAdmin() {
           res. No, señor, cuando un hombre está cansado de Londres, está cansado de la vida; en Londres está todo lo que la
           vida puede ofrecer.
         </Typography>
+       
       </Box>
-
+      
     </Box>
+    
     <AppBar position="relative" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Footer />
     </AppBar>

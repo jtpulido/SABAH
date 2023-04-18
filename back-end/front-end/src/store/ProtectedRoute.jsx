@@ -7,12 +7,10 @@ export const ProtectedRoute = ({ element, roles }) => {
     const location = useLocation();
     const user = useSelector(selectUser);
     if (!user) {
-        return <Navigate to="/" />;
-    }
-    if (roles.includes(user.id_tipo_usuario)) {
-
-        return element;
-    } else {
         return <Navigate to="/unauthorized" state={{ from: location }} />;
+    } else if (roles.includes(user.id_tipo_usuario)) {
+        return element;
     }
+    return <Navigate to="/unauthorized" state={{ from: location }} />;
+
 };
