@@ -26,8 +26,15 @@ passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-  User.findById(id, function (err, user) {
-    done(err, user);
+passport.deserializeUser((id, done) => {
+  pool.query('SELECT * FROM usuario WHERE id = $1', [id], (err, result) => {
+    if (err) {
+      return done(err);
+    }
+    const user = result.rows[0];
+    done(null, user);
   });
 });
+
+
+module.exports = passport;

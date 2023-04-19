@@ -1,10 +1,11 @@
 
 const express = require('express')
+const session = require('express-session')
+const passport = require('./lib/passport');
+
 const morgan = require('morgan')
 const path = require('path')
 const cors = require('cors')
-const session = require('express-session')
-const passport = require('passport')
 const loginRoutes = require('./routes/login.routes')
 const usersRoutes = require('./routes/usuarios.routes')
 const adminRoutes = require('./routes/admin.routes')
@@ -14,22 +15,17 @@ const proyectosRoutes = require('./routes/proyecto.routes')
 
 //inicialización
 const app = express()
-require('./lib/passport')
 
 //Configuración del puerto
 app.set('port', process.env.PORT || 5000)
+
 
 // Configura la sesión de Express
 app.use(session({
   secret: 'sabahproject',
   resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // tiempo de vida de la cookie en milisegundos
-    httpOnly: true,              // no se permite acceso a la cookie desde el navegador
-    secure: false                // establece si la cookie debe ser enviada solo sobre HTTPS
-  }
-}));
+  saveUninitialized: false
+}))
 
 // Configura Passport.js
 app.use(passport.initialize())
@@ -47,9 +43,15 @@ app.use(loginRoutes)
 app.use(usersRoutes)
 app.use(proyectosRoutes)
 
+const isAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: 'No autorizado' });
+};
+
 //Publicos
 app.use(express.static(path.join(__dirname, 'public')))
-
 
 //Iniciar Servidor
 app.listen(app.get('port'), () => {

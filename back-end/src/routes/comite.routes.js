@@ -1,10 +1,10 @@
 const { Router } = require('express')
-const { isLoggedIn} = require('../lib/auth');
+const isAuthenticated = require('../lib/auth');
+
+const { obtenerProyectos } = require('../controllers/comite.controller')
 const router = Router()
 
 
-router.get('/logout', isLoggedIn, (req, res) => {
-  req.logOut();
-});
+router.get('/obtenerProyectos', isAuthenticated, obtenerProyectos);
 
 module.exports = router;
