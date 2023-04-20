@@ -1,9 +1,19 @@
 const { Router } = require('express')
-const {  isNotLoggedIN } = require('../lib/auth');
 const { login } = require('../controllers/login.controller')
+
 const router = Router()
 
-router.post('/login', isNotLoggedIN, login);
+router.get('/logout', function (req, res) {
+    req.logout(function (err) {
+        if (err) {
+            console.error("error aca", err);
+            return next(err);
+        }
+        res.sendStatus(200);
+    });
+});
+
+router.post('/login', login);
 
 
 module.exports = router;
