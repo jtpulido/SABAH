@@ -69,10 +69,10 @@ export const Login = () => {
             <div className="login_child">
               <form onSubmit={handleSubmit}>
                 <p className="texto_correo">Correo o código de proyecto *</p>
-                <TextField name="username" id="username" type="text" value={usuario.username} onChange={handleChange} />
+                <TextField className="input_user" name="username" id="username" type="text" value={usuario.username} onChange={handleChange} />
                 <p className="texto_correo">Contraseña *</p>
                 <TextField name="password" id="password" type="password" value={usuario.password} onChange={handleChange} />
-                <Button type="submit" disabled={!usuario.username || !usuario.password}>Iniciar Sesión</Button>
+                <Button style={{ textTransform: "none" }} type="submit" disabled={!usuario.username || !usuario.password}>Iniciar Sesión</Button>
               </form>
             </div>
           </div>
