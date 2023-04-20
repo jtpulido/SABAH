@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { clearUser } from '../../store/authSlice';
+import { clearSession,clearCookies} from '../../store/authSlice';
 import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemText, Toolbar } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
@@ -17,9 +17,12 @@ function InicioCmt() {
   const dispatch = useDispatch();
 
   const cerrarSesion = () => {
-    dispatch(clearUser());
+    dispatch(clearSession());
+    dispatch(clearCookies());
+    fetch('http://localhost:5000/logout', { method: 'GET' });
     navigate('/')
   };
+
   const [activeButton, setActiveButton] = useState(null);
   const buttonColors = {
     proyecto: activeButton === "proyecto" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
