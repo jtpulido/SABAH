@@ -19,19 +19,22 @@ const app = express()
 //Configuración del puerto
 app.set('port', process.env.PORT || 5000)
 
-
 // Configura la sesión de Express
 app.use(session({
   secret: 'sabahproject',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { secure: true }
 }))
 
 // Configura Passport.js
 app.use(passport.initialize())
 app.use(passport.session())
 
-app.use(cors())
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}))
 app.use(morgan('dev'))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
@@ -43,12 +46,6 @@ app.use(loginRoutes)
 app.use(usersRoutes)
 app.use(proyectosRoutes)
 
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: 'No autorizado' });
-};
 
 //Publicos
 app.use(express.static(path.join(__dirname, 'public')))
