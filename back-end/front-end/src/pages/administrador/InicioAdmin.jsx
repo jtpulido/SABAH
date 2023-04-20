@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { clearUser } from '../../store/authSlice';
+import { clearSession,clearCookies } from '../../store/authSlice';
 import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
 
 import InboxIcon from '@mui/icons-material/Inbox';
@@ -18,7 +18,9 @@ function InicioAdmin() {
   const dispatch = useDispatch();
 
   const cerrarSesion = () => {
-    dispatch(clearUser());
+    dispatch(clearSession());
+    dispatch(clearCookies());
+    fetch('http://localhost:5000/logout', { method: 'GET' });
     navigate('/')
   };
 
