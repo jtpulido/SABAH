@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 import { Alert, Snackbar } from "@mui/material";
+
+import { useSelector } from "react-redux";
+import { selectToken } from "../../store/authSlice";
 
 const columns = [
   { field: 'nombre', headerName: 'Nombre', width: 130 },
@@ -11,7 +14,9 @@ const columns = [
 ];
 
 export default function Proyectos() {
-  const [rows, setRows] = React.useState([]);
+
+  const token = useSelector(selectToken);
+  const [rows, setRows] = useState([]);
 
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
@@ -20,7 +25,7 @@ export default function Proyectos() {
     try {
       const response = await fetch("http://localhost:5000/obtenerProyectos", {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
       if (!data.success) {
@@ -34,7 +39,7 @@ export default function Proyectos() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     llenarTabla();
   }, []);
 

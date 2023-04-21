@@ -1,8 +1,6 @@
 
 const express = require('express')
-const session = require('express-session')
-const passport = require('./lib/passport');
-
+const passport = require('passport');
 const morgan = require('morgan')
 const path = require('path')
 const cors = require('cors')
@@ -13,42 +11,34 @@ const cmtRoutes = require('./routes/comite.routes')
 const proyectosRoutes = require('./routes/proyecto.routes')
 
 
-//inicialización
 const app = express()
 
-//Configuración del puerto
-app.set('port', process.env.PORT || 5000)
 
-// Configura la sesión de Express
-app.use(session({
-  secret: 'sabahproject',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: true }
-}))
-
-// Configura Passport.js
-app.use(passport.initialize())
-app.use(passport.session())
+require('./config/passport')(passport);
+app.use(express.json());
+app.use(passport.initialize());
 
 app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }))
+
 app.use(morgan('dev'))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
 //Rutas
+app.use(loginRoutes);
 app.use(adminRoutes)
 app.use(cmtRoutes)
-app.use(loginRoutes)
 app.use(usersRoutes)
 app.use(proyectosRoutes)
 
 
 //Publicos
 app.use(express.static(path.join(__dirname, 'public')))
+
+app.set('port', 5000)
 
 //Iniciar Servidor
 app.listen(app.get('port'), () => {

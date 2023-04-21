@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useCookies } from 'react-cookie';
 import thunkMiddleware from "redux-thunk";
-import authReducer, { setSessionID, setTipoUsuario } from "./authSlice";
+import authReducer, { setToken, setTipoUsuario } from "./authSlice";
 
 function ConfigureAuthStore() {
   function useAuthCookies() {
-    const [cookies] = useCookies(['session', 'tipo_usuario']);
+    const [cookies] = useCookies(['token', 'tipo_usuario']);
     return cookies;
   }
 
@@ -17,12 +17,12 @@ function ConfigureAuthStore() {
     middleware: [thunkMiddleware],
     preloadedState: {
       auth: {
-        sessionID: cookies.session || '',
+        token: cookies.token || '',
         tipoUsuario: cookies.tipo_usuario || '',
       }
     },
   });
-  store.dispatch(setSessionID(cookies.session));
+  store.dispatch(setToken(cookies.token));
   store.dispatch(setTipoUsuario(cookies.tipo_usuario));
   return store;
 }
