@@ -1,23 +1,29 @@
-const passport = require('../lib/passport');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const pool = require('../database')
+const { JWT_SECRET } = require('../config')
 
-const login = (req, res, next) => {
-  passport.authenticate('local.login', (err, user, info) => {
-    if (err) {
-      return next(err);
+exports.inicioSesion = async (req, res) => {
+  const { username, password } = req.body;
+  await pool.query('SELECT u.*, tu.tipo AS id_tipo_usuario FROM usuario u JOIN tipo_usuario tu ON u.id_tipo_usuario= tu.id WHERE LOWER(u.correo)=LOWER($1)', [username], (error, result) => {
+    if (error) {
+      return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
-    if (!user) {
-      return res.status(401).json({ success: false, message: info.message });
+    if (result.rowCount === 1) {
+      const usuario = result.rows[0];
+      bcrypt.compare(password, usuario.contrasena, (error, match) => {
+        if (error) {
+          return res.status(401).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        }
+        if (match) {
+          const token = jwt.sign({ id: usuario.id }, JWT_SECRET, { expiresIn: '1h' });
+          return res.status(200).json({ success: true, token, tipo_usuario: usuario.id_tipo_usuario });
+        } else {
+          return res.status(401).json({ success: false, message: 'Autenticación fallida: Contraseña inválida' });
+        }
+      });
+    } else {
+      return res.status(401).json({ success: false, message: 'Autenticación fallida: Usuario no encontrado' });
     }
-    req.login(user, (err) => {
-      if (err) {
-        return next(err);
-      }
-      req.session.user = user;
-      res.cookie('session', req.sessionID);
-      res.cookie('tipo_usuario', user.id_tipo_usuario);
-      return res.json({ success: true, message: 'Inicio de sesión exitoso' });
-    });
-  })(req, res, next);
+  });
 };
-
-module.exports = { login };

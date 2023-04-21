@@ -7,7 +7,7 @@ import { Button, TextField, Alert, Snackbar } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 export const Login = () => {
 
-  const [cookies,setCookie] = useCookies(['session', 'tipo_usuario']);
+  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario']);
 
 
   const navigate = useNavigate();
@@ -28,24 +28,17 @@ export const Login = () => {
       const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(usuario),
-        credentials: 'include'
+        body: JSON.stringify(usuario)
       });
-      
-      const cookiesBack = document.cookie.split(';');
-      const sessionCookie = cookiesBack.find(cookie => cookie.trim().startsWith('session='));
-      const sessionID = sessionCookie ? sessionCookie.split('=')[1] : null;
-      const otherCookie = cookiesBack.find(cookie => cookie.trim().startsWith('tipo_usuario='));
-      const tipo_usuario = otherCookie ? otherCookie.split('=')[1] : null;
-
       const data = await response.json();
-
       if (!data.success) {
         setError(data.message);
-
       } else {
+        setCookie('token', data.token, { path: '/' });
+        setCookie('tipo_usuario', data.tipo_usuario, { path: '/' });
 
-        
+        const tipo_usuario = data.tipo_usuario
+
         if (tipo_usuario === 'admin') {
           navigate('/admin');
         } else if (tipo_usuario === 'normal') {
@@ -53,9 +46,8 @@ export const Login = () => {
         } else if (tipo_usuario === 'comite') {
           navigate('/comite');
         }
-        setCookie('session', sessionID, { path: '/' });
-        setCookie('tipo_usuario', tipo_usuario, { path: '/' });
-        
+
+
       }
     } catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
