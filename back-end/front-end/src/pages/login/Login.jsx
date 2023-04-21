@@ -1,16 +1,15 @@
 import React, { Fragment, useState } from "react";
-
-import { useDispatch } from "react-redux";
+import { useCookies } from 'react-cookie';
 import Footer from "../pie_de_pagina/Footer"
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
 import { Button, TextField, Alert, Snackbar } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
-import { setUser } from '../../store/authSlice';
 export const Login = () => {
 
+  const [cookies,setCookie] = useCookies(['session', 'tipo_usuario']);
 
-  const dispatch = useDispatch();
+
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState({
@@ -30,21 +29,33 @@ export const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(usuario),
+        credentials: 'include'
       });
+      
+      const cookiesBack = document.cookie.split(';');
+      const sessionCookie = cookiesBack.find(cookie => cookie.trim().startsWith('session='));
+      const sessionID = sessionCookie ? sessionCookie.split('=')[1] : null;
+      const otherCookie = cookiesBack.find(cookie => cookie.trim().startsWith('tipo_usuario='));
+      const tipo_usuario = otherCookie ? otherCookie.split('=')[1] : null;
+
       const data = await response.json();
+
       if (!data.success) {
         setError(data.message);
 
       } else {
-        dispatch(setUser(data.user))
-        if (data.user.id_tipo_usuario === 'admin') {
+
+        
+        if (tipo_usuario === 'admin') {
           navigate('/admin');
-        } else if (data.user.id_tipo_usuario === 'normal') {
+        } else if (tipo_usuario === 'normal') {
           navigate('/inicio');
-        } else if (data.user.id_tipo_usuario === 'comite') {
+        } else if (tipo_usuario === 'comite') {
           navigate('/comite');
         }
-
+        setCookie('session', sessionID, { path: '/' });
+        setCookie('tipo_usuario', tipo_usuario, { path: '/' });
+        
       }
     } catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
