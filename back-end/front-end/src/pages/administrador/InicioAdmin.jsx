@@ -20,7 +20,6 @@ function InicioAdmin() {
   const cerrarSesion = () => {
     dispatch(clearSession());
     dispatch(clearCookies());
-    fetch('http://localhost:5000/logout', { method: 'GET' });
     navigate('/')
   };
 

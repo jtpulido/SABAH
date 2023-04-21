@@ -5,12 +5,13 @@ import { Alert, Snackbar } from "@mui/material";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 
+
 const columns = [
-  { field: 'nombre', headerName: 'Nombre', width: 130 },
-  { field: 'codigo', headerName: 'Código', width: 130 },
-  { field: 'modalidad', headerName: 'Modalidad', width: 90 },
-  { field: 'etapa', headerName: 'Etapa', width: 160 },
-  { field: 'estado', headerName: 'Estado', width: 160 }
+  { field: 'nombre', headerName: 'Nombre'  ,flex: 0.3 ,minWidth: 150},
+  { field: 'codigo', headerName: 'Código'   ,flex: 0.15,minWidth: 100},
+  { field: 'modalidad', headerName: 'Modalidad'  ,flex: 0.2,minWidth: 100},
+  { field: 'etapa', headerName: 'Etapa'   ,flex: 0.2,minWidth: 100},
+  { field: 'estado', headerName: 'Estado'  ,flex: 0.15,minWidth: 100}
 ];
 
 export default function Proyectos() {
@@ -44,7 +45,7 @@ export default function Proyectos() {
   }, []);
 
   return (
-    <div style={{ height: 400, width: '100%' }}>
+    <div style={{ width: '100%' }}>
       {error && (
         <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
           <Alert severity="error" onClose={handleClose}>
@@ -52,12 +53,11 @@ export default function Proyectos() {
           </Alert>
         </Snackbar>
       )}
-      <DataGrid
+      <DataGrid 
         rows={rows}
         columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-        checkboxSelection
+        pageSize={10}
+        rowsPerPageOptions={[5]}   getRowHeight={() => 'auto'}
       />
     </div>
   );

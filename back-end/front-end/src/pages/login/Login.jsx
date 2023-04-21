@@ -34,8 +34,12 @@ export const Login = () => {
       if (!data.success) {
         setError(data.message);
       } else {
-        setCookie('token', data.token, { path: '/' });
-        setCookie('tipo_usuario', data.tipo_usuario, { path: '/' });
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (2 * 60 * 60 * 1000)); // caduca en dos horas
+
+        console.log(expires)
+        setCookie('token', data.token, { path: '/', expires });
+        setCookie('tipo_usuario', data.tipo_usuario, { path: '/', expires });
 
         const tipo_usuario = data.tipo_usuario
 
