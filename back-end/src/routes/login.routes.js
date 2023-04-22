@@ -1,19 +1,16 @@
-const { Router } = require('express')
-const { login } = require('../controllers/login.controller')
+const express = require('express');
+const passport = require('passport');
+const router = express.Router();
 
-const router = Router()
+const { inicioSesion } = require('../controllers/login.controller');
 
-router.get('/logout', function (req, res) {
-    req.logout(function (err) {
-        if (err) {
-            console.error("error aca", err);
-            return next(err);
-        }
-        res.sendStatus(200);
-    });
+router.post('/login', inicioSesion);
+
+router.get('/perfil', passport.authenticate('jwt', { session: false }), (req, res) => {  res.json({
+    id: req.user.id,
+    correo: req.user.correo,
+    tipo_usuario: req.user.id_tipo_usuario
+  });
 });
-
-router.post('/login', login);
-
 
 module.exports = router;

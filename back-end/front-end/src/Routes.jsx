@@ -9,10 +9,10 @@ import NotFoundPage from "./pages/NotFoundPage";
 import UnauthorizedPage from "./pages/Unauthorized";
 import { ProtectedRoute } from "./store/ProtectedRoute";
 import { Provider } from 'react-redux';
-import store from './store/store';
+import configureAuthStore from './store/store';
 
 export default function AppRoutes() {
-
+    const store = configureAuthStore();
     return (
         <Provider store={store}>
             <Routes>

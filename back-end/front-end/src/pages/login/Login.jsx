@@ -1,6 +1,5 @@
 import React, { Fragment, useState } from "react";
-
-import { useDispatch } from "react-redux";
+import { useCookies } from 'react-cookie';
 import Footer from "../pie_de_pagina/Footer"
 import "./Login.css";
 import logo from "../../assets/images/logo.png";
@@ -10,8 +9,8 @@ import { setUser } from '../../store/authSlice';
 import { Recuperar1 } from '../login/ventanas/recuperar contrasena1/Recuperar1';
 
 export const Login = () => {
+  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario']);
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState({
@@ -40,7 +39,7 @@ export const Login = () => {
       const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(usuario),
+        body: JSON.stringify(usuario)
       });
 
       const data = await response.json();
@@ -51,14 +50,19 @@ export const Login = () => {
 
       } else {
 
-        dispatch(setUser(data.user))
+        setCookie('token', data.token, { path: '/' });
+        setCookie('tipo_usuario', data.tipo_usuario, { path: '/' });
+
+        const tipo_usuario = data.tipo_usuario
+
         if (data.user.id_tipo_usuario === 'admin') {
           navigate('/admin');
-        } else if (data.user.id_tipo_usuario === 'normal') {
+        } else if (tipo_usuario === 'normal') {
           navigate('/inicio');
-        } else if (data.user.id_tipo_usuario === 'comite') {
+        } else if (tipo_usuario === 'comite') {
           navigate('/comite');
         }
+
 
       }
     } catch (error) {
