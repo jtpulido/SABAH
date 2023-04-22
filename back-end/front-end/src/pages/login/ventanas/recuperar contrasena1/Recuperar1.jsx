@@ -1,31 +1,66 @@
-import React from "react";
+import React, { useState } from 'react';
+import { Button, Modal, Input } from 'antd';
+import { Alert, Snackbar } from "@mui/material";
 import "./Recuperar1.css";
-import { Button, ModalHeader, Input } from "reactstrap"
+import { Recuperar2 } from "../recuperar contrasena2/Recuperar2"
 
-export const Recuperar1 = ({ isVisible, onClose }) => {
+export const Recuperar1 = ({ isVisible, closeModal }) => {
 
-    if (!isVisible) return null
+  const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
 
-    const handleClose = (e) => {
-        if (e.target.id === 'wrapper') onClose()
-    }
+  React.useEffect(() => {
+    setIsModalVisible(isVisible);
+  }, [isVisible]);
 
-    return (
+  /** Segundo modal de recuperar contrasena */
+  const [visible2, setVisible2] = useState(false);
 
-        <div className="container" id='wrapper' onClick={handleClose}>
+  const [inputValue, setInputValue] = useState(null);
 
-            <div className="content">
+  const closeModal1 = () => {
+    setInputValue(null);
+    closeModal();
+  };
 
-                <div className="modal">
-                    <ModalHeader className="header">Recuperar Contraseña</ModalHeader>
-                    <p>Ingrese el correo o código del proyecto</p>
-                    <Input className="input"></Input>
-                    <Button className="boton_enviar">Enviar Código</Button>
-                </div>
+  const closeModal2 = () => {
+    setVisible2(false);
+  };
 
-            </div>
+  const openModal2 = () => {
+    setVisible2(true);
+  };
 
+  const [error, setError] = useState(null);
+  const handleClose = () => setError(null);
+
+  return (
+    <>
+      {error && (
+          <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+            <Alert severity="error" onClose={handleClose}>
+              {error}
+            </Alert>
+          </Snackbar>
+        )}
+      <Modal
+        title="Recuperar Contraseña"
+        centered
+        open={isModalVisible}
+        onCancel={closeModal1}
+        footer={null}
+        className='modal_recuperar1'
+        style={{ borderRadius: 0 }}
+      >
+        <div className="div">
+          <p className='text'>Ingrese el correo o código del proyecto</p>
         </div>
 
-    );
+        <Input className='input' value={inputValue} onChange={(e) => setInputValue(e.target.value)}></Input>
+        <Button className='boton_enviar' onClick={openModal2}>Enviar Código</Button>
+        <Recuperar2 isVisible={visible2} onClose={closeModal2} closeModal1={closeModal1} />
+      </Modal>
+    </>
+  );
 };
+
+export default Recuperar1;

@@ -1,80 +1,24 @@
-.container {
+.modal_recuperar1 {
     font-family: 'Montserrat', sans-serif;
-    position: fixed;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    backdrop-filter: blur(8px);
-}
-
-.content {
-    opacity: 1;
-    height: 95%;
-    margin: 25%;
-    background-color: white;
-    border-radius: 25px;
-    border: 0.5mm solid;
-    border-color: #576A3D;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-.content>* {
-    flex: 1 1 auto;
-}
-
-.div_boton_cerrar {
-    height: 10px;
-    position: relative;
-    margin-top: 8px;
-    display: inline-flex;
-}
-
-.modal {
-    padding-bottom: 10px;
-    margin-left: 60px;
-    margin-right: 60px;
-    background-color: blackq;
-}
-
-.boton_cerrar {
     color: #576A3D;
-    background-color: white;
-    outline: none;
-    border: none;
-}
+}   
 
-.header {
-    font-size: 28px;
-    align-content: left;
+:where(.css-dev-only-do-not-override-1fviqcj).ant-modal .ant-modal-title {
     color: #576A3D;
-    display: flex;
-    margin-bottom: -15px;
 }
 
-.modal p {
-    color: #576A3D;
-    cursor: pointer;
-}
-
-.input {
-    margin-top: 10px;
-    line-height: 35px;
-    width: 70%;
-    background-color: #EFEFF4;
-    border-style: ridge;
-    border-color: #576A3D;
-    border-width: thin;
-    font-size: 16px;
-    outline: none;
+.div {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    align-content: center;
+    text-align: center;
 }
 
 .boton_enviar {
     align-content: center;
     text-align: center;
     line-height: 28px;
-    width: 40%;
+    width: 30%;
     background-color: #8DB33A;
     color: white;
     border: none;
@@ -82,4 +26,25 @@
     margin: auto;
     display: grid;
     margin-top: 28px;
+    margin-bottom: 20px;
+    border-radius: 0;
+}
+
+.input {
+    line-height: 30px;
+    width: 70%;
+    background-color: #EFEFF4;
+    border-style: ridge;
+    border-color: #576A3D;
+    border-width: thin;
+    font-size: 16px;
+    outline: none;
+    margin: auto;
+    display: grid;
+    border-radius: 0;
+}
+
+.text {
+    justify-content: center;
+    color: #576A3D;
 }

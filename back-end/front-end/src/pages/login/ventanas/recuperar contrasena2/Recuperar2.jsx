@@ -1,37 +1,57 @@
-import React from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import React, { useState } from 'react';
+import { Button, Modal, Input } from 'antd';
+import "./Recuperar2.css";
+import { Recuperar3 } from "../recuperar contrasena3/Recuperar3"
 
-export class Recuperar2 extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      modal: false
-    };
+export const Recuperar2 = ({ isVisible, onClose, closeModal1 }) => {
 
-    this.toggle = this.toggle.bind(this);
-  }
+  const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
 
-  toggle() {
-    this.setState({
-      modal: !this.state.modal
-    });
-  }
+  React.useEffect(() => {
+    setIsModalVisible(isVisible);
+  }, [isVisible]);
 
-  render() {
-    return (
-      <div>
-        <Button color="danger" onClick={this.toggle}>{this.props.buttonLabel}</Button>
-        <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
-          <ModalHeader toggle={this.toggle}>Modal title</ModalHeader>
-          <ModalBody>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </ModalBody>
-          <ModalFooter>
-            <Button color="primary" onClick={this.toggle}>Do Something</Button>{' '}
-            <Button color="secondary" onClick={this.toggle}>Cancel</Button>
-          </ModalFooter>
-        </Modal>
-      </div>
-    );
-  }
-}
+  const [visible3, setVisible3] = useState(false);
+
+  const [inputValue, setInputValue] = useState(null);
+
+  const closeModal2 = () => {
+    setInputValue(null);
+    setIsModalVisible(false);
+    onClose();
+    closeModal1();
+  };
+
+  const closeModal3 = () => {
+    setVisible3(false);
+    closeModal2();
+  };
+
+  const openModal3 = () => {
+    setVisible3(true);
+  };
+
+
+  return (
+    <>
+      <Modal
+        title="Recuperar Contraseña"
+        centered
+        open={isModalVisible}
+        onCancel={closeModal2}
+        footer={null}
+        className='modal_recuperar2'
+      >
+        <div className="div">
+          <p className='text'>Ingrese el código enviado a su correo</p>
+        </div>
+
+        <Input className='input' value={inputValue} onChange={(e) => setInputValue(e.target.value)}></Input>
+        <Button className='boton_enviar' onClick={openModal3}>Cambiar Contraseña</Button>
+        <Recuperar3 isVisible={visible3} onClose={closeModal3} closeModal2={closeModal2} />
+      </Modal>
+    </>
+  );
+};
+
+export default Recuperar2;

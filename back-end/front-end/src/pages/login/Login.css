@@ -62,6 +62,9 @@ body {
   height: 100vh;
 }
 
+.center {
+  text-align: center;
+}
 
 .container {
   display: flex;
