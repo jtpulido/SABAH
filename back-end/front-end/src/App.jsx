@@ -1,17 +1,20 @@
+import { ColorModeContext, useMode } from "./theme";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 
 import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./Routes";
-import { QueryClient, QueryClientProvider } from 'react-query'
-
-const queryClient = new QueryClient()
 
 export default function App() {
+  const [theme, colorMode] = useMode();
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter >
-    </QueryClientProvider>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter >
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   )
 }
 
