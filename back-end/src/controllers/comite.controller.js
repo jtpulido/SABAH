@@ -42,5 +42,22 @@ const obtenerTodosProyectos = async (req, res) => {
     }
 };
 
+const obtenerProyecto = async (req, res) => {
 
-module.exports = { obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo }
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
+        const proyecto = result.rows
+        if (result.rowCount === 1) {
+            return res.json({ success: true, proyecto: proyecto[0] });
+        } else {
+            return res.status(401).json({ success: true, message: 'No se encontro el proyecto' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+
+module.exports = { obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo }
