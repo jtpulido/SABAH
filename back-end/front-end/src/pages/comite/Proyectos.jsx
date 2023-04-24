@@ -72,7 +72,7 @@ export default function Proyectos() {
 
   const llenarTablaEnCurso = async () => {
     try {
-      const response = await fetch("http://localhost:5000/proyectos/obtenerEnCurso", {
+      const response = await fetch("http://localhost:5000/comite/obtenerEnCurso", {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -89,7 +89,7 @@ export default function Proyectos() {
   };
   const llenarTablaCerrados = async () => {
     try {
-      const response = await fetch("http://localhost:5000/proyectos/obtenerTerminados", {
+      const response = await fetch("http://localhost:5000/comite/obtenerTerminados", {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

@@ -30,27 +30,27 @@ export const themeSettings = (mode) => {
             fontSize: 12,
             h1: {
                 fontFamily: ["Montserrat", "sans-serif"].join(","),
-                fontSize: 30
+                fontSize: 25
             },
             h2: {
                 fontFamily: ["Montserrat", "sans-serif"].join(","),
-                fontSize: 25
+                fontSize: 20
             },
             h3: {
                 fontFamily: ["Montserrat", "sans-serif"].join(","),
-                fontSize: 23
+                fontSize: 18
             },
             h4: {
                 fontFamily: ["Montserrat", "sans-serif"].join(","),
-                fontSize: 20
+                fontSize: 16
             },
             h5: {
                 fontFamily: ["Montserrat", "sans-serif"].join(","),
-                fontSize: 16
+                fontSize: 14
             },
             h6: {
                 fontFamily: ["Montserrat", "sans-serif"].join(","),
-                fontSize: 14
+                fontSize: 13
             }
         }
     };

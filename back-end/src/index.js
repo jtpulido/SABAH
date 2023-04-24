@@ -19,8 +19,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
+  origin: 'http://localhost:3000'
 }))
 
 app.use(morgan('dev'))

@@ -4,9 +4,9 @@ const { obtenerProyecto,obtenerTodosProyectos, obtenerProyectosTerminados, obten
 const router = Router()
 
 
-router.get('/proyectos/obtenerTodos', passport.authenticate('jwt', { session: false }), obtenerTodosProyectos);
-router.get('/proyectos/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
-router.get('/proyectos/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
-router.post('/proyectos/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.get('/comite/obtenerTodos', passport.authenticate('jwt', { session: false }), obtenerTodosProyectos);
+router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
+router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
+router.post('/comite/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
 
 module.exports = router;
