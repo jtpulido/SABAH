@@ -1,7 +1,7 @@
 .modal_recuperar1 {
     font-family: 'Montserrat', sans-serif;
     color: #576A3D;
-}   
+}
 
 :where(.css-dev-only-do-not-override-1fviqcj).ant-modal .ant-modal-title {
     color: #576A3D;
@@ -30,18 +30,20 @@
     border-radius: 0;
 }
 
-.input {
-    line-height: 30px;
-    width: 70%;
+.container_input {
+    display: flex;
+    justify-content: center;
+}
+
+.container_input input {
+    height: 10px;
+    width: 100%;
     background-color: #EFEFF4;
     border-style: ridge;
     border-color: #576A3D;
     border-width: thin;
     font-size: 16px;
     outline: none;
-    margin: auto;
-    display: grid;
-    border-radius: 0;
 }
 
 .text {
