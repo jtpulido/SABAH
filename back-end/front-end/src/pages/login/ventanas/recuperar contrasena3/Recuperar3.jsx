@@ -4,13 +4,13 @@ import { Button, Modal, Input } from 'antd';
 import { TextField, Alert, Snackbar } from "@mui/material";
 import "./Recuperar3.css";
 
-export const Recuperar3 = ({ isVisible, onClose, closeModal2 }) => {
+export const Recuperar3 = ({ isVisible3, closeModalFunction3 }) => {
 
-    const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
+    const [isModalVisible, setIsModalVisible] = React.useState(isVisible3);
 
     React.useEffect(() => {
-        setIsModalVisible(isVisible);
-    }, [isVisible]);
+        setIsModalVisible(isVisible3);
+    }, [isVisible3]);
 
     const [inputValue1, setInputValue1] = useState(null);
     const [inputValue2, setInputValue2] = useState(null);
@@ -26,16 +26,15 @@ export const Recuperar3 = ({ isVisible, onClose, closeModal2 }) => {
         setIsPasswordVisible2(false);
 
         setIsModalVisible(false);
-        onClose();
-        closeModal2();
+        closeModalFunction3();
     };
 
     React.useEffect(() => {
-        if (!isVisible) {
+        if (!isVisible3) {
             setIsPasswordVisible1(false);
             setIsPasswordVisible2(false);
         }
-    }, [isVisible]);
+    }, [isVisible3]);
 
     const [contrasena, setContrasena] = useState({
         contrasena1: "",
@@ -46,56 +45,49 @@ export const Recuperar3 = ({ isVisible, onClose, closeModal2 }) => {
     const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
     const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setContrasena({ ...contrasena, [name]: value });
+    };
+
     const handleReset = async (event) => {
         event.preventDefault();
         if (contrasena.contrasena1 !== "" && contrasena.contrasena2 !== "") {
-          try {
-            const response = await fetch("http://localhost:5000/cambiarContrasena", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(contrasena)
-            });
-    
-            const data = await response.json();
-    
-            if (!data.success) {
-                //setContrasena("");
-                setMensaje({ tipo: "error", texto: data.message });
-    
-              // Si el correo si existe
-            } else {
-              setMensaje({ tipo: "success", texto: "El correo electrónico ingresado está registrado en nuestro sistema." });
-    
+            try {
+                const response = await fetch("http://localhost:5000/cambiarContrasena", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(contrasena)
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    //setContrasena("");
+                    setMensaje({ tipo: "error", texto: data.message });
+
+                    // Contraseña cambiada con éxito
+                } else {
+                    setMensaje({ tipo: "success", texto: data.message });
+                    closeModal3();
+                }
+
+            } catch (error) {
+                //setCorreo("");
+                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
             }
-    
-          } catch (error) {
-            //setCorreo("");
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-          }
-    
-          // Si el valor es null
+
+            // Si el valor de cualquier input es null
         } else {
-          //setCorreo("");
-          setMensaje({ tipo: "error", texto: "Por favor ingrese un valor de correo electrónico válido." });
+            //setCorreo("");
+            setMensaje({ tipo: "error", texto: "Por favor ingrese los valores requeridos." });
         }
-    
-      };
+
+    };
 
 
     return (
         <>
-            {mensaje.texto && (
-                <Snackbar
-                    open={true}
-                    autoHideDuration={5000}
-                    onClose={handleCloseMensaje}
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                >
-                    <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                        {mensaje.texto}
-                    </Alert>
-                </Snackbar>
-            )}
             <Modal
                 title="Recuperar Contraseña"
                 centered
@@ -104,6 +96,18 @@ export const Recuperar3 = ({ isVisible, onClose, closeModal2 }) => {
                 footer={null}
                 className='modal_recuperar3'
             >
+                {mensaje.texto && (
+                    <Snackbar
+                        open={true}
+                        autoHideDuration={5000}
+                        onClose={handleCloseMensaje}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    >
+                        <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
+                            {mensaje.texto}
+                        </Alert>
+                    </Snackbar>
+                )}
                 <div className="div">
                     <p className='text'>Ingrese su nueva contraseña</p>
                 </div>
@@ -118,7 +122,7 @@ export const Recuperar3 = ({ isVisible, onClose, closeModal2 }) => {
                                 <EyeInvisibleOutlined onClick={() => setIsPasswordVisible1(!isPasswordVisible1)} />
                         )}
                         value={inputValue1}
-                        onChange={(e) => setInputValue1(e.target.value)}
+                        onChange={handleChange}
                         type={isPasswordVisible1 ? 'text' : 'password'}
                     />
                     <Input.Password
@@ -130,12 +134,12 @@ export const Recuperar3 = ({ isVisible, onClose, closeModal2 }) => {
                                 <EyeInvisibleOutlined onClick={() => setIsPasswordVisible2(!isPasswordVisible2)} />
                         )}
                         value={inputValue2}
-                        onChange={(e) => setInputValue2(e.target.value)}
+                        onChange={handleChange}
                         type={isPasswordVisible2 ? 'text' : 'password'}
                     />
                 </div>
 
-                <Button className='boton_enviar'>Cambiar Contraseña</Button>
+                <Button className='boton_enviar' onClick={handleReset}>Cambiar Contraseña</Button>
             </Modal>
         </>
     );

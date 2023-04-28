@@ -84,6 +84,7 @@ export const Login = () => {
     }
   };
 
+  // Modal 1
   const [showModal, setModalOpen] = useState(false);
 
   const closeModal = () => {

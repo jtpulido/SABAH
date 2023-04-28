@@ -4,28 +4,21 @@ import { TextField, Alert, Snackbar } from "@mui/material";
 import "./Recuperar2.css";
 import { Recuperar3 } from "../recuperar contrasena3/Recuperar3"
 
-export const Recuperar2 = ({ isVisible, onClose, closeModal1 }) => {
+export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
 
-  const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
+  const [isModalVisible, setIsModalVisible] = React.useState(isVisible2);
 
   React.useEffect(() => {
-    setIsModalVisible(isVisible);
-  }, [isVisible]);
+    setIsModalVisible(isVisible2);
+  }, [isVisible2]);
 
+  // Tercer modal de recuperar contrasena
   const [visible3, setVisible3] = useState(false);
 
   const [codigoIngresado, setCodigoIngresado] = useState("");
 
-  const closeModal2 = () => {
-    setCodigoIngresado("");
-    setIsModalVisible(false);
-    onClose();
-    closeModal1();
-  };
-
-  const closeModal3 = () => {
+  const closeModalFunction3 = () => {
     setVisible3(false);
-    closeModal2();
   };
 
   const openModal3 = () => {
@@ -58,11 +51,11 @@ export const Recuperar2 = ({ isVisible, onClose, closeModal1 }) => {
 
           // Si el codigo es el mismo
         } else {
-          window.alert(data.message)
           setCodigoIngresado("");
           setMensaje({ tipo: "success", texto: data.message });
+          //closeModal2();
+          setIsModalVisible(false);
           openModal3();
-          closeModal2();
         }
 
       } catch (error) {
@@ -80,27 +73,29 @@ export const Recuperar2 = ({ isVisible, onClose, closeModal1 }) => {
 
   return (
     <>
-      {mensaje.texto && (
-        <Snackbar
-          open={true}
-          autoHideDuration={5000}
-          onClose={handleCloseMensaje}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-            {mensaje.texto}
-          </Alert>
-        </Snackbar>
-      )}
-
       <Modal
         title="Recuperar Contraseña"
         centered
         open={isModalVisible}
-        onCancel={closeModal2}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
         className='modal_recuperar2'
       >
+
+        {mensaje.texto && (
+          <Snackbar
+            open={true}
+            autoHideDuration={5000}
+            onClose
+            ={handleCloseMensaje}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
+              {mensaje.texto}
+            </Alert>
+          </Snackbar>
+        )}
+
         <div className="div">
           <p className='text'>Ingrese el código enviado a su correo</p>
         </div>
@@ -108,7 +103,7 @@ export const Recuperar2 = ({ isVisible, onClose, closeModal1 }) => {
           <TextField type="text" name="codigoIngresado" id="codigoIngresado" className='input' value={codigoIngresado} onChange={handleChange}></TextField>
         </div>
         <Button className='boton_enviar' onClick={handleSubmit}>Cambiar Contraseña</Button>
-        <Recuperar3 isVisible={visible3} onClose={closeModal3} closeModal2={closeModal2} />
+        <Recuperar3 isVisible3={visible3} closeModal={closeModalFunction3} />
       </Modal>
     </>
   );

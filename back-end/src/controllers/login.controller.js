@@ -103,19 +103,11 @@ const verificarCodigo = async (req, res) => {
 
 const cambiarContrasena = async (req, res) => {
 
-  const { correo } = req.body;
-  try {
-    const result = await pool.query('SELECT u.* FROM usuario u WHERE LOWER(u.correo)=LOWER($1)', [correo]);
-    if (result.rowCount === 1) {
-      const usuario = result.rows[0];
-      return res.status(200).json({ success: true, correo: usuario.correo });
-    } else {
-      return res.status(401).json({ success: false, message: 'Autenticación fallida: Usuario no encontrado.' });
-    }
+  const correo = req.app.locals.correo;
 
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-  }
+  console.log(correo)
+
+  return res.json({ success: false, message: "paso"}); 
 
 };
 
