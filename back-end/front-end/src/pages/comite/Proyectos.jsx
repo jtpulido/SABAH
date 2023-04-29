@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, useTheme } from "@mui/material";
-import { Alert, Snackbar } from "@mui/material";
+
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
+
+import { Visibility } from '@mui/icons-material';
 import "./Proyectos.css";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
@@ -19,20 +22,45 @@ function CustomToolbar() {
     </GridToolbarContainer>
   );
 }
-const columns = [
-  {
-    field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
-    headerAlign: "center"
-  },
-  { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
-  { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-  { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
-  { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
-  { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" },
-  { field: 'estado', headerName: 'Estado', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" }
-];
 
 export default function Proyectos() {
+  const navigate = useNavigate();
+  const columns = [
+    {
+      field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
+      headerAlign: "center"
+    },
+    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
+    {
+      field: "id",
+      headerName: "Acción",
+      width: 100,
+      flex: 0.05, minWidth: 100, headerAlign: "center", align: "center",
+      renderCell: ({ row: { id } }) => {
+        return (
+          <Box
+            width="100%"
+            m="0 auto"
+            p="5px"
+            display="flex"
+            justifyContent="center"
+          >
+            <IconButton aria-label="fingerprint" color="secondary" onClick={() => verProyecto(id)}>
+              <Visibility />
+            </IconButton>
+          </Box>
+        );
+      },
+    }
+  ];
+  const verProyecto = (id) => {
+    navigate(`/comite/verProyecto/${id}`)
+  }
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
@@ -44,7 +72,7 @@ export default function Proyectos() {
 
   const llenarTablaEnCurso = async () => {
     try {
-      const response = await fetch("http://localhost:5000/proyectos/obtenerEnCurso", {
+      const response = await fetch("http://localhost:5000/comite/obtenerEnCurso", {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -61,7 +89,7 @@ export default function Proyectos() {
   };
   const llenarTablaCerrados = async () => {
     try {
-      const response = await fetch("http://localhost:5000/proyectos/obtenerTerminados", {
+      const response = await fetch("http://localhost:5000/comite/obtenerTerminados", {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -91,7 +119,7 @@ export default function Proyectos() {
       )}
       <Typography
         variant="h1"
-        color={colors.greenAccent[100]}
+        color={colors.secundary[100]}
         fontWeight="bold"
       >
         PROYECTOS

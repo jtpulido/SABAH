@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 import InicioCmt from "./InicioCmt";
 import Proyectos from "./Proyectos";
+import VerProyecto from "./VerProyecto";
 import Lectores from "./Lectores";
 export default function RoutesCmt() {
 
@@ -12,6 +13,7 @@ export default function RoutesCmt() {
             <Route path="/" element={<InicioCmt />} >
                 <Route index element={<Proyectos />} />
                 <Route path="lectores" element={<Lectores />} />
+                <Route path="verProyecto/:id" element={<VerProyecto />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes></div>
