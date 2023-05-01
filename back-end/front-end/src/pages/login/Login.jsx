@@ -42,13 +42,15 @@ export const Login = () => {
         setCookie('tipo_usuario', data.tipo_usuario, { path: '/', expires });
 
         const tipo_usuario = data.tipo_usuario
-
+        console.log(tipo_usuario)
         if (tipo_usuario === 'admin') {
           navigate('/admin');
         } else if (tipo_usuario === 'normal') {
           navigate('/inicio');
         } else if (tipo_usuario === 'comite') {
           navigate('/comite');
+        } else if (tipo_usuario === 'Proyecto'){
+          navigate('/proyecto')
         }
 
 
