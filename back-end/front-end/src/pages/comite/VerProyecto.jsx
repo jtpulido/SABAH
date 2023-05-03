@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import { useParams } from 'react-router-dom';
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline } from "@mui/material";
+import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 import "./Proyectos.css";
 import { tokens } from "../../theme";
 
@@ -23,6 +23,39 @@ export default function VerProyectos() {
   const [existeLector, setExisteLector] = useState([]);
   const [existeJurados, setExisteJurados] = useState([]);
   const [listaJurado, setListaJurado] = useState([]);
+  const modificarCodigo = (id) => {
+
+  }
+
+  const asignarCodigo = async (id, acronimo, anio, periodo) => {
+    try {
+      const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
+      });
+      const data = await response.json();
+      if (!data.success) {
+        setError(data.message);
+        setExiste(false)
+      } else {
+        actualizarProyecto(data.codigo,data.etapa)
+      }
+    } catch (error) {
+      setExiste(false)
+      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+    }
+  }
+  const actualizarProyecto = (nuevoCodigo,etapa) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      codigo: nuevoCodigo
+    }));
+    setProyecto((prevState) => ({
+      ...prevState,
+      etapa: etapa
+    }));
+  };
 
   const infoProyecto = async () => {
     try {
@@ -66,7 +99,7 @@ export default function VerProyectos() {
       )}
       {existe ? (
 
-        <Box >
+        <Box sx={{ '& button': { mt: 1 } }}>
           <CssBaseline />
 
           <Typography
@@ -85,6 +118,15 @@ export default function VerProyectos() {
           >
             {proyecto.codigo || ''}
           </Typography>
+          {proyecto.etapa === "Propuesta" ? (
+            <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)}>
+              Asignar Código
+            </Button>
+          ) : (
+            <Button variant="outlined" disableElevation onClick={() => modificarCodigo(id)}>
+              Modificar código
+            </Button>
+          )}
           <Box >
             <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
               Información General

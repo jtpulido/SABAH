@@ -59,9 +59,9 @@ const obtenerProyecto = async (req, res) => {
             const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1', [id])
 
             if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
-                return res.json({ success: true, proyecto: proyecto[0],director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
+                return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
             } else {
-                return res.status(401).json({ success: true, message: error })
+                return res.status(401).json({ success: false, message: error })
             }
 
         } else {
@@ -71,6 +71,40 @@ const obtenerProyecto = async (req, res) => {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+const asignarNuevoCodigo = async (proyectoId, nuevoCodigo) => {
+    try {
+        const result = await pool.query(
+            "UPDATE proyecto SET codigo = $1, id_etapa = 2 WHERE id = $2 RETURNING (SELECT nombre FROM etapa WHERE id = 2)",
+            [nuevoCodigo, proyectoId]
+        );
+        return result.rows[0].nombre;
+    } catch (error) {
+        console.log(error)
+        return false;
 
+    }
+};
 
-module.exports = { obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo }
+const asignarCodigoProyecto = async (req, res) => {
+    try {
+        const { id, acronimo, anio, periodo } = req.body;
+        await pool.query(
+            "SELECT MAX(CAST(SUBSTRING(p.codigo, LENGTH(m.acronimo)+2+4+2+2) AS INTEGER))  FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id WHERE p.codigo LIKE CONCAT($1::text, '_', $2::text, '-', $3::text, '-%')",
+            [acronimo, anio, periodo], async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                } else if (result.rowCount === 1) {
+                    const codigo = result.rows[0].max > 0 ? `${acronimo}_${anio}-${periodo}-${result.rows[0].max + 1}` : `${acronimo}_${anio}-${periodo}-01`
+                    const r = await asignarNuevoCodigo(id, codigo) 
+                    return r === false ? res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' }) : res.json({ success: true, codigo, etapa: r })
+                } else {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+            })
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+module.exports = { obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, asignarCodigoProyecto }
