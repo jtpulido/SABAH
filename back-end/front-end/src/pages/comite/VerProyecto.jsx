@@ -8,6 +8,7 @@ import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import './VerProyecto.css';
+
 export default function VerProyectos() {
   const { id } = useParams();
   const token = useSelector(selectToken);

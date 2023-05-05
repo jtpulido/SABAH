@@ -37,6 +37,9 @@ export const Login = () => {
     setInputValues({ ...inputValues, [name]: value });
   };
 
+  const handleInscription = () => {
+    navigate("/inscribirPropuesta");
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -113,7 +116,7 @@ export const Login = () => {
               <TextField name="password" id="password" type="password" value={inputValues.password} onChange={handleChange} />
               <Button type="submit" onClick={handleSubmit}>Iniciar Sesión</Button>
               <p onClick={() => setModalOpen(true)} className="p_recuperar center">Recuperar Contraseña</p>
-              <p className="p_propuesta center">Inscribir Propuesta</p>
+              <p className="p_propuesta center" onClick={handleInscription}>Inscribir Propuesta</p>
             </div>
           </div>
         </div>

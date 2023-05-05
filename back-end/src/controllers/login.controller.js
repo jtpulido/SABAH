@@ -6,8 +6,6 @@ const { JWT_SECRET } = require('../config')
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-//5 * 60 * 1000);
-
 const inicioSesion = async (req, res) => {
   const { username, password } = req.body;
   await pool.query('SELECT u.*, tu.tipo AS id_tipo_usuario FROM usuario u JOIN tipo_usuario tu ON u.id_tipo_usuario= tu.id WHERE LOWER(u.correo)=LOWER($1)', [username], (error, result) => {
@@ -61,7 +59,7 @@ const sendEmail = async (req, res) => {
 
   // Eliminar el código después de 5 minutos
   //setTimeout(() => {
-    //delete req.app.locals.codigoCreado;
+  //delete req.app.locals.codigoCreado;
   //}, 5 * 60 * 1000);
 
   const transporter = nodemailer.createTransport({
@@ -107,8 +105,157 @@ const cambiarContrasena = async (req, res) => {
 
   console.log(correo)
 
-  return res.json({ success: false, message: "paso"}); 
+  return res.json({ success: false, message: "paso" });
 
 };
 
-module.exports = { inicioSesion, confirmarCorreo, sendEmail, verificarCodigo, cambiarContrasena }
+const getIdUltProy = async (req, res) => {
+
+  try {
+    const result = await pool.query("SELECT max(id) FROM proyecto");
+
+    if (result.rowCount > 0) {
+      const num = result.rows[0].max;
+      return res.json({ success: true, num });
+    } else {
+      return res.status(401).json({ success: true, message: 'No hay proyectos actualmente.' })
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+
+};
+
+const getIdUltEst = async (req, res) => {
+
+  try {
+    const result = await pool.query("SELECT max(id) FROM estudiante");
+
+    if (result.rowCount > 0) {
+      const num = result.rows[0].max;
+      return res.json({ success: true, num });
+    } else {
+      return res.status(401).json({ success: true, message: 'No hay estudiantes actualmente.' })
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+
+};
+
+const codigoProy = async (req, res) => {
+
+  try {
+    const result = await pool.query("SELECT max(codigo) FROM proyecto WHERE codigo LIKE 'TEM%'");
+
+    if (result.rowCount > 0) {
+      const codigo = result.rows[0].max;
+      return res.json({ success: true, codigo });
+    } else {
+      return res.status(401).json({ success: true, message: 'No hay proyectos actualmente.' })
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+
+};
+
+const getModalidades = async (req, res) => {
+
+  try {
+    const result = await pool.query("SELECT * FROM modalidad");
+    const modalidades = result.rows
+
+    if (result.rowCount > 0) {
+      return res.json({ success: true, modalidades });
+    } else {
+      return res.status(401).json({ success: true, message: 'No hay modalidades actualmente.' })
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+
+};
+
+const getDirectores = async (req, res) => {
+
+  try {
+    const result = await pool.query("SELECT u.id, u.nombre FROM usuario u WHERE id_tipo_usuario=2");
+    const directores = result.rows
+
+    if (result.rowCount > 0) {
+      return res.json({ success: true, directores });
+    } else {
+      return res.status(401).json({ success: true, message: 'No hay directores actualmente.' })
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+
+};
+
+const inscribirPropuesta = async (req, res) => {
+
+  const { id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado } = req.body;
+
+  try {
+
+    await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
+
+    res.status(201).json({ success: true, message: 'El proyecto fue registrado exitosamente.' });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el proyecto. Por favor inténtelo más tarde.' });
+  }
+
+};
+
+const agregarEstudiante = async (req, res) => {
+
+  const { nombre, num_identificacion, correo } = req.body;
+
+  try {
+
+    await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3)', [nombre, num_identificacion, correo]);
+
+    res.status(201).json({ success: true, message: 'El estudiante fue registrado exitosamente.' });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
+  }
+
+};
+
+const agregarEstudianteProyecto = async (req, res) => {
+
+  const { estado, id_proyecto, id_estudiante } = req.body;
+
+  try {
+
+    await pool.query('INSERT INTO estudiante_proyecto(estado, id_proyecto, id_estudiante) VALUES ($1, $2, $3)', [estado, id_proyecto, id_estudiante]);
+
+    res.status(201).json({ success: true, message: 'Fue registrado exitosamente.' });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Ha ocurrido un error en el registro. Por favor inténtelo más tarde.' });
+  }
+
+};
+
+const agregarUsuarioRol  = async (req, res) => {
+
+  const { estado, fecha_asignacion, id_usuario, id_rol, id_proyecto } = req.body;
+
+  try {
+
+    await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES ($1, $2, $3, $4, $5)', [estado, fecha_asignacion, id_usuario, id_rol, id_proyecto]);
+
+    res.status(201).json({ success: true, message: 'Fue registrado exitosamente.' });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Ha ocurrido un error en el registro. Por favor inténtelo más tarde.' });
+  }
+
+};
+
+module.exports = { inicioSesion, confirmarCorreo, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, agregarEstudiante, getIdUltEst, agregarEstudianteProyecto, agregarUsuarioRol }

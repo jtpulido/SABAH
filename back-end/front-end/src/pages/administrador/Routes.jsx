@@ -2,15 +2,19 @@ import { Routes, Route } from "react-router-dom";
 
 import { Navigate } from 'react-router-dom';
 import InicioAdmin from "./InicioAdmin";
-import Inbox from "./Inbox";
+import Usuarios from './usuarios/Usuarios'
+import Proyectos from './proyectos/Proyectos'
 
 export default function RoutesAdmin() {
 
-    return (
+    return (<div>
         <Routes>
-            <Route path="" element={<InicioAdmin />} />
-            <Route path="inbox" element={<Inbox />} />
+            <Route path="/" element={<InicioAdmin />} >
+                <Route index element={<Usuarios />} />
+                <Route path="proyectos" element={<Proyectos />} />
+                <Route path="verProyecto/:id" element={<VerProyecto />} />
+            </Route>
             <Route path="*" element={<Navigate to="" replace />} />
-        </Routes>
+        </Routes></div>
     );
 }

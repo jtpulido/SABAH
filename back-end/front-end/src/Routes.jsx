@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 
 import Login from "./pages/login/Login";
+import Inscribir from "./pages/login/inscribir propuesta/Inscribir"
 import RoutesAdmin from "./pages/administrador/Routes";
 import RoutesProyect from "./pages/proyecto/Routes";
 import RoutesCmt from "./pages/comite/Routes";
@@ -24,6 +25,7 @@ export default function AppRoutes() {
                     <Route path="/inicio/*" element={<ProtectedRoute roles={["normal"]} element={<RoutesUsers />} />} />
                     <Route path="*" element={<NotFoundPage />} />
                     <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                    <Route path="/inscribirPropuesta/" element={<Inscribir />} />
                 </Route>
             </Routes>
         </Provider >
