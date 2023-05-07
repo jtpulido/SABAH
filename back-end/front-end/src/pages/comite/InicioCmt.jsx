@@ -26,6 +26,11 @@ function InicioCmt() {
   const buttonColors = {
     proyecto: activeButton === "proyecto" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
     lector: activeButton === "lector" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    director: activeButton === "director" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    jurado: activeButton === "jurado" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    entrega: activeButton === "entrega" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    solicitud: activeButton === "solicitud" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    reporte: activeButton === "reporte" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)"
   };
 
   const handleClick = (button) => {
