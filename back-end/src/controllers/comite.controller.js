@@ -96,7 +96,7 @@ const asignarCodigoProyecto = async (req, res) => {
 
                 } else if (result.rowCount === 1) {
                     const codigo = result.rows[0].max > 0 ? `${acronimo}_${anio}-${periodo}-${result.rows[0].max + 1}` : `${acronimo}_${anio}-${periodo}-01`
-                    const r = await asignarNuevoCodigo(id, codigo) 
+                    const r = await asignarNuevoCodigo(id, codigo)
                     return r === false ? res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' }) : res.json({ success: true, codigo, etapa: r })
                 } else {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -107,4 +107,94 @@ const asignarCodigoProyecto = async (req, res) => {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
-module.exports = { obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, asignarCodigoProyecto }
+const obtenerDirectoresProyectosActivos = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_director, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 1 AND ur.estado')
+        const directores = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, directores });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay directores asignados actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerDirectoresProyectosInactivos = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_director, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 1 AND NOT ur.estado')
+        const directores = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, directores });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay directores asignados actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerJuradosProyectosActivos = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_jurado, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 3 AND  ur.estado')
+        const jurados = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, jurados });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay jurados asignados actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerJuradosProyectosInactivos = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_jurado, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 3 AND NOT ur.estado')
+        const jurados = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, jurados });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay jurados asignados actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerLectoresProyectosActivos = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_lector, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 2 AND  ur.estado')
+        const lectores = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, lectores });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay lectores asignados actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerLectoresProyectosInactivos = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_lector, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 2 AND NOT ur.estado')
+        const lectores = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, lectores });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay lectores asignados actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+module.exports = {
+    obtenerProyecto,
+    obtenerTodosProyectos,
+    obtenerProyectosTerminados,
+    obtenerProyectosDesarrollo,
+    asignarCodigoProyecto,
+    obtenerDirectoresProyectosActivos,
+    obtenerDirectoresProyectosInactivos,
+    obtenerJuradosProyectosActivos,
+    obtenerJuradosProyectosInactivos,
+    obtenerLectoresProyectosActivos,
+    obtenerLectoresProyectosInactivos
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { clearSession,clearCookies} from '../../store/authSlice';
+import { clearSession, clearCookies } from '../../store/authSlice';
 import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemText, Toolbar } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
@@ -32,8 +32,18 @@ function InicioCmt() {
     setActiveButton(button);
     if (button === "proyecto") {
       navigate('/comite')
+    } else if (button === "director") {
+      navigate('/comite/directores')
     } else if (button === "lector") {
       navigate('/comite/lectores')
+    } else if (button === "jurado") {
+      navigate('/comite/jurados')
+    }else if (button === "solicitud") {
+      navigate('/comite/solicitudes')
+    }else if (button === "entrega") {
+      navigate('/comite/entregas')
+    }else if (button === "reporte") {
+      navigate('/comite/reportes')
     }
   };
   return (<div><CssBaseline />
@@ -75,6 +85,16 @@ function InicioCmt() {
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("director")} sx={{
+                    backgroundColor: buttonColors.director,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="DIRECTORES" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
                   <ListItemButton onClick={() => handleClick("lector")} sx={{
                     backgroundColor: buttonColors.lector,
                     "&:hover": {
@@ -82,6 +102,46 @@ function InicioCmt() {
                     },
                   }}>
                     <ListItemText primary="LECTORES" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("jurado")} sx={{
+                    backgroundColor: buttonColors.jurado,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="JURADOS" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("solicitud")} sx={{
+                    backgroundColor: buttonColors.solicitud,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="SOLICITUDES" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("reporte")} sx={{
+                    backgroundColor: buttonColors.reporte,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="REPORTES" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("entrega")} sx={{
+                    backgroundColor: buttonColors.entrega,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="ENTREGAS" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding >

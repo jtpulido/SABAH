@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 import "./Proyectos.css";
-import { tokens } from "../../theme";
-
+import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
-import { selectToken } from "../../store/authSlice";
+import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
 export default function VerProyectos() {
   const { id } = useParams();
