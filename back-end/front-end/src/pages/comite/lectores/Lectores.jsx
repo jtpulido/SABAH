@@ -17,7 +17,43 @@ function CustomToolbar() {
     </GridToolbarContainer>
   );
 }
+function CustomDataGrid({ rows, columns }) {
+  const [height, setHeight] = useState('200px');
 
+  useEffect(() => {
+    setHeight(rows.length > 0 ? 'auto' : '200px');
+  }, [rows]);
+
+  return (
+    <Box sx={{ height }}>
+      <DataGrid
+        getRowHeight={() => 'auto'}
+        rows={rows}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 10,
+            },
+          },
+        }}
+        pageSizeOptions={[10, 25, 50, 100]}
+        slots={{
+          toolbar: CustomToolbar,
+          noRowsOverlay: CustomNoRowsMessage
+        }}
+        disableColumnSelector
+      />
+    </Box>
+  );
+}
+const CustomNoRowsMessage = () => {
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      No hay lectores
+    </div>
+  );
+};
 export default function Lectores() {
   const navigate = useNavigate();
   const columns = [
@@ -66,8 +102,6 @@ export default function Lectores() {
   const token = useSelector(selectToken);
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
-  const [existeLectoresActivos, setExisteLectoresActivos] = useState([]);
-  const [existeLectoresInactivos, setExisteLectoresInactivos] = useState([]);
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
@@ -79,10 +113,8 @@ export default function Lectores() {
       });
       const data = await response.json();
       if (!data.success) {
-        setExisteLectoresActivos(false)
         setError(data.message);
       } else {
-        setExisteLectoresActivos(true)
         setRowsActivos(data.lectores);
       }
     }
@@ -98,10 +130,8 @@ export default function Lectores() {
       });
       const data = await response.json();
       if (!data.success) {
-        setExisteLectoresInactivos(false)
         setError(data.message);
       } else {
-        setExisteLectoresInactivos(true)
         setRowsInactivos(data.lectores);
       }
     }
@@ -116,7 +146,7 @@ export default function Lectores() {
   return (
     <div style={{ margin: "15px" }} >
       {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
           <Alert severity="error" onClose={handleClose}>
             {error}
           </Alert>
@@ -152,52 +182,13 @@ export default function Lectores() {
           sx={{ mt: "30px" }}>
           Activos
         </Typography>
-        {existeLectoresActivos ? (
-          <DataGrid
-            rows={rowsActivos}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 10,
-                },
-              },
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            getRowHeight={() => 'auto'}
-            slots={{
-              toolbar: CustomToolbar,
-            }}
-            disableColumnSelector
-          />
-        ) : (
-          <Typography variant="h6" color={colors.primary[100]}>No hay lectores activos en los proyectos</Typography>
-        )}
+        <CustomDataGrid rows={rowsActivos} columns={columns} />
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Inactivos
         </Typography>
-        {existeLectoresInactivos ? (
-          <DataGrid
-            rows={rowsInactivos}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 10,
-                },
-              },
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            getRowHeight={() => 'auto'}
-            slots={{
-              toolbar: CustomToolbar,
-            }}
-            disableColumnSelector
-          />
-        ) : (
-          <Typography variant="h6" color={colors.primary[100]}>No hay lectores inactivos en los proyectos</Typography>
-        )}
+        <CustomDataGrid rows={rowsInactivos} columns={columns} />
+
       </Box>
 
     </div>

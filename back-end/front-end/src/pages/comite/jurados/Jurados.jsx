@@ -17,7 +17,43 @@ function CustomToolbar() {
     </GridToolbarContainer>
   );
 }
+function CustomDataGrid({ rows, columns }) {
+  const [height, setHeight] = useState('200px');
 
+  useEffect(() => {
+    setHeight(rows.length > 0 ? 'auto' : '200px');
+  }, [rows]);
+
+  return (
+    <Box sx={{ height }}>
+      <DataGrid
+        getRowHeight={() => 'auto'}
+        rows={rows}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 10,
+            },
+          },
+        }}
+        pageSizeOptions={[10, 25, 50, 100]}
+        slots={{
+          toolbar: CustomToolbar,
+          noRowsOverlay: CustomNoRowsMessage
+        }}
+        disableColumnSelector
+      />
+    </Box>
+  );
+}
+const CustomNoRowsMessage = () => {
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      No hay jurados
+    </div>
+  );
+};
 export default function Jurados() {
   const navigate = useNavigate();
   const columns = [
@@ -66,8 +102,6 @@ export default function Jurados() {
   const token = useSelector(selectToken);
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
-  const [existeJuradosActivos, setExisteJuradosActivos] = useState([]);
-  const [existeJuradosInactivos, setExisteJuradosInactivos] = useState([]);
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
@@ -79,11 +113,9 @@ export default function Jurados() {
       });
       const data = await response.json();
       if (!data.success) {
-        setExisteJuradosActivos(false)
         setError(data.message);
       } else {
         setRowsActivos(data.jurados);
-        setExisteJuradosActivos(true)
       }
     }
     catch (error) {
@@ -98,11 +130,9 @@ export default function Jurados() {
       });
       const data = await response.json();
       if (!data.success) {
-        setExisteJuradosInactivos(false)
         setError(data.message);
       } else {
         setRowsInactivos(data.jurados);
-        setExisteJuradosInactivos(true)
       }
     }
     catch (error) {
@@ -116,7 +146,7 @@ export default function Jurados() {
   return (
     <div style={{ margin: "15px" }} >
       {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
           <Alert severity="error" onClose={handleClose}>
             {error}
           </Alert>
@@ -152,52 +182,13 @@ export default function Jurados() {
           sx={{ mt: "30px" }}>
           Activos
         </Typography>
-        {existeJuradosActivos ? (
-          <DataGrid
-            rows={rowsActivos}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 10,
-                },
-              },
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            getRowHeight={() => 'auto'}
-            slots={{
-              toolbar: CustomToolbar,
-            }}
-            disableColumnSelector
-          />
-        ) : (
-          <Typography variant="h6" color={colors.primary[100]}>No hay jurados activos en los proyectos</Typography>
-        )}
+        <CustomDataGrid rows={rowsActivos} columns={columns} />
+
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Inactivos
         </Typography>
-        {existeJuradosInactivos ? (
-          <DataGrid
-            rows={rowsInactivos}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 10,
-                },
-              },
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            getRowHeight={() => 'auto'}
-            slots={{
-              toolbar: CustomToolbar,
-            }}
-            disableColumnSelector
-          />
-        ) : (
-          <Typography variant="h6" color={colors.primary[100]}>No hay jurados inactivos en los proyectos</Typography>
-        )}
+        <CustomDataGrid rows={rowsInactivos} columns={columns} />
       </Box>
 
     </div>

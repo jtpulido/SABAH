@@ -145,23 +145,23 @@ export default function Proyectos() {
           sx={{ mt: "30px" }}>
           En desarrollo
         </Typography>
-        <DataGrid
-          rows={rowsEnCurso}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
+          <DataGrid
+            rows={rowsEnCurso}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 10,
+                },
               },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          getRowHeight={() => 'auto'}
-          slots={{
-            toolbar: CustomToolbar,
-          }}
-          disableColumnSelector
-        />
+            }}
+            pageSizeOptions={[10, 25, 50, 100]}
+            getRowHeight={() => 'auto'}
+            slots={{
+              toolbar: CustomToolbar,
+            }}
+            disableColumnSelector
+          />
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Cerrados
