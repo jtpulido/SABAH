@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, Alert, Snackbar, IconButton, Tooltip } from "@mui/material";
 
-import { Source, Person } from '@mui/icons-material';
+import { Source, Person, Edit } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -56,51 +56,80 @@ const CustomNoRowsMessage = () => {
 };
 export default function Jurados() {
   const navigate = useNavigate();
-  const columns = [
-    { field: 'nombre_jurado', headerName: 'Nombre del jurado', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
+  const generarColumnas = (extraColumns) => {
+    const columns = [
+      {
+        field: 'nombre_jurado', headerName: 'Nombre del jurado', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center",
+        renderCell: (params) => {
+          return params.value || "Por Asignar";
+        },
+      },
+      { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
+      {
+        field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center",
+        valueGetter: (params) =>
+          `${params.row.etapa || ''} - ${params.row.estado || ''}`,
+      },
+
+      {
+        field: "ver", headerName: "",
+        width: 200,
+        flex: 0.01,
+        headerAlign: "center",
+        align: "center",
+        renderCell: ({ row }) => {
+          const { id_proyecto } = row;
+          return (
+            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+              <Tooltip title="Ver proyecto">
+                <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
+                  <Source />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        }
+      }
+
+    ]
+    return [...columns, ...extraColumns];
+  };
+
+  const columnsEditar = generarColumnas([
     {
-      field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center",
-      valueGetter: (params) =>
-        `${params.row.etapa || ''} - ${params.row.estado || ''}`,
-    },
-    {
-      field: "Acción",
-      width: 200,
-      flex: 0.1,
-      minWidth: 100,
-      headerAlign: "center",
-      align: "center",
+      field: "editar", headerName: "", flex: 0.01, headerAlign: "center", align: "center",
       renderCell: ({ row }) => {
-        const { id_jurado, id_proyecto } = row;
+        const { id_jurado } = row;
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title="Ver Jurado">
-              <IconButton color="secondary" onClick={() => verJurado(id_jurado)}>
+            {id_jurado ? (
+              <Tooltip title="Cambiar Jurado">
+                <IconButton color="secondary">
+                  <Edit />
+                </IconButton>
+              </Tooltip>
+            ) : (<Tooltip title="Asignar Jurado">
+              <IconButton color="secondary" >
                 <Person />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Ver proyecto">
-              <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
-                <Source />
-              </IconButton>
-            </Tooltip>
+            )}
           </Box>
         );
       },
-    },
-
-  ];
+    }
+  ]);
+  const columns = generarColumnas([
+  ]);
   const verProyecto = (id_proyecto) => {
     navigate(`/comite/verProyecto/${id_proyecto}`)
-  }
-  const verJurado = (id_jurado) => {
   }
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
   const [rowsActivos, setRowsActivos] = useState([]);
+  const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
@@ -116,6 +145,23 @@ export default function Jurados() {
         setError(data.message);
       } else {
         setRowsActivos(data.jurados);
+      }
+    }
+    catch (error) {
+      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+    }
+  };
+  const llenarTablaCerrados = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/comite/juradosproyectos/cerrados", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        setError(data.message);
+      } else {
+        setRowsCerrados(data.jurados);
       }
     }
     catch (error) {
@@ -141,6 +187,7 @@ export default function Jurados() {
   };
   useEffect(() => {
     llenarTablaActivos()
+    llenarTablaCerrados()
     llenarTablaInactivos()
   }, []);
   return (
@@ -180,9 +227,14 @@ export default function Jurados() {
       >
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
-          Activos
+          Proyectos en desarrollo
         </Typography>
-        <CustomDataGrid rows={rowsActivos} columns={columns} />
+        <CustomDataGrid rows={rowsActivos} columns={columnsEditar} />
+        <Typography variant="h2" color={colors.primary[100]}
+          sx={{ mt: "30px" }}>
+          Proyectos cerrados
+        </Typography>
+        <CustomDataGrid rows={rowsCerrados} columns={columns} />
 
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>

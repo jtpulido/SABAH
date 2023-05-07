@@ -134,16 +134,7 @@ function InicioCmt() {
                     <ListItemText primary="REPORTES" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleClick("entrega")} sx={{
-                    backgroundColor: buttonColors.entrega,
-                    "&:hover": {
-                      backgroundColor: "rgb(184, 207, 105)",
-                    },
-                  }}>
-                    <ListItemText primary="ENTREGAS" sx={{ color: '#576A3D' }} />
-                  </ListItemButton>
-                </ListItem>
+                
                 <ListItem disablePadding >
                   <ListItemButton onClick={() => cerrarSesion()} >
                     <ListItemText primary="CERRAR SESIÓN" sx={{ color: '#576A3D' }} />

@@ -105,7 +105,20 @@ const asignarCodigoProyecto = async (req, res) => {
 };
 const obtenerDirectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_director, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 1 AND ur.estado')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_director,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id=1')
+        const directores = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, directores });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay directores activos asignados en proyectos actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerDirectoresProyectosCerrados = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_director,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id<>1')
         const directores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
@@ -131,12 +144,25 @@ const obtenerDirectoresProyectosInactivos = async (req, res) => {
 };
 const obtenerJuradosProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_jurado, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 3 AND  ur.estado')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_jurado, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
         const jurados = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
         } else {
-            return res.status(401).json({ success: false, message: 'No hay jurados activos en proyectos actualmente' })
+            return res.status(401).json({ success: false, message: 'No hay jurados activos en proyectos en desarrollo actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerJuradosProyectosCerrados = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_jurado, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1')
+        const jurados = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, jurados });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay jurados activos en proyectos cerrados actualmente' })
         }
     } catch (error) {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -157,12 +183,25 @@ const obtenerJuradosProyectosInactivos = async (req, res) => {
 };
 const obtenerLectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_lector, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 2 AND  ur.estado')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_lector, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(401).json({ success: false, message: 'No hay lectores activos asignados en proyectos actualmente' })
+            return res.status(401).json({ success: false, message: 'No hay lectores activos asignados en proyectos en proyectos en desarrollo actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerLectoresProyectosCerrados = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_lector, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1')
+        const lectores = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, lectores });
+        } else {
+            return res.status(401).json({ success: false, message: 'No hay lectores activos asignados en proyectos cerrados actualmente' })
         }
     } catch (error) {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -260,6 +299,7 @@ const obtenerReportesRechazadosComite = async (req, res) => {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+
 module.exports = {
     obtenerProyecto,
     obtenerTodosProyectos,
@@ -267,15 +307,19 @@ module.exports = {
     obtenerProyectosDesarrollo,
     asignarCodigoProyecto,
     obtenerDirectoresProyectosActivos,
+    obtenerDirectoresProyectosCerrados,
     obtenerDirectoresProyectosInactivos,
     obtenerJuradosProyectosActivos,
+    obtenerJuradosProyectosCerrados,
     obtenerJuradosProyectosInactivos,
     obtenerLectoresProyectosActivos,
+    obtenerLectoresProyectosCerrados,
     obtenerLectoresProyectosInactivos,
     obtenerSolicitudesPendientesComite,
     obtenerSolicitudesAprobadasComite,
     obtenerSolicitudesRechazadasComite,
     obtenerReportesRechazadosComite,
     obtenerReportesPendientesComite,
-    obtenerReportesAprobadosComite
+    obtenerReportesAprobadosComite,
+    obtenerJuradosProyectosCerrados
 }
