@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, CssBaseline, TableContainer, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import "./Entregas.css";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
@@ -11,6 +12,7 @@ import { Source, Feed } from '@mui/icons-material';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import CreateIcon from '@mui/icons-material/Create';
 import InsertLinkIcon from '@mui/icons-material/InsertLink';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 
 function CustomToolbar() {
@@ -68,6 +70,26 @@ export default function Entregas() {
   const handleClose = () => setError(null);
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [link, setLink] = useState('');
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setLink("");
+  };
+
+  const handleSave = () => {
+    console.log("Guardando el valor:", link);
+    handleCloseModal();
+  };
+    const handleSaveProyecto = () => {
+    console.log("Guardando el valor:", link);
+    handleCloseModal();
+  };
 
   const generarColumnasPendientes = (extraColumns) => {
     const commonColumns = [
@@ -92,7 +114,6 @@ export default function Entregas() {
 
     return [...commonColumns, ...extraColumns];
   };
-
   const generarColumnasCompletadas = (extraColumns) => {
     const commonColumns = [
       {
@@ -116,6 +137,8 @@ export default function Entregas() {
 
     return [...commonColumns, ...extraColumns];
   };
+
+
   const llenarTablaPendientes = async () => {
     
     try {
@@ -138,7 +161,6 @@ export default function Entregas() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-
   const llenarTablaCompletadas = async () => {
     
     try {
@@ -160,6 +182,8 @@ export default function Entregas() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
+
+
   useEffect(() => {
       llenarTablaPendientes();
       llenarTablaCompletadas();
@@ -225,20 +249,65 @@ export default function Entregas() {
       )}  
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
         <Typography variant="h1" color={colors.secundary[100]}> ENTREGAS </Typography>
-        <Button startIcon={<ControlPointIcon sx={{ fontSize: '5.5rem' }} />}/>
-      </div>
+       </div>
       
             <div style={{ display: 'flex' , justifyContent: 'center', alignItems: 'center'}}>
               <Box sx={{ border: '1px solid rgba(128, 128, 128, 0.5)', borderRadius: '10px', p: 2, marginRight: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant="h5">Artefactos De Control</Typography>
-                <Button startIcon={<InsertLinkIcon />}></Button>
+                <Button startIcon={<InsertLinkIcon />} onClick={handleOpenModal}></Button>
+                <Dialog open={showModal} onClose={handleCloseModal}>
+                  <div style={{ display: 'flex' }}>
+                    <DialogTitle variant='h5'>Artefactos de control</DialogTitle>
+                    <DialogActions>
+                    <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon/>}></Button>
+                  </DialogActions>
+                  </div>
+                  
+                  <DialogContent>
+                    <TextField
+                      label="Link carpeta drive"
+                      value={link}
+                      onChange={(e) => setLink(e.target.value)}
+                    />
+                  </DialogContent>
+                  <DialogActions sx={{ justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' , justifyContent: 'center'}}>
+                      <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: '0.6rem' }} >
+                        Guardar
+                      </Button>
+                    </div>
+                  </DialogActions>
+                </Dialog>
               </div>
                </Box>
                <Box sx={{ border: '1px solid rgba(128, 128, 128, 0.5)', borderRadius: '10px', p: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant="h5">Documentos Del Proyecto</Typography>
-                  <Button startIcon={<InsertLinkIcon />} />
+                  <Button startIcon={<InsertLinkIcon />} onClick={handleOpenModal}></Button>
+                    <Dialog open={showModal} onClose={handleCloseModal}>
+                      <div style={{ display: 'flex' }}>
+                        <DialogTitle variant='h5'>Documentos Del Proyecto</DialogTitle>
+                        <DialogActions>
+                        <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon/>}></Button>
+                      </DialogActions>
+                      </div>
+                      
+                      <DialogContent>
+                        <TextField
+                          label="Link carpeta drive"
+                          value={link}
+                          onChange={(e) => setLink(e.target.value)}
+                        />
+                      </DialogContent>
+                      <DialogActions sx={{ justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' , justifyContent: 'center'}}>
+                          <Button onClick={handleSaveProyecto} variant="contained" color="primary" sx={{ fontSize: '0.6rem' }} >
+                            Guardar
+                          </Button>
+                        </div>
+                  </DialogActions>
+                </Dialog>
                 </div>
                </Box>
             </div>
@@ -293,6 +362,8 @@ export default function Entregas() {
       </Typography>
       <CustomDataGrid rows={rowsWithIdsc} columns={columnsCompletadas} />
     </Box>
+
+    
     </div>
     
   );

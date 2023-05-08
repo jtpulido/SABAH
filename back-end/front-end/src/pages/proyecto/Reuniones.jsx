@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
-import { Box, CssBaseline  } from '@mui/material';
+import { Box, CssBaseline, TextField, Grid } from '@mui/material';
 import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { useCookies } from 'react-cookie';
 import { tokens } from "../../theme";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import CreateIcon from '@mui/icons-material/Create';
@@ -72,7 +76,41 @@ export default function Reuniones() {
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
   const [canceladas, setCanceladas] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [fecha, setFecha] = useState(null);
+  const [hora, setHora] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [enlace, setEnlace] = useState("");
+  const [rol, setRol] = useState("");
 
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setTitulo("");
+    setFecha(null);
+    setHora("");
+    setNombre("");
+    setEnlace("");
+    setRol("");
+  };
+
+  const handleSave = () => {
+    console.log("Guardando los valores:");
+    console.log("Título:", titulo);
+    console.log("Fecha:", fecha);
+    console.log("Hora:", hora);
+    console.log("Nombre:", nombre);
+    console.log("Enlace Reunión:", enlace);
+    console.log("Rol:", rol);
+    handleCloseModal();
+  };
+  const handleDateChange = (fecha) => {
+    setFecha(fecha);
+  };
   const generarColumnas = (extraColumns) => {
 
     const commonColumns = [
@@ -194,7 +232,7 @@ const columnsPendientes = generarColumnas([
       return (
         <Box sx={{ display: 'flex' }}>
           <Tooltip title="Editar">
-           <IconButton color="secondary" style={{ marginRight: '20px' }}>
+           <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={handleOpenModal}>
                 <CreateIcon />
               </IconButton>
           </Tooltip>
@@ -277,7 +315,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <Typography variant="h4" color={colors.secundary[100]}> REUNIONES </Typography>
+        <Typography variant="h1" color={colors.secundary[100]}> REUNIONES </Typography>
         <Button startIcon={<ControlPointIcon />}/>
       </div>
       <Box
@@ -304,6 +342,71 @@ const rowsWithIdsx = canceladas.map((row) => ({
         Pendientes
       </Typography>
       <CustomDataGrid rows={rowsWithIds} columns={columnsPendientes} />
+      <Dialog open={showModal} onClose={handleCloseModal}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <DialogTitle variant="h5">Crear Reunión</DialogTitle>
+          <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon />} />
+        </div>
+
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+                <DatePicker
+                  label="Fecha"
+                  selected={fecha}
+                  onChange={handleDateChange}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Selecciona una fecha"
+                  item xs={12} sm={6}
+                />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Hora"
+                value={hora}
+                onChange={(e) => setHora(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Enlace Reunión"
+                value={enlace}
+                onChange={(e) => setEnlace(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Rol</InputLabel>
+                <Select
+                  value={rol}
+                  onChange={(e) => setRol(e.target.value)}
+                >
+                  <MenuItem value="cliente">Cliente</MenuItem>
+                  <MenuItem value="director">Director</MenuItem>
+                  <MenuItem value="lector">Lector</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: "center" }}>
+          <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Box>
     
       <Box
