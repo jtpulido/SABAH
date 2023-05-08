@@ -12,4 +12,6 @@ const subirArchivo = (req, res) => {
   res.sendStatus(200); // Enviar respuesta exitosa
 };
 
+
+
 module.exports = { subirArchivo};

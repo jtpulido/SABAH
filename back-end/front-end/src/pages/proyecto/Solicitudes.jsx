@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
+import { Box, CssBaseline  } from '@mui/material';
+import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
+import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, CssBaseline, TableContainer, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
-import "./Entregas.css";
+import { useCookies } from 'react-cookie';
+import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
-import { tokens } from "../../theme";
-import { useCookies } from 'react-cookie';
-import { Source, Feed } from '@mui/icons-material';
-import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import CreateIcon from '@mui/icons-material/Create';
-import InsertLinkIcon from '@mui/icons-material/InsertLink';
-
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import DescriptionIcon from '@mui/icons-material/Description';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 function CustomToolbar() {
   return (
@@ -58,8 +59,10 @@ const CustomNoRowsMessage = () => {
     </div>
   );
 };
-export default function Entregas() {
-  
+
+
+export default function Solicitudes() {
+
   const [cookies] = useCookies(['id']);
   const token = useSelector(selectToken);
   const theme = useTheme();
@@ -69,19 +72,20 @@ export default function Entregas() {
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
 
-  const generarColumnasPendientes = (extraColumns) => {
+  const generarColumnas = (extraColumns) => {
+
     const commonColumns = [
       {
-        field: 'nombre_entrega',
-        headerName: 'Nombre',
+        field: 'fecha',
+        headerName: 'Fecha',
         flex: 0.2,
         minWidth: 150,
         headerAlign: "center",
         align: "center",
       },
       {
-        field: 'fecha_limite',
-        headerName: 'Fecha Limite',
+        field: 'nombre_tipo_solicitud',
+        headerName: 'Tipo',
         flex: 0.2,
         minWidth: 150,
         headerAlign: "center",
@@ -91,36 +95,13 @@ export default function Entregas() {
     ];
 
     return [...commonColumns, ...extraColumns];
-  };
+  }
 
-  const generarColumnasCompletadas = (extraColumns) => {
-    const commonColumns = [
-      {
-        field: 'nombre_entrega',
-        headerName: 'Nombre',
-        flex: 0.2,
-        minWidth: 150,
-        headerAlign: "center",
-        align: "center",
-      },
-      {
-        field: 'fecha_entrega',
-        headerName: 'Fecha Limite',
-        flex: 0.2,
-        minWidth: 150,
-        headerAlign: "center",
-        align: "center",
-      },
-      
-    ];
-
-    return [...commonColumns, ...extraColumns];
-  };
   const llenarTablaPendientes = async () => {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerentregasPendientes/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesPendientes/${cookies.id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -129,8 +110,11 @@ export default function Entregas() {
       if (!data.success) {
         setError(data.message);
       } else {
-        setPendientes(data.pendientes.pendientes);
-        console.log(pendientes)
+        const formattedPendientes = data.pendientes.map(row => ({
+          ...row,
+          fecha: new Date(row.fecha).toLocaleDateString()
+        }));
+        setPendientes(formattedPendientes);
       }
     }
     catch (error) {
@@ -139,11 +123,11 @@ export default function Entregas() {
     }
   };
 
-  const llenarTablaCompletadas = async () => {
+  const llenarTablaCompletas = async () => {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerEntregasCompletadas/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesCompletas/${cookies.id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -152,96 +136,93 @@ export default function Entregas() {
       if (!data.success) {
         setError(data.message);
       } else {
-        setCompletadas(data.completas);
+        const formattedCompletadas = data.completas.map(row => ({
+          ...row,
+          fecha: new Date(row.fecha).toLocaleDateString()
+        }));
+        setCompletadas(formattedCompletadas);
       }
     }
     catch (error) {
       console.log(error)
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }; 
+
   useEffect(() => {
-      llenarTablaPendientes();
-      llenarTablaCompletadas();
-  }, []);
-  const columnsPendientes = generarColumnasPendientes([
-    {
-      field: "Acción",
-      headerName: "Acción",
-      flex: 0.01,
-      minWidth: 150,
-      headerAlign: "center",
-      align: "center",
-      renderCell: ({ row }) => {
-        return (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title="">
-             <IconButton color="secondary">
-                  <CreateIcon />
-                </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },},
-  ]);
-  const columnsCompletadas = generarColumnasCompletadas([
-    {
-      field: "Acción",
-      headerName: "Acción",
-      flex: 0.01,
-      minWidth: 150,
-      headerAlign: "center",
-      align: "center",
-      renderCell: ({ row }) => {
-        return (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title="">
-             <IconButton color="secondary">
-                  <Feed />
-                </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },},
-  ]);
+    llenarTablaPendientes();
+    llenarTablaCompletas();
+}, []);
 
-  const rowsWithIds = pendientes.map((row) => ({
-    ...row,
-    id: row.entrega_id
-  }));
-  const rowsWithIdsc = completadas.map((row) => ({
-    ...row,
-    id: row.entrega_id
-  }));
+const columnsPendientes = generarColumnas([
+  
+  {
+    field: "Acción",
+    headerName: "Acción",
+    flex: 0.01,
+    minWidth: 150,
+    headerAlign: "center",
+    align: "center",
+    renderCell: ({ row }) => {
+      return (
+        <Box sx={{ display: 'flex' }}>
+          <Tooltip title="Ver información">
+           <IconButton color="secondary">
+                <VisibilityIcon />
+              </IconButton >
+          </Tooltip>
+        </Box>
+      );
+    },},
+]);
+
+const columnsCompletas = generarColumnas([
+  {
+    field: "Acción",
+    headerName: "Acción",
+    flex: 0.01,
+    minWidth: 150,
+    headerAlign: "center",
+    align: "center",
+    renderCell: ({ row }) => {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Tooltip title="Ver información">
+           <IconButton color="secondary">
+                <VisibilityIcon />
+              </IconButton>
+          </Tooltip>
+
+        </Box>
+      );
+    },},
+]);
+
+
+const rowsWithIds = pendientes.map((row) => ({
+  ...row,
+  id: row.id
+}));
+const rowsWithIdsc = completadas.map((row) => ({
+  ...row,
+  id: row.id
+}));
+
   return (
-    <div style={{ margin: "15px" }}> 
-
-    {error && (
+    <div style={{ margin: "15px" }} >
+      {error && (
         <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
           <Alert severity="error" onClose={handleClose}>
             {error}
           </Alert>
         </Snackbar>
-      )}  
+      )}
+      <CssBaseline />
+
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <Typography variant="h1" color={colors.secundary[100]}> ENTREGAS </Typography>
-        <Button startIcon={<ControlPointIcon sx={{ fontSize: '5.5rem' }} />}/>
+        <Typography variant="h4" color={colors.secundary[100]}> SOLICITUDES </Typography>
+        <Button startIcon={<ControlPointIcon />}/>
       </div>
-      
-            <div style={{ display: 'flex' , justifyContent: 'center', alignItems: 'center'}}>
-              <Box sx={{ border: '1px solid rgba(128, 128, 128, 0.5)', borderRadius: '10px', p: 2, marginRight: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="h5">Artefactos De Control</Typography>
-                <Button startIcon={<InsertLinkIcon />}></Button>
-              </div>
-               </Box>
-               <Box sx={{ border: '1px solid rgba(128, 128, 128, 0.5)', borderRadius: '10px', p: 2 }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography variant="h5">Documentos Del Proyecto</Typography>
-                  <Button startIcon={<InsertLinkIcon />} />
-                </div>
-               </Box>
-            </div>
       <Box
         sx={{
           "& .MuiDataGrid-root": {
@@ -291,9 +272,9 @@ export default function Entregas() {
          sx={{ mt: "30px" }}>
         Completas
       </Typography>
-      <CustomDataGrid rows={rowsWithIdsc} columns={columnsCompletadas} />
+      <CustomDataGrid rows={rowsWithIdsc} columns={columnsCompletas} />
     </Box>
+      
     </div>
-    
   );
 }

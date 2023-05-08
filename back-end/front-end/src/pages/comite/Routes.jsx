@@ -13,7 +13,7 @@ export default function RoutesCmt() {
             <Route path="/" element={<InicioCmt />} >
                 <Route index element={<Proyectos />} />
                 <Route path="lectores" element={<Lectores />} />
-                <Route path="verProyecto/:id" element={<VerProyecto />} />
+                <Route path="VerProyecto/:id" element={<infoProyecto />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes></div>

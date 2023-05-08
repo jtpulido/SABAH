@@ -7,7 +7,7 @@ import { Button, TextField, Alert, Snackbar } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 export const Login = () => {
 
-  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario']);
+  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario', 'id']);
 
 
   const navigate = useNavigate();
@@ -31,31 +31,31 @@ export const Login = () => {
         body: JSON.stringify(usuario)
       });
       const data = await response.json();
+      console.log(data);
       if (!data.success) {
         setError(data.message);
       } else {
         const expires = new Date();
         expires.setTime(expires.getTime() + (2 * 60 * 60 * 1000)); // caduca en dos horas
-
-        console.log(expires)
         setCookie('token', data.token, { path: '/', expires });
         setCookie('tipo_usuario', data.tipo_usuario, { path: '/', expires });
-
+        setCookie('id', data.id, { path: '/', expires });
         const tipo_usuario = data.tipo_usuario
-        console.log(tipo_usuario)
         if (tipo_usuario === 'admin') {
           navigate('/admin');
         } else if (tipo_usuario === 'normal') {
           navigate('/inicio');
         } else if (tipo_usuario === 'comite') {
           navigate('/comite');
-        } else if (tipo_usuario === 'Proyecto'){
+        } else if (tipo_usuario === 'proyecto'){
+          console.log(tipo_usuario);
           navigate('/proyecto')
         }
 
 
       }
     } catch (error) {
+      console.log(error);
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };

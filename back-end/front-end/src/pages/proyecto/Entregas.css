@@ -1,0 +1,57 @@
+footer {
+    
+    background-color: #EC8A01;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    position: fixed;
+    bottom: 0;
+    border: none;
+  }
+
+  footer p {
+    margin: 0;
+    color: white;
+  }
+
+  .copyright {
+    max-width: 50%;
+  }
+
+  .facultad {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 20px;
+    max-width: 50%;
+  }
+
+  .facultad p {
+    padding-right: 10px;
+    line-height: 2.5;
+  }
+
+  .facultad img {
+    height: 35px;
+  }
+
+  button {
+    text-align: center;
+    line-height: 10px;
+    width: 5px;
+    background-color: #8DB33A;
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .container {
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }

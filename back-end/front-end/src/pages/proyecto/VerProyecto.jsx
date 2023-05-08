@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
-
-import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 import "./Proyectos.css";
 import { tokens } from "../../theme";
+import { useCookies } from 'react-cookie';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import './VerProyecto.css';
 
 export default function VerProyectos() {
-  const { id } = useParams();
+  const [cookies] = useCookies([ 'id']);
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -23,24 +22,24 @@ export default function VerProyectos() {
   const [existeLector, setExisteLector] = useState([]);
   const [existeJurados, setExisteJurados] = useState([]);
   const [listaJurado, setListaJurado] = useState([]);
+ 
+  
 
   const infoProyecto = async () => {
-    console.log("asegurar entrado");    
-    try {     
-      const response = await fetch("http://localhost:5000/proyecto/verProyecto", {
-        method: "POST",
+    try {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${cookies.id}`, {
+        method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id })
       });
 
       const data = await response.json();
-      console.log(data);
       if (!data.success) {
         setError(data.message);
         setExiste(false)
       } else {
         setProyecto(data.proyecto);
         setEstudiantes(data.estudiantes);
+        console.log("est",estudiantes)
         setDirector(data.director);
         setExisteLector(data.lector.existe_lector)
         setLector(data.lector.existe_lector ? data.lector.nombre : "");

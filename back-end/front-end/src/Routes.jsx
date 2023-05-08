@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-
 import Login from "./pages/login/Login";
 import RoutesAdmin from "./pages/administrador/Routes";
 import RoutesProyect from "./pages/proyecto/Routes";
@@ -19,7 +18,7 @@ export default function AppRoutes() {
                 <Route path="/">
                     <Route path="" element={<Login />} />
                     <Route path="/admin/*" element={<ProtectedRoute roles={["admin"]} element={<RoutesAdmin />} />} />
-                    <Route path="/proyecto/*" element={<ProtectedRoute roles={["Proyecto"]} element={<RoutesProyect />} />} />
+                    <Route path="/proyecto/*" element={<ProtectedRoute roles={["proyecto"]} element={<RoutesProyect />} />} />
                     <Route path="/comite/*" element={<ProtectedRoute roles={["comite"]} element={<RoutesCmt />} />} />
                     <Route path="/inicio/*" element={<ProtectedRoute roles={["normal"]} element={<RoutesUsers />} />} />
                     <Route path="*" element={<NotFoundPage />} />

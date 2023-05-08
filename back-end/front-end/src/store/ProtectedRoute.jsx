@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { selectTipo, selectToken } from "./authSlice";
+import { selectTipo, selectToken} from "./authSlice";
 import { Navigate, useLocation } from "react-router-dom";
 
 export const ProtectedRoute = ({ element, roles }) => {
