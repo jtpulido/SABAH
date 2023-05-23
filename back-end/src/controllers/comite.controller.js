@@ -10,7 +10,7 @@ const obtenerProyectosDesarrollo = async (req, res) => {
             return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerProyectosTerminados = async (req, res) => {
@@ -23,7 +23,7 @@ const obtenerProyectosTerminados = async (req, res) => {
             return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerTodosProyectos = async (req, res) => {
@@ -36,7 +36,7 @@ const obtenerTodosProyectos = async (req, res) => {
             return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerProyecto = async (req, res) => {
@@ -65,18 +65,28 @@ const obtenerProyecto = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
-const asignarNuevoCodigo = async (proyectoId, nuevoCodigo) => {
+const asignarNuevoCodigo = async (req, res) => {
     try {
-        const result = await pool.query(
+        const { id, codigo } = req.body;
+        await pool.query(
             "UPDATE proyecto SET codigo = $1, id_etapa = 2 WHERE id = $2 RETURNING (SELECT nombre FROM etapa WHERE id = 2)",
-            [nuevoCodigo, proyectoId]
-        );
-        return result.rows[0].nombre;
+            [codigo, id], async (error, result) => {
+                if (error) {
+                    if (error.code === "23505" && error.constraint === "proyecto_codigo_key") {
+                        return res.status(400).json({ success: false, message: "El código ya está en uso." });
+                    } else {
+                        return res.status(500).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    }
+                } else if (result) {
+                    etapa = result.rows[0].nombre;
+                    return res.json({ success: true, codigo, etapa })
+                }
+
+            })
     } catch (error) {
-        console.log(error)
         return false;
 
     }
@@ -91,8 +101,16 @@ const asignarCodigoProyecto = async (req, res) => {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
 
                 } else if (result.rowCount === 1) {
-                    const codigo = result.rows[0].max > 0 ? `${acronimo}_${anio}-${periodo}-${result.rows[0].max + 1}` : `${acronimo}_${anio}-${periodo}-01`
-                    const r = await asignarNuevoCodigo(id, codigo)
+                    const codigo = result.rows[0].max > 0 ? `${acronimo}_${anio}-${periodo}-${(result.rows[0].max + 1).toString().padStart(2, '0')}` : `${acronimo}_${anio}-${periodo}-01`;
+                    try {
+                        const result = await pool.query(
+                            "UPDATE proyecto SET codigo = $1, id_etapa = 2 WHERE id = $2 RETURNING (SELECT nombre FROM etapa WHERE id = 2)",
+                            [codigo, id]
+                        );
+                        r = result.rows[0].nombre;
+                    } catch (error) {
+                        r = false;
+                    }
                     return r === false ? res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' }) : res.json({ success: true, codigo, etapa: r })
                 } else {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -100,7 +118,7 @@ const asignarCodigoProyecto = async (req, res) => {
                 }
             })
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerDirectoresProyectosActivos = async (req, res) => {
@@ -113,7 +131,7 @@ const obtenerDirectoresProyectosActivos = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay directores activos asignados en proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerDirectoresProyectosCerrados = async (req, res) => {
@@ -126,7 +144,7 @@ const obtenerDirectoresProyectosCerrados = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay directores activos asignados en proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerDirectoresProyectosInactivos = async (req, res) => {
@@ -139,7 +157,7 @@ const obtenerDirectoresProyectosInactivos = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay directores inactivos asignados en proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerJuradosProyectosActivos = async (req, res) => {
@@ -152,7 +170,7 @@ const obtenerJuradosProyectosActivos = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay jurados activos en proyectos en desarrollo actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerJuradosProyectosCerrados = async (req, res) => {
@@ -165,7 +183,7 @@ const obtenerJuradosProyectosCerrados = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay jurados activos en proyectos cerrados actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerJuradosProyectosInactivos = async (req, res) => {
@@ -178,7 +196,7 @@ const obtenerJuradosProyectosInactivos = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay jurados inactivos asignado en proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerLectoresProyectosActivos = async (req, res) => {
@@ -191,7 +209,7 @@ const obtenerLectoresProyectosActivos = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay lectores activos asignados en proyectos en proyectos en desarrollo actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerLectoresProyectosCerrados = async (req, res) => {
@@ -204,7 +222,7 @@ const obtenerLectoresProyectosCerrados = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay lectores activos asignados en proyectos cerrados actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerLectoresProyectosInactivos = async (req, res) => {
@@ -217,12 +235,12 @@ const obtenerLectoresProyectosInactivos = async (req, res) => {
             return res.status(401).json({ success: false, message: 'No hay lectores inactivos asignado en proyectos actualmente' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerSolicitudesPendientesComite = async (req, res) => {
     try {
-        const result = await pool.query('SELECT s.id, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, ad.fecha AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.id IS NULL')
+        const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.id IS NULL UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.id IS NULL")
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -230,12 +248,12 @@ const obtenerSolicitudesPendientesComite = async (req, res) => {
             return res.status(203).json({ success: false, message: 'No hay solicitudes pendientes por aprobación del comité' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerSolicitudesAprobadasComite = async (req, res) => {
     try {
-        const result = await pool.query('SELECT s.id, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, ac.fecha AS fecha_aprobado_comite,ad.fecha AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.aprobado = true')
+        const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.aprobado = true UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.aprobado = true")
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -243,12 +261,12 @@ const obtenerSolicitudesAprobadasComite = async (req, res) => {
             return res.status(203).json({ success: false, message: 'No hay solicitudes aprobadas por el comité' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerSolicitudesRechazadasComite = async (req, res) => {
     try {
-        const result = await pool.query('SELECT s.id, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, ac.fecha AS fecha_aprobado_comite,ad.fecha AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.aprobado = false')
+        const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.aprobado = false UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.aprobado = false")
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -256,47 +274,81 @@ const obtenerSolicitudesRechazadasComite = async (req, res) => {
             return res.status(203).json({ success: false, message: 'No hay solicitudes rechazadas por el comité' })
         }
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const verSolicitud = async (req, res) => {
+    try {
+        const { id } = req.body;
+        await pool.query(
+            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id  WHERE s.id = $1",
+            [id], async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+                } else if (result.rowCount === 1) {
+                    return res.json({ success: true, solicitud: result.rows[0] });
+                } else {
+                    return res.status(203).json({ success: true, message: 'No fue posible encontrar la solicitud' });
+                }
+            })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const verAprobacionesSolicitud = async (req, res) => {
+    try {
+        const { id } = req.body;
+        await pool.query(
+            "SELECT ROW_NUMBER() OVER (ORDER BY id_solicitud) AS id, id_solicitud, justificacion, aprobador, aprobado,fecha, comentario_aprobacion FROM (SELECT s.id AS id_solicitud, s.justificacion, 'Director' AS aprobador, CASE WHEN ad.aprobado = true THEN 'Sí' WHEN ad.aprobado = false THEN 'No' ELSE '' END AS aprobado,TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha, ad.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud WHERE s.id = $1 AND EXISTS (SELECT 1 FROM aprobado_solicitud_director WHERE id_solicitud = s.id) UNION SELECT s.id AS id_solicitud, s.justificacion, 'Comite' AS aprobador, CASE WHEN ac.aprobado = true THEN 'Sí' WHEN ac.aprobado = false THEN 'No' ELSE '' END AS aprobado, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha, ac.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.id = $1 AND EXISTS ( SELECT 1 FROM aprobado_solicitud_comite WHERE id_solicitud = s.id )) AS subquery",
+            [id], async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+                } else if (result.rowCount > 0) {
+                    return res.json({ success: true, aprobaciones: result.rows });
+                } else {
+                    return res.status(203).json({ success: true, message: 'No se encontraron aprobaciones para la solicitud' });
+                }
+            })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 
-const obtenerReportesPendientesComite = async (req, res) => {
+const agregarAprobacion = async (req, res) => {
     try {
-        const result = await pool.query('SELECT r.id, tr.nombre AS tipo_reporte, r.fecha AS fecha_reporte, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto FROM reporte r JOIN tipo_reporte tr ON r.id_tipo_reporte = tr.id JOIN proyecto p ON r.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE r.cerrado=false')
-        const solicitudes = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, solicitudes });
-        } else {
-            return res.status(203).json({ success: false, message: 'No hay solicitudes pendientes por aprobación del comité' })
-        }
+        const { aprobado, comentario, id_solicitud } = req.body;
+
+        await pool.query(
+            "INSERT INTO public.aprobado_solicitud_comite (aprobado, comentario, id_solicitud) VALUES ($1, $2, $3)",
+            [aprobado, comentario, id_solicitud],
+            (error, result) => {
+                if (error) {
+                    if (error.code === "23505") {
+                        return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
+                    }
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+                }
+
+                if (result.rowCount > 0) {
+                    pool.query(
+                        "UPDATE public.solicitud SET finalizado = $1 WHERE id = $2",
+                        [true, id_solicitud],
+                        (error1, result1) => {
+                            if (error1) {
+                                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+                            }
+                            if (result1.rowCount > 0) {
+                                return res.json({ success: true, message: 'Aprobación guardada correctamente.' });
+                            }
+                        }
+                    );
+                }
+            }
+        );
+
+        return res.status(203).json({ success: true, message: 'No se pudo aprobar la solicitud' });
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
-const obtenerReportesAprobadosComite = async (req, res) => {
-    try {
-        const result = await pool.query('SELECT r.id, tr.nombre AS tipo_reporte, r.fecha AS fecha_reporte, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, ar.fecha AS fecha_aprobado_comite FROM reporte r JOIN tipo_reporte tr ON r.id_tipo_reporte = tr.id JOIN proyecto p ON r.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_reporte ar ON r.id = ar.id_reporte WHERE ar.aprobado=true')
-        const solicitudes = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, solicitudes });
-        } else {
-            return res.status(203).json({ success: false, message: 'No hay solicitudes aprobadas por el comité' })
-        }
-    } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
-const obtenerReportesRechazadosComite = async (req, res) => {
-    try {
-        const result = await pool.query('SELECT r.id, tr.nombre AS tipo_reporte, r.fecha AS fecha_reporte, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, ar.fecha AS fecha_aprobado_comite FROM reporte r JOIN tipo_reporte tr ON r.id_tipo_reporte = tr.id JOIN proyecto p ON r.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_reporte ar ON r.id = ar.id_reporte WHERE ar.aprobado=false')
-        const solicitudes = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, solicitudes });
-        } else {
-            return res.status(203).json({ success: false, message: 'No hay solicitudes rechazadas por el comité' })
-        }
-    } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 
@@ -318,8 +370,9 @@ module.exports = {
     obtenerSolicitudesPendientesComite,
     obtenerSolicitudesAprobadasComite,
     obtenerSolicitudesRechazadasComite,
-    obtenerReportesRechazadosComite,
-    obtenerReportesPendientesComite,
-    obtenerReportesAprobadosComite,
-    obtenerJuradosProyectosCerrados
+    obtenerJuradosProyectosCerrados,
+    asignarNuevoCodigo,
+    verAprobacionesSolicitud,
+    verSolicitud,
+    agregarAprobacion
 }

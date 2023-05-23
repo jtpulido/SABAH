@@ -2,18 +2,23 @@ import React, { useState, useEffect } from "react";
 
 import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
-import "./Proyectos.css";
+
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
+
+import CambiarCodigo from './CambiarCodigo';
+
 export default function VerProyectos() {
   const { id } = useParams();
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
+  const [mensaje, setMensaje] = useState(null);
+  const menError = () => setError(null);
+  const menSuccess = () => setMensaje(null);
   const [existe, setExiste] = useState([]);
   const [proyecto, setProyecto] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -22,9 +27,6 @@ export default function VerProyectos() {
   const [existeLector, setExisteLector] = useState([]);
   const [existeJurados, setExisteJurados] = useState([]);
   const [listaJurado, setListaJurado] = useState([]);
-  const modificarCodigo = (id) => {
-
-  }
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
@@ -38,14 +40,38 @@ export default function VerProyectos() {
         setError(data.message);
         setExiste(false)
       } else {
-        actualizarProyecto(data.codigo,data.etapa)
+        actualizarProyecto(data.codigo, data.etapa)
+        
+        setMensaje("Se ha asignado un código al proyecto");
       }
     } catch (error) {
       setExiste(false)
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   }
-  const actualizarProyecto = (nuevoCodigo,etapa) => {
+  const modificarCodigo = async (nuevo_cod) => {
+    try {
+      const response = await fetch("http://localhost:5000/comite/cambiarCodigo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: id, codigo: nuevo_cod })
+      });
+      const data = await response.json();
+      if (response.status === 400) {
+        setError(data.message);
+      } else if (data.success) {
+        actualizarProyecto(nuevo_cod, proyecto.etapa)
+        setMensaje("Se ha actualizado el código del proyecto");
+      } else {
+        setError(data.message);
+      }
+    }
+    catch (error) {
+      setExiste(false)
+      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+    }
+  };
+  const actualizarProyecto = (nuevoCodigo, etapa) => {
     setProyecto((prevState) => ({
       ...prevState,
       codigo: nuevoCodigo
@@ -84,15 +110,37 @@ export default function VerProyectos() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
+
   useEffect(() => {
     infoProyecto()
-  }, []);
+  }, [id]);
+
+  const [open, setOpen] = useState(false);
+
+  const abrirDialog = () => {
+    setOpen(true);
+  };
+
+  const cerrarDialog = (newValue) => {
+    setOpen(false);
+    if (newValue) {
+      modificarCodigo(newValue)
+    };
+  }
+
   return (
     <div style={{ margin: "15px" }} >
       {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
+        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert severity="error" onClose={menError}>
             {error}
+          </Alert>
+        </Snackbar>
+      )}
+      {mensaje && (
+        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={menSuccess} severity="success">
+            {mensaje}
           </Alert>
         </Snackbar>
       )}
@@ -122,10 +170,15 @@ export default function VerProyectos() {
               Asignar Código
             </Button>
           ) : (
-            <Button variant="outlined" disableElevation onClick={() => modificarCodigo(id)}>
+            <Button variant="outlined" disableElevation onClick={abrirDialog}>
               Modificar código
             </Button>
           )}
+          <CambiarCodigo
+            open={open}
+            onClose={cerrarDialog}
+            proyectoCodigo={proyecto.codigo || ''}
+          />
           <Box >
             <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
               Información General

@@ -9,7 +9,6 @@ import Jurados from "./jurados/Jurados";
 import Lectores from "./lectores/Lectores";
 import Solicitudes from "./solicitudes/Solicitudes";
 import Entregas from "./entregas/Entregas";
-import Reportes from "./reportes/Reportes";
 import Directores from "./directores/Directores";
 
 export default function RoutesCmt() {
@@ -22,7 +21,6 @@ export default function RoutesCmt() {
                 <Route path="jurados" element={<Jurados />} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="entregas" element={<Entregas />} />
-                <Route path="reportes" element={<Reportes />} />
                 <Route path="directores" element={<Directores />} />
                 <Route path="verProyecto/:id" element={<VerProyecto />} />
             </Route>

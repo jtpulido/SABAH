@@ -7,53 +7,9 @@ import { Source, Person, Edit } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
-function CustomDataGrid({ rows, columns }) {
-  const [height, setHeight] = useState('200px');
 
-  useEffect(() => {
-    setHeight(rows.length > 0 ? 'auto' : '200px');
-  }, [rows]);
-
-  return (
-    <Box sx={{ height }}>
-      <DataGrid
-        getRowHeight={() => 'auto'}
-        rows={rows}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-            },
-          },
-        }}
-        pageSizeOptions={[10, 25, 50, 100]}
-        slots={{
-          toolbar: CustomToolbar,
-          noRowsOverlay: CustomNoRowsMessage
-        }}
-        disableColumnSelector
-      />
-    </Box>
-  );
-}
-const CustomNoRowsMessage = () => {
-  return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      No hay directores
-    </div>
-  );
-};
 export default function Directores() {
   const navigate = useNavigate();
   const generarColumnas = (extraColumns) => {
@@ -225,17 +181,17 @@ export default function Directores() {
           sx={{ mt: "30px" }}>
           Proyectos en desarrollo
         </Typography>
-        <CustomDataGrid rows={rowsActivos} columns={columnsEditar} />
+        <CustomDataGrid rows={rowsActivos} columns={columnsEditar} mensaje="No hay directores" />
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Proyectos cerrados
         </Typography>
-        <CustomDataGrid rows={rowsCerrados} columns={columns} />
+        <CustomDataGrid rows={rowsCerrados} columns={columns} mensaje="No hay directores" />
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Inactivos
         </Typography>
-        <CustomDataGrid rows={rowsInactivos} columns={columns} />
+        <CustomDataGrid rows={rowsInactivos} columns={columns} mensaje="No hay directores" />
 
       </Box>
 

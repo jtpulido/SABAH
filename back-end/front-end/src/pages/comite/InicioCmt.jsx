@@ -6,7 +6,6 @@ import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListI
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
-import "./InicioCmt.css";
 import { Outlet } from 'react-router-dom';
 
 const drawerWidth = 240;
@@ -29,8 +28,7 @@ function InicioCmt() {
     director: activeButton === "director" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
     jurado: activeButton === "jurado" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
     entrega: activeButton === "entrega" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
-    solicitud: activeButton === "solicitud" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
-    reporte: activeButton === "reporte" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)"
+    solicitud: activeButton === "solicitud" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)"
   };
 
   const handleClick = (button) => {
@@ -47,8 +45,6 @@ function InicioCmt() {
       navigate('/comite/solicitudes')
     }else if (button === "entrega") {
       navigate('/comite/entregas')
-    }else if (button === "reporte") {
-      navigate('/comite/reportes')
     }
   };
   return (<div><CssBaseline />
@@ -129,17 +125,6 @@ function InicioCmt() {
                     <ListItemText primary="SOLICITUDES" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton onClick={() => handleClick("reporte")} sx={{
-                    backgroundColor: buttonColors.reporte,
-                    "&:hover": {
-                      backgroundColor: "rgb(184, 207, 105)",
-                    },
-                  }}>
-                    <ListItemText primary="REPORTES" sx={{ color: '#576A3D' }} />
-                  </ListItemButton>
-                </ListItem>
-                
                 <ListItem disablePadding >
                   <ListItemButton onClick={() => cerrarSesion()} >
                     <ListItemText primary="CERRAR SESIÓN" sx={{ color: '#576A3D' }} />

@@ -4,24 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
-import "./Proyectos.css";
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarFilterButton,
-  GridToolbarExport
-} from '@mui/x-data-grid';
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
+
+import CustomDataGrid from "../../layouts/DataGrid";
 
 export default function Proyectos() {
   const navigate = useNavigate();
@@ -145,45 +132,14 @@ export default function Proyectos() {
           sx={{ mt: "30px" }}>
           En desarrollo
         </Typography>
-          <DataGrid
-            rows={rowsEnCurso}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 10,
-                },
-              },
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            getRowHeight={() => 'auto'}
-            slots={{
-              toolbar: CustomToolbar,
-            }}
-            disableColumnSelector
-          />
+        <CustomDataGrid rows={rowsEnCurso} columns={columns} mensaje="No hay proyectos"  />
+      
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Cerrados
         </Typography>
+        <CustomDataGrid rows={rowsTerminados} columns={columns} mensaje="No hay proyectos"  />
 
-        <DataGrid
-          rows={rowsTerminados}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          getRowHeight={() => 'auto'}
-          slots={{
-            toolbar: CustomToolbar,
-          }}
-          disableColumnSelector
-        />
       </Box>
 
     </div>

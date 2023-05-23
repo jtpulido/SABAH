@@ -15,13 +15,14 @@ const {
     obtenerLectoresProyectosInactivos,
     obtenerSolicitudesPendientesComite,
     obtenerSolicitudesAprobadasComite,
-    obtenerReportesRechazadosComite,
-    obtenerReportesPendientesComite,
-    obtenerReportesAprobadosComite,
     obtenerSolicitudesRechazadasComite,
     obtenerJuradosProyectosCerrados,
     obtenerDirectoresProyectosCerrados,
-    obtenerLectoresProyectosCerrados
+    obtenerLectoresProyectosCerrados,
+    asignarNuevoCodigo,
+    verAprobacionesSolicitud,
+    verSolicitud,
+    agregarAprobacion
 } = require('../controllers/comite.controller')
 
 const router = Router()
@@ -32,6 +33,7 @@ router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: 
 router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
 router.post('/comite/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
 router.post('/comite/asignarCodigo', passport.authenticate('jwt', { session: false }), asignarCodigoProyecto);
+router.post('/comite/cambiarCodigo', passport.authenticate('jwt', { session: false }), asignarNuevoCodigo);
 router.post('/comite/directoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosActivos);
 router.post('/comite/directoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosCerrados);
 router.post('/comite/directoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosInactivos);
@@ -44,8 +46,7 @@ router.post('/comite/lectoresproyectos/inactivos', passport.authenticate('jwt', 
 router.post('/comite/solicitudes/pendienteaprobacion', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesComite);
 router.post('/comite/solicitudes/aprobadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesAprobadasComite);
 router.post('/comite/solicitudes/rechazadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesRechazadasComite);
-router.post('/comite/reportes/pendienteaprobacion', passport.authenticate('jwt', { session: false }), obtenerReportesPendientesComite);
-router.post('/comite/reportes/aprobados', passport.authenticate('jwt', { session: false }), obtenerReportesAprobadosComite);
-router.post('/comite/reportes/rechazados', passport.authenticate('jwt', { session: false }), obtenerReportesRechazadosComite);
-
+router.post('/comite/solicitudes/verSolicitud', passport.authenticate('jwt', { session: false }), verSolicitud);
+router.post('/comite/solicitudes/verAprobaciones', passport.authenticate('jwt', { session: false }), verAprobacionesSolicitud);
+router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
 module.exports = router;

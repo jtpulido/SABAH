@@ -1,62 +1,28 @@
 import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, Typography, useTheme, Alert, Snackbar, IconButton, Tooltip } from "@mui/material";
 import { Source, Feed } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
+import VerSolicitud from './VerSolicitud';
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
-function CustomDataGrid({ rows, columns }) {
-  const [height, setHeight] = useState('300px');
+import CustomDataGrid from "../../layouts/DataGrid";
 
-  useEffect(() => {
-    setHeight(rows.length > 0 ? 'auto' : '300px');
-  }, [rows]);
-  
-  return (
-    <Box sx={{ height }}>
-      <DataGrid
-        getRowHeight={() => 'auto'}
-        rows={rows}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-            },
-          },
-        }}
-        pageSizeOptions={[10, 25, 50, 100]}
-        slots={{
-          toolbar: CustomToolbar,
-          noRowsOverlay: CustomNoRowsMessage
-        }}
-        disableColumnSelector
-      />
-    </Box>
-  );
-}
-const CustomNoRowsMessage = () => {
-  return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      No hay solicitudes
-    </div>
-  );
-};
 export default function Proyectos() {
 
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const token = useSelector(selectToken);
+  const [rowsEnCurso, setRowsEnCurso] = useState([]);
+  const [rowsAprobadas, setRowsAprobadas] = useState([]);
+  const [rowsRechazadas, setRowsRechazadas] = useState([]);
+  const [error, setError] = useState(null);
+  const [idSolicitud, setIdSolicitud] = useState(null);
+  const handleClose = () => setError(null);
   const navigate = useNavigate();
+
   const generarColumnas = (extraColumns) => {
     const commonColumns = [
       {
@@ -66,7 +32,7 @@ export default function Proyectos() {
           return (
             <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
               <Tooltip title="Ver Solicitud">
-                <IconButton color="secondary" onClick={() => verSolicitud(id)}>
+                <IconButton color="secondary" onClick={() => abrirDialog(id)}>
                   <Feed />
                 </IconButton>
               </Tooltip>
@@ -79,6 +45,7 @@ export default function Proyectos() {
           );
         },
       },
+      { field: 'creado_por', headerName: 'Creado por', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
       { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
       { field: 'codigo_proyecto', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
@@ -93,30 +60,23 @@ export default function Proyectos() {
     return [...commonColumns, ...extraColumns];
   };
 
-  const columnsPendientes = generarColumnas([{ field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') }]);
+  const columnsPendientes = generarColumnas([{
+    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", renderCell: (params) => {
+      return params.value || "N/A";
+    },
+  }]);
   const columnsAprobadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" },
+    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" }
   ]);
   const columnsRechazadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" },
+    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" }
   ]);
 
   const verProyecto = (id) => {
     navigate(`/comite/verProyecto/${id}`)
   }
-  const verSolicitud = (id) => {
-  }
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const token = useSelector(selectToken);
-  const [rowsEnCurso, setRowsEnCurso] = useState([]);
-  const [rowsAprobadas, setRowsAprobadas] = useState([]);
-  const [rowsRechazadas, setRowsRechazadas] = useState([]);
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
-
   const llenarTablaEnCurso = async () => {
     try {
       const response = await fetch("http://localhost:5000/comite/solicitudes/pendienteaprobacion", {
@@ -173,7 +133,20 @@ export default function Proyectos() {
     llenarTablaAprobadas()
     llenarTablaRechazadas()
   }, []);
+  const [open, setOpen] = useState(false);
 
+  const abrirDialog = (id) => {
+    setIdSolicitud(id)
+    setOpen(true);
+    llenarTablaEnCurso()
+    llenarTablaAprobadas()
+    llenarTablaRechazadas()
+  };
+
+  const cerrarDialog = () => {
+    setOpen(false);
+    window.location.reload();
+  }
   return (
     <div style={{ margin: "15px" }} >
       {error && (
@@ -183,6 +156,11 @@ export default function Proyectos() {
           </Alert>
         </Snackbar>
       )}
+      <VerSolicitud
+        open={open}
+        onClose={cerrarDialog}
+        id_solicitud={idSolicitud}
+      />
       <Typography
         variant="h1"
         color={colors.secundary[100]}
@@ -210,19 +188,19 @@ export default function Proyectos() {
         sx={{ mt: "30px" }}>
           Pendientes
         </Typography>
-        <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} />
+        <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} mensaje="No hay solicitudes" />
 
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Aprobadas
         </Typography>
-        <CustomDataGrid rows={rowsAprobadas} columns={columnsAprobadas} />
+        <CustomDataGrid rows={rowsAprobadas} columns={columnsAprobadas} mensaje="No hay solicitudes" />
 
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Rechazadas
         </Typography>
-        <CustomDataGrid rows={rowsRechazadas} columns={columnsRechazadas} />
+        <CustomDataGrid rows={rowsRechazadas} columns={columnsRechazadas} mensaje="No hay solicitudes" />
 
       </Box>
 
