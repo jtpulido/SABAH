@@ -1,14 +1,20 @@
+.container_buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .boton {
     align-content: center;
     text-align: center;
     line-height: 28px;
-    width: 15%;
+    width: 40%;
     background-color: #8DB33A;
     color: white;
     border: none;
     justify-content: center;
     margin: auto;
-    display: grid;
+    display: flex;
     margin-top: 40px;
     border-radius: 0;
 }

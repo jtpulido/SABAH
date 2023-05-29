@@ -199,6 +199,10 @@ export const Inscribir = () => {
         }
     };
 
+    const esperar = (ms) => {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    };
+
     const fechaSistema = () => {
         const today = new Date();
         const year = today.getFullYear();
@@ -211,7 +215,6 @@ export const Inscribir = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         // Información General
         if (idModalidadSeleccionada === "" || idDirectorSeleccionado === "" || nombre === "") {
             setMensaje({ tipo: "error", texto: "Por favor, complete todos los campos." });
@@ -221,9 +224,8 @@ export const Inscribir = () => {
             const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
 
             // AUX
-            if (idModalidadSeleccionada === "3") {
+            if (idModalidadSeleccionada === "3" || idModalidadSeleccionada === "4") {
                 if (numIntegrantes === 1) {
-
                     // Verificar veracidad del correo
                     const emailRegex = /^\S+@unbosque\.edu\.co$/;
                     const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
@@ -269,14 +271,12 @@ export const Inscribir = () => {
                                 });
 
                                 const data = await response.json();
-
                                 if (!data.success) {
                                     setMensaje({ tipo: "error", texto: data.message });
                                 } else {
 
                                     // Insertar usuario-rol
                                     try {
-
                                         const response = await fetch("http://localhost:5000/agregarUsuarioRol", {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
@@ -290,55 +290,47 @@ export const Inscribir = () => {
                                         });
 
                                         const data = await response.json();
-
                                         if (!data.success) {
                                             setMensaje({ tipo: "error", texto: data.message });
                                         } else {
-
 
                                             // Insertar al estudiante (aux solo es 1)
                                             for (let index = 0; index < estudiantes.length; index++) {
                                                 if (estudiantes[index].nombre !== "") {
 
                                                     try {
-
                                                         const aux = parseInt(idUltEst) + 1;
-
-                                                        const response = await fetch("http://localhost:5000/agregarEstudiante", {
+                                                        const response = await fetch("http://localhost:5000/login/agregarEstudiante", {
                                                             method: "POST",
                                                             headers: { "Content-Type": "application/json" },
                                                             body: JSON.stringify({
                                                                 "id": aux,
-                                                                "nombre": estudiantes[index].nombre,
-                                                                "num_identificacion": estudiantes[index].num_identificacion,
-                                                                "correo": estudiantes[index].correo
+                                                                "nombre": estudiantes[index].nombre.toString(),
+                                                                "num_identificacion": estudiantes[index].num_identificacion.toString(),
+                                                                "correo": estudiantes[index].correo.toString()
                                                             }),
                                                         });
 
                                                         const data = await response.json();
-
                                                         if (!data.success) {
                                                             setMensaje({ tipo: "error", texto: data.message });
                                                         } else {
 
                                                             // Insertar relacion estudiante-proyecto
                                                             try {
-
                                                                 const aux1 = parseInt(idUltProy) + 1;
                                                                 const aux2 = parseInt(idUltEst) + 1;
-
                                                                 const response = await fetch("http://localhost:5000/agregarEstudianteProyecto", {
                                                                     method: "POST",
                                                                     headers: { "Content-Type": "application/json" },
                                                                     body: JSON.stringify({
                                                                         "estado": true,
                                                                         "id_proyecto": aux1,
-                                                                        "id_estudiante": aux2
+                                                                        "nombre_estudiante": estudiantes[index].nombre
                                                                     }),
                                                                 });
 
                                                                 const data = await response.json();
-
                                                                 if (!data.success) {
                                                                     setMensaje({ tipo: "error", texto: data.message });
                                                                 } else {
@@ -348,32 +340,27 @@ export const Inscribir = () => {
                                                                         navigate('/');
                                                                     }, 2000);
                                                                 }
-
                                                             } catch (error) {
                                                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                                                             }
 
                                                         }
-
                                                     } catch (error) {
                                                         setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                                                     }
                                                 }
                                             }
-
                                         }
-
                                     } catch (error) {
                                         setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                                     }
-
                                 }
-
                             } catch (error) {
                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                             }
                         }
                     }
+
                 } else {
                     setMensaje({ tipo: "error", texto: "La modalidad 'Auxiliar de Investigación' requiere un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." });
                 }
@@ -434,7 +421,6 @@ export const Inscribir = () => {
 
                                     // Insertar usuario-rol
                                     try {
-
                                         const response = await fetch("http://localhost:5000/agregarUsuarioRol", {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
@@ -448,7 +434,6 @@ export const Inscribir = () => {
                                         });
 
                                         const data = await response.json();
-
                                         if (!data.success) {
                                             setMensaje({ tipo: "error", texto: data.message });
                                         } else {
@@ -458,11 +443,10 @@ export const Inscribir = () => {
                                             let numEstudiantesRegistrados = 0;
                                             for (let index = 0; index < estudiantes.length; index++) {
                                                 if (estudiantes[index].nombre !== "") {
+                                                    await esperar(2000);
                                                     try {
-
                                                         const aux = idUltEstAUX + 1;
-
-                                                        const response = await fetch("http://localhost:5000/agregarEstudiante", {
+                                                        const response = await fetch("http://localhost:5000/login/agregarEstudiante", {
                                                             method: "POST",
                                                             headers: { "Content-Type": "application/json" },
                                                             body: JSON.stringify({
@@ -474,28 +458,24 @@ export const Inscribir = () => {
                                                         });
 
                                                         const data = await response.json();
-
                                                         if (!data.success) {
                                                             setMensaje({ tipo: "error", texto: data.message });
                                                         } else {
 
                                                             // Insertar relacion estudiante-proyecto
                                                             try {
-
                                                                 const aux1 = parseInt(idUltProy) + 1;
-
                                                                 const response = await fetch("http://localhost:5000/agregarEstudianteProyecto", {
                                                                     method: "POST",
                                                                     headers: { "Content-Type": "application/json" },
                                                                     body: JSON.stringify({
                                                                         "estado": true,
                                                                         "id_proyecto": aux1,
-                                                                        "id_estudiante": idUltEstAUX
+                                                                        "nombre_estudiante": estudiantes[index].nombre
                                                                     }),
                                                                 });
 
                                                                 const data = await response.json();
-
                                                                 if (!data.success) {
                                                                     setMensaje({ tipo: "error", texto: data.message });
                                                                 } else {
@@ -503,47 +483,41 @@ export const Inscribir = () => {
                                                                     idUltEstAUX++;
 
                                                                     if (numEstudiantesRegistrados === numIntegrantes) {
-
                                                                         setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito" });
                                                                         // Delay
                                                                         setTimeout(() => {
                                                                             navigate('/');
                                                                         }, 2000);
-
                                                                     }
                                                                 }
-
                                                             } catch (error) {
                                                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                                                             }
-
                                                         }
-
                                                     } catch (error) {
                                                         setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                                                     }
                                                 }
                                             }
-
                                         }
-
                                     } catch (error) {
                                         setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                                     }
-
                                 }
-
                             } catch (error) {
                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                             }
                         }
                     }
-
                 } else {
                     setMensaje({ tipo: "error", texto: "La modalidad 'Desarrollo Tecnológico' y 'Proyecto de Grado' requieren de 2 a 3 integrantes con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." });
                 }
             }
         }
+    };
+
+    const handleBack = () => {
+        navigate('/');
     };
 
     return (
@@ -620,7 +594,7 @@ export const Inscribir = () => {
 
                     <Grid item xs={12}>
                         <Typography variant="h6" color={colors.primary[100]}>
-                            Nombre
+                            Nombre del Proyecto
                         </Typography>
                         <TextField value={nombre} onChange={handleNombre} fullWidth />
                     </Grid>
@@ -702,7 +676,16 @@ export const Inscribir = () => {
 
                 </Grid>
 
-                <Button className="boton" onClick={handleSubmit}>Guardar</Button>
+                <div style={{ justifyContent: 'center', display: 'flex' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '35%' }}>
+                        <Button className="boton" onClick={handleBack}>
+                            Atrás
+                        </Button>
+                        <Button className="boton" onClick={handleSubmit}>
+                            Guardar
+                        </Button>
+                    </div>
+                </div>
 
             </Box>
 

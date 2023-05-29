@@ -1,45 +1,35 @@
 import React, { useState } from 'react';
+import "./Recuperar3.css";
+import { Alert, Snackbar } from "@mui/material";
 import { EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
 import { Button, Modal, Input } from 'antd';
-import { TextField, Alert, Snackbar } from "@mui/material";
-import "./Recuperar3.css";
 
-export const Recuperar3 = ({ isVisible3, closeModalFunction3 }) => {
+export const Recuperar3 = ({ isVisible3, handleClose3 }) => {
 
     const [isModalVisible, setIsModalVisible] = React.useState(isVisible3);
-
-    React.useEffect(() => {
-        setIsModalVisible(isVisible3);
-    }, [isVisible3]);
-
-    const [inputValue1, setInputValue1] = useState(null);
-    const [inputValue2, setInputValue2] = useState(null);
-
     const [isPasswordVisible1, setIsPasswordVisible1] = useState(false);
     const [isPasswordVisible2, setIsPasswordVisible2] = useState(false);
 
-    const closeModal3 = () => {
-        setInputValue1(null);
-        setInputValue2(null);
-
+    const handleClose = () => {
         setIsPasswordVisible1(false);
         setIsPasswordVisible2(false);
-
+        setInputValue1('');
+        setInputValue2('');
         setIsModalVisible(false);
-        closeModalFunction3();
+        handleClose3();
     };
-
-    React.useEffect(() => {
-        if (!isVisible3) {
-            setIsPasswordVisible1(false);
-            setIsPasswordVisible2(false);
-        }
-    }, [isVisible3]);
 
     const [contrasena, setContrasena] = useState({
         contrasena1: "",
         contrasena2: "",
     })
+
+    const [inputValue1, setInputValue1] = useState('');
+    const [inputValue2, setInputValue2] = useState('');
+
+    React.useEffect(() => {
+        setIsModalVisible(isVisible3);
+    }, [isVisible3]);
 
     // Variable del SnackBar
     const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
@@ -48,43 +38,55 @@ export const Recuperar3 = ({ isVisible3, closeModalFunction3 }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setContrasena({ ...contrasena, [name]: value });
+        if (name === 'contrasena1') {
+            setInputValue1(value);
+        } else if (name === 'contrasena2') {
+            setInputValue2(value);
+        }
+    };
+
+    const esperar = (ms) => {
+        return new Promise(resolve => setTimeout(resolve, ms));
     };
 
     const handleReset = async (event) => {
         event.preventDefault();
-        if (contrasena.contrasena1 !== "" && contrasena.contrasena2 !== "") {
-            try {
-                const response = await fetch("http://localhost:5000/cambiarContrasena", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(contrasena)
-                });
 
-                const data = await response.json();
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/; // Expresión regular para validar la contraseña (mínimo 8 caracteres, al menos una letra y un número)
 
-                if (!data.success) {
-                    //setContrasena("");
-                    setMensaje({ tipo: "error", texto: data.message });
+        if (inputValue1 !== "" && inputValue2 !== "") {
+            if (inputValue1 !== inputValue2) {
+                setMensaje({ tipo: "error", texto: "Las contraseñas no coinciden. Por favor, inténtelo de nuevo." });
+            } else if (!passwordRegex.test(inputValue1)) {
+                setMensaje({ tipo: "error", texto: "La contraseña debe tener al menos 8 caracteres, incluir al menos una letra y un número." });
+            } else {
+                try {
+                    const response = await fetch("http://localhost:5000/cambiarContrasena", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ contrasena: inputValue1 })
+                    });
 
-                    // Contraseña cambiada con éxito
-                } else {
-                    setMensaje({ tipo: "success", texto: data.message });
-                    closeModal3();
+                    const data = await response.json();
+                    if (!data.success) {
+                        setMensaje({ tipo: "error", texto: data.message });
+                        await esperar(2000);
+                        handleClose();
+                    } else {
+                        setMensaje({ tipo: "success", texto: data.message });
+                        await esperar(2000);
+                        handleClose();
+                    }
+                } catch (error) {
+                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    await esperar(2000);
+                    handleClose();
                 }
-
-            } catch (error) {
-                //setCorreo("");
-                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
             }
-
-            // Si el valor de cualquier input es null
         } else {
-            //setCorreo("");
             setMensaje({ tipo: "error", texto: "Por favor ingrese los valores requeridos." });
         }
-
     };
-
 
     return (
         <>
@@ -92,7 +94,7 @@ export const Recuperar3 = ({ isVisible3, closeModalFunction3 }) => {
                 title="Recuperar Contraseña"
                 centered
                 open={isModalVisible}
-                onCancel={closeModal3}
+                onCancel={handleClose}
                 footer={null}
                 className='modal_recuperar3'
             >
@@ -121,6 +123,7 @@ export const Recuperar3 = ({ isVisible3, closeModalFunction3 }) => {
                                 <EyeTwoTone onClick={() => setIsPasswordVisible1(!isPasswordVisible1)} /> :
                                 <EyeInvisibleOutlined onClick={() => setIsPasswordVisible1(!isPasswordVisible1)} />
                         )}
+                        name="contrasena1"
                         value={inputValue1}
                         onChange={handleChange}
                         type={isPasswordVisible1 ? 'text' : 'password'}
@@ -133,6 +136,7 @@ export const Recuperar3 = ({ isVisible3, closeModalFunction3 }) => {
                                 <EyeTwoTone onClick={() => setIsPasswordVisible2(!isPasswordVisible2)} /> :
                                 <EyeInvisibleOutlined onClick={() => setIsPasswordVisible2(!isPasswordVisible2)} />
                         )}
+                        name="contrasena2"
                         value={inputValue2}
                         onChange={handleChange}
                         type={isPasswordVisible2 ? 'text' : 'password'}

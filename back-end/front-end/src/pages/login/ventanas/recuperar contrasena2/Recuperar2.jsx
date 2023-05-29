@@ -4,30 +4,41 @@ import { TextField, Alert, Snackbar } from "@mui/material";
 import "./Recuperar2.css";
 import { Recuperar3 } from "../recuperar contrasena3/Recuperar3"
 
-export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
+export const Recuperar2 = ({ isVisible2, handleClose2 }) => {
 
   const [isModalVisible, setIsModalVisible] = React.useState(isVisible2);
 
-  React.useEffect(() => {
-    setIsModalVisible(isVisible2);
-  }, [isVisible2]);
+  const [codigoIngresado, setCodigoIngresado] = useState("");
 
   // Tercer modal de recuperar contrasena
   const [visible3, setVisible3] = useState(false);
 
-  const [codigoIngresado, setCodigoIngresado] = useState("");
-
-  const closeModalFunction3 = () => {
+  const handleClose3 = () => {
+    setCodigoIngresado("");
     setVisible3(false);
   };
 
-  const openModal3 = () => {
+  const handleOpen3 = () => {
     setVisible3(true);
   };
 
   const handleChange = (e) => {
     setCodigoIngresado(e.target.value);
   };
+
+  const handleClose = () => {
+    setCodigoIngresado("");
+    setIsModalVisible(false);
+    handleClose2();
+  };
+
+  const esperar = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  };
+
+  React.useEffect(() => {
+    setIsModalVisible(isVisible2);
+  }, [isVisible2]);
 
   // Variable del SnackBar
   const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
@@ -44,18 +55,17 @@ export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
         });
 
         const data = await response.json();
-
         if (!data.success) {
           setCodigoIngresado("");
           setMensaje({ tipo: "error", texto: data.message });
 
           // Si el codigo es el mismo
         } else {
-          setCodigoIngresado("");
           setMensaje({ tipo: "success", texto: data.message });
-          //closeModal2();
-          setIsModalVisible(false);
-          openModal3();
+          await esperar(2000);
+          handleClose();
+          setCodigoIngresado("");
+          handleOpen3();
         }
 
       } catch (error) {
@@ -68,7 +78,6 @@ export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
       setCodigoIngresado("");
       setMensaje({ tipo: "error", texto: "Por favor ingrese un valor válido." });
     }
-
   };
 
   return (
@@ -77,7 +86,7 @@ export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
         title="Recuperar Contraseña"
         centered
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={handleClose}
         footer={null}
         className='modal_recuperar2'
       >
@@ -86,8 +95,7 @@ export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
           <Snackbar
             open={true}
             autoHideDuration={5000}
-            onClose
-            ={handleCloseMensaje}
+            onClose={handleCloseMensaje}
             anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           >
             <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
@@ -103,8 +111,8 @@ export const Recuperar2 = ({ isVisible2, closeModal2 }) => {
           <TextField type="text" name="codigoIngresado" id="codigoIngresado" className='input' value={codigoIngresado} onChange={handleChange}></TextField>
         </div>
         <Button className='boton_enviar' onClick={handleSubmit}>Cambiar Contraseña</Button>
-        <Recuperar3 isVisible3={visible3} closeModal={closeModalFunction3} />
       </Modal>
+      <Recuperar3 isVisible3={visible3} handleClose3={handleClose3} />
     </>
   );
 };

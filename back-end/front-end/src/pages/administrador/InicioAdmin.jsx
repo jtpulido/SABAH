@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearSession, clearCookies } from '../../store/authSlice';
@@ -7,7 +7,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
 import "./InicioAdmin.css";
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { pathToRegexp } from 'path-to-regexp';
 
 const drawerWidth = 240;
 
@@ -15,6 +16,7 @@ function InicioAdmin() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const cerrarSesion = () => {
     dispatch(clearSession());
@@ -32,12 +34,47 @@ function InicioAdmin() {
     setActiveButton(button);
     if (button === "usuarios") {
       // Cambiar
-      navigate('/comite')
+      navigate('/admin')
       // Cambiar
     } else if (button === "proyectos") {
-      navigate('/comite/lectores')
+      navigate('/admin/proyectos')
     }
   };
+
+  useEffect(() => {
+    const isVerUsuarioPath = (path) => {
+      const pattern = pathToRegexp('/admin/verUsuario/:id');
+      return pattern.test(path);
+    };
+
+    const isModificarUsuarioPath = (path) => {
+      const pattern = pathToRegexp('/admin/modificarUsuario/:id');
+      return pattern.test(path);
+    };
+
+    const isVerProyectoPath = (path) => {
+      const pattern = pathToRegexp('/admin/verProyecto/:id');
+      return pattern.test(path);
+    };
+
+    const isModificarProyectoPath = (path) => {
+      const pattern = pathToRegexp('/admin/modificarProyecto/:id');
+      return pattern.test(path);
+    };
+
+    if (
+      location.pathname === '/admin' ||
+      location.pathname === '/admin/agregarUsuario' ||
+      isVerUsuarioPath(location.pathname) || isModificarUsuarioPath(location.pathname)
+    ) {
+      setActiveButton('usuarios');
+    } else if (
+      location.pathname === '/admin/proyectos' ||
+      isVerProyectoPath(location.pathname) || isModificarProyectoPath(location.pathname)
+    ) {
+      setActiveButton('proyectos');
+    }
+  }, [location.pathname]);
 
   return (<div><CssBaseline />
     <Box sx={{ display: 'flex', height: 'calc(100vh - 50px)' }} >

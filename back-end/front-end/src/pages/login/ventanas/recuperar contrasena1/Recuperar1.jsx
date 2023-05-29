@@ -10,20 +10,36 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
   const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
 
   const [correo, setCorreo] = useState("");
+  const [correosProyecto, setCorreosProyecto] = useState([]);
 
   React.useEffect(() => {
     setIsModalVisible(isVisible);
   }, [isVisible]);
 
+  const handleChange = (e) => {
+    setCorreo(e.target.value);
+  };
+
+  const handleClose = () => {
+    setCorreo("");
+    setCorreosProyecto([]);
+    closeModal();
+  };
+
   // Modal 2
   const [visible2, setVisible2] = useState(false);
-
-  const closeModal2 = () => {
+  const handleClose2 = () => {
+    setCorreo("");
+    setCorreosProyecto([]);
     setVisible2(false);
   };
 
-  const handleChange = (e) => {
-    setCorreo(e.target.value);
+  const handleOpen2 = () => {
+    setVisible2(true);
+  };
+
+  const esperar = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
   };
 
   // Variable del SnackBar
@@ -41,16 +57,34 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
         });
 
         const data = await response.json();
-
         // Si no el correo no existe u otro error
         if (!data.success) {
-          setMensaje({ tipo: "error", texto: data.message });
-          setCorreo("")
+          try {
+            const response = await fetch("http://localhost:5000/login/confirmarCodigo", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ "codigo": correo })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+              setCorreosProyecto(data.correos);
+              alert(data.correos)
+
+            } else {
+              setMensaje({ tipo: "error", texto: data.message });
+              setCorreo("")
+            }
+          } catch (error) {
+            setCorreo("");
+            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+          }
+          //setMensaje({ tipo: "error", texto: data.message });
+          //setCorreo("")
 
           // Si el correo si existe
         } else {
           setMensaje({ tipo: "success", texto: "El correo electrónico ingresado está registrado en nuestro sistema." });
-
           // Enviar codigo de verificacion
           event.preventDefault();
           try {
@@ -67,23 +101,21 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
             if (!data2.success) {
               setCorreo("");
               setMensaje({ tipo: "error", texto: data.message });
-              closeModal();
+              handleClose();
 
               // Si fue enviado con éxito el correo
             } else {
               setMensaje({ tipo: "success", texto: "Se ha enviado un correo electrónico con el código de verificación." });
+              await esperar(2000);
+              handleClose();
+              handleOpen2();
               setCorreo("");
-              closeModal();
-              // Mostrar el segundo modal
-              setVisible2(true);
             }
           } catch (error) {
             setCorreo("");
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
           }
-
         }
-
       } catch (error) {
         setCorreo("");
         setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
@@ -92,9 +124,8 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
       // Si el valor es null
     } else {
       setCorreo("");
-      setMensaje({ tipo: "error", texto: "Por favor ingrese un valor de correo electrónico válido." });
+      setMensaje({ tipo: "error", texto: "Por favor ingrese un valor de correo electrónico o código de proyecto válido." });
     }
-
   };
 
   return (
@@ -103,7 +134,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
         title="Recuperar Contraseña"
         centered
         open={isModalVisible}
-        onCancel={closeModal}
+        onCancel={handleClose}
         footer={null}
         className='modal_recuperar1'
         style={{ borderRadius: 0 }}
@@ -127,7 +158,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
           <TextField type="text" name="correo" id="correo" className='input' value={correo} onChange={handleChange}></TextField>
         </div>
         <Button className='boton_enviar' onClick={handleReset}>Enviar Código</Button>
-        <Recuperar2 isVisible2={visible2} closeModal2={closeModal2} />
+        <Recuperar2 isVisible2={visible2} handleClose2={handleClose2} />
       </Modal>
     </>
   );
