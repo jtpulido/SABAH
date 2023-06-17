@@ -145,7 +145,6 @@ export default function Proyectos() {
 
   const cerrarDialog = () => {
     setOpen(false);
-    window.location.reload();
   }
   return (
     <div style={{ margin: "15px" }} >

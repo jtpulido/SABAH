@@ -238,6 +238,30 @@ const obtenerLectoresProyectosInactivos = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+
+const obtenerSolicitudesProyecto = async (req, res) => {
+    try {
+
+        const { id } = req.body;
+        await pool.query("SELECT s.id AS id_solicitud, ts.nombre AS nombre_tipo_solicitud,s.creado_proyecto, s.fecha AS fecha_solicitud,ad.aprobado AS aprobado_director, TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, ac.aprobado AS aprobado_comite, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s INNER JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.id_proyecto=$1", [id], async (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+            } else if (result.rowCount > 0) {
+                return res.json({ success: true, lectores });
+
+            } else if (result.rowCount == 0) {
+                return res.status(401).json({ success: false, message: 'No hay solicitudes para el proyecto' })
+
+            } else {
+                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+            }
+        })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
 const obtenerSolicitudesPendientesComite = async (req, res) => {
     try {
         const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.id IS NULL UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.id IS NULL")
@@ -281,7 +305,7 @@ const verSolicitud = async (req, res) => {
     try {
         const { id } = req.body;
         await pool.query(
-            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id  WHERE s.id = $1",
+            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.justificacion, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto, u.nombre AS nombre_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN usuario_rol ur ON s.id_director = ur.id JOIN usuario u ON ur.id_usuario = u.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id  WHERE s.id = $1",
             [id], async (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -299,7 +323,7 @@ const verAprobacionesSolicitud = async (req, res) => {
     try {
         const { id } = req.body;
         await pool.query(
-            "SELECT ROW_NUMBER() OVER (ORDER BY id_solicitud) AS id, id_solicitud, justificacion, aprobador, aprobado,fecha, comentario_aprobacion FROM (SELECT s.id AS id_solicitud, s.justificacion, 'Director' AS aprobador, CASE WHEN ad.aprobado = true THEN 'Sí' WHEN ad.aprobado = false THEN 'No' ELSE '' END AS aprobado,TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha, ad.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud WHERE s.id = $1 AND EXISTS (SELECT 1 FROM aprobado_solicitud_director WHERE id_solicitud = s.id) UNION SELECT s.id AS id_solicitud, s.justificacion, 'Comite' AS aprobador, CASE WHEN ac.aprobado = true THEN 'Sí' WHEN ac.aprobado = false THEN 'No' ELSE '' END AS aprobado, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha, ac.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.id = $1 AND EXISTS ( SELECT 1 FROM aprobado_solicitud_comite WHERE id_solicitud = s.id )) AS subquery",
+            "SELECT ROW_NUMBER() OVER (ORDER BY id_solicitud) AS id, id_solicitud, aprobador, aprobado,fecha, comentario_aprobacion FROM (SELECT s.id AS id_solicitud, 'Director' AS aprobador, CASE WHEN ad.aprobado = true THEN 'Sí' WHEN ad.aprobado = false THEN 'No' ELSE '' END AS aprobado,TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha, ad.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud WHERE s.id = $1 AND EXISTS (SELECT 1 FROM aprobado_solicitud_director WHERE id_solicitud = s.id) UNION SELECT s.id AS id_solicitud, 'Comite' AS aprobador, CASE WHEN ac.aprobado = true THEN 'Sí' WHEN ac.aprobado = false THEN 'No' ELSE '' END AS aprobado, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha, ac.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.id = $1 AND EXISTS ( SELECT 1 FROM aprobado_solicitud_comite WHERE id_solicitud = s.id )) AS subquery",
             [id], async (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });

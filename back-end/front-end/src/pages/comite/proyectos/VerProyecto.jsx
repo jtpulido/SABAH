@@ -258,7 +258,7 @@ export default function VerProyectos() {
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
                       <Typography variant="h6" color={colors.primary[100]}>
-                        Correo
+                        Correo electrónico
                       </Typography>
                       <TextField
                         value={estudiante.correo || ''}

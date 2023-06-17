@@ -135,11 +135,10 @@ function VerSolicitud(props) {
     };
 
     const columns = [
-        { field: 'justificacion', headerName: 'Justificación', flex: 0.4, minWidth: 150, headerAlign: "center" },
-        { field: 'aprobado', headerName: 'Aprobado', flex: 0.05, minWidth: 80, headerAlign: "center", align: "center" },
-        { field: 'aprobador', headerName: 'Aprobador', flex: 0.05, minWidth: 80, headerAlign: "center", align: "center" },
-        { field: 'fecha', headerName: 'Fecha', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.4, minWidth: 150, headerAlign: "center", align: "center" }
+        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80, headerAlign: "center", align: "center" },
+        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80, headerAlign: "center", align: "center" },
+        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
+        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, headerAlign: "center", align: "center" }
     ];
     const handleApprovalChange = (event) => {
         setApproval(event.target.value);
@@ -156,7 +155,7 @@ function VerSolicitud(props) {
     };
 
     return (
-        <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md'>
+        <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md' onClose={handleCancel}>
             {error && (
                 <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
                     <Alert severity="error" onClose={menError}>
@@ -187,17 +186,23 @@ function VerSolicitud(props) {
 
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6} md={6} lg={6}>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Código
                                 </Typography>
                                 <TextField value={solicitud.codigo_proyecto || ''} fullWidth />
                             </Grid>
-                            <Grid item xs={12} sm={6} md={6} lg={6}>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Etapa
                                 </Typography>
                                 <TextField value={solicitud.etapa_proyecto || ''} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                <Typography variant="h6" color={colors.primary[100]}>
+                                    Nombre del director 
+                                </Typography>
+                                <TextField multiline  value={solicitud.nombre_director || ''} fullWidth />
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
@@ -206,29 +211,31 @@ function VerSolicitud(props) {
                         </Typography>
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6} md={6} lg={6}>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Tipo
                                 </Typography>
-                                <TextField value={solicitud.tipo_solicitud || ''} fullWidth />
+                                <TextField multiline value={solicitud.tipo_solicitud || ''} fullWidth />
                             </Grid>
-                            <Grid item xs={12} sm={6} md={6} lg={6}>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Fecha de creación
                                 </Typography>
                                 <TextField value={solicitud.fecha_solicitud || ''} fullWidth />
                             </Grid>
-                            <Grid item xs={12} sm={6} md={6} lg={6}>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Creada por
                                 </Typography>
-                                <TextField value={solicitud.creado_por_proyecto ? 'Sí' : 'No' || ''} fullWidth />
+                                <TextField value={solicitud.creado_por_proyecto ? 'Proyecto' : 'Director del proyecto' || ''} fullWidth />
                             </Grid>
-                            <Grid item xs={12} sm={6} md={6} lg={6}>
+                           
+                            <Grid item xs={12} sm={12} md={12} lg={12}>
                                 <Typography variant="h6" color={colors.primary[100]}>
-                                    Finalizo
+                                    Justificación
                                 </Typography>
-                                <TextField value={solicitud.finalizado ? 'Sí' : 'No' || ''} fullWidth />
+                                <TextField fullWidth multiline value={solicitud.justificacion || ''}  />
+                                                
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
@@ -284,9 +291,8 @@ function VerSolicitud(props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleCancel}>
-                    Cancelar
+                    Cerrar
                 </Button>
-                <Button onClick={handleOk} >Guardar</Button>
             </DialogActions>
 
         </Dialog>
