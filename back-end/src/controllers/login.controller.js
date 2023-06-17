@@ -64,7 +64,6 @@ const confirmarCodigo = async (req, res) => {
 
 // Enviar el correo con el codigo de verificacion
 const sendEmail = async (req, res) => {
-
   const { correo } = req.body;
   const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -96,6 +95,42 @@ const sendEmail = async (req, res) => {
   });
 };
 
+// Enviar el correo con el codigo de verificacion
+const sendEmails = async (req, res) => {
+  const { correos } = req.body;
+  const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
+
+  console.log(correos)
+  console.log(correos[0].correo)
+
+  // Almacenar el código generado en req.app.locals
+  req.app.locals.codigoCreado = codigoCreado;
+  req.app.locals.correos = correos;
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USERNAME,
+      pass: process.env.EMAIL_PASSWORD
+    }
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USERNAME,
+    to: correos.join(', '),
+    subject: 'Código de verificación para restablecer tu contraseña',
+    text: `Tu código de verificación es: ${codigoCreado}`
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+    } else {
+      return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico con el código de verificación.' });
+    }
+  });
+};
+
 const verificarCodigo = async (req, res) => {
   const { codigo } = req.body;
   const codigoCreado = req.app.locals.codigoCreado;
@@ -104,6 +139,8 @@ const verificarCodigo = async (req, res) => {
   } else {
     return res.status(401).json({ success: false, message: 'Código de verificación inválido.' });
   }
+
+  
 };
 
 const cambiarContrasena = async (req, res) => {
@@ -287,4 +324,4 @@ const agregarUsuarioRol = async (req, res) => {
 
 };
 
-module.exports = { inicioSesion, confirmarCorreo, confirmarCodigo, getEstados, getEtapas, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, agregarEstudiante, getIdUltEst, agregarEstudianteProyecto, agregarUsuarioRol }
+module.exports = { inicioSesion, confirmarCorreo, confirmarCodigo, sendEmails, getEstados, getEtapas, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, agregarEstudiante, getIdUltEst, agregarEstudianteProyecto, agregarUsuarioRol }

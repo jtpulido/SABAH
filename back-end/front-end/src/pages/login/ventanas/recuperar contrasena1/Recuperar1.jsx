@@ -68,8 +68,34 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
 
             const data = await response.json();
             if (data.success) {
-              setCorreosProyecto(data.correos);
               alert(data.correos)
+              alert(data.correos[0].correo)
+              try {
+                const response2 = await fetch("http://localhost:5000/sendEmails", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(data.correos)
+                });
+
+                const data2 = await response2.json();
+                // Si no se envío el correo con exito
+                if (!data2.success) {
+                  setCorreo("");
+                  setMensaje({ tipo: "error", texto: data.message });
+                  handleClose();
+
+                  // Si fue enviado con éxito el correo
+                } else {
+                  setMensaje({ tipo: "success", texto: "Se ha enviado un correo electrónico con el código de verificación." });
+                  await esperar(2000);
+                  handleClose();
+                  handleOpen2();
+                  setCorreo("");
+                }
+              } catch (error) {
+                setCorreo("");
+                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+              }
 
             } else {
               setMensaje({ tipo: "error", texto: data.message });
@@ -79,8 +105,6 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
             setCorreo("");
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
           }
-          //setMensaje({ tipo: "error", texto: data.message });
-          //setCorreo("")
 
           // Si el correo si existe
         } else {
@@ -88,7 +112,6 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
           // Enviar codigo de verificacion
           event.preventDefault();
           try {
-
             const response2 = await fetch("http://localhost:5000/sendEmail", {
               method: "POST",
               headers: { "Content-Type": "application/json" },

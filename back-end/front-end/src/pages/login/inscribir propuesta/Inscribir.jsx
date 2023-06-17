@@ -319,7 +319,6 @@ export const Inscribir = () => {
                                                             // Insertar relacion estudiante-proyecto
                                                             try {
                                                                 const aux1 = parseInt(idUltProy) + 1;
-                                                                const aux2 = parseInt(idUltEst) + 1;
                                                                 const response = await fetch("http://localhost:5000/agregarEstudianteProyecto", {
                                                                     method: "POST",
                                                                     headers: { "Content-Type": "application/json" },
@@ -362,7 +361,7 @@ export const Inscribir = () => {
                     }
 
                 } else {
-                    setMensaje({ tipo: "error", texto: "La modalidad 'Auxiliar de Investigación' requiere un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." });
+                    setMensaje({ tipo: "error", texto: "La modalidad 'Auxiliar de Investigación' y 'Coterminal' requieren un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." });
                 }
 
             } else {
@@ -414,11 +413,9 @@ export const Inscribir = () => {
                                 });
 
                                 const data = await response.json();
-
                                 if (!data.success) {
                                     setMensaje({ tipo: "error", texto: data.message });
                                 } else {
-
                                     // Insertar usuario-rol
                                     try {
                                         const response = await fetch("http://localhost:5000/agregarUsuarioRol", {
@@ -443,7 +440,8 @@ export const Inscribir = () => {
                                             let numEstudiantesRegistrados = 0;
                                             for (let index = 0; index < estudiantes.length; index++) {
                                                 if (estudiantes[index].nombre !== "") {
-                                                    await esperar(2000);
+                                                    setMensaje({ tipo: "info", texto: "Procesando inscripción de la propuesta, por favor espere un momento." });
+                                                    await esperar(1000);
                                                     try {
                                                         const aux = idUltEstAUX + 1;
                                                         const response = await fetch("http://localhost:5000/login/agregarEstudiante", {
