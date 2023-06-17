@@ -13,6 +13,8 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { Link } from 'react-router-dom';
+
 
 function CustomToolbar() {
   return (
@@ -55,7 +57,7 @@ function CustomDataGrid({ rows, columns }) {
 const CustomNoRowsMessage = () => {
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      No hay entregas
+      No hay solicitudes
     </div>
   );
 };
@@ -71,6 +73,15 @@ export default function Solicitudes() {
   const handleClose = () => setError(null);
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
 
   const generarColumnas = (extraColumns) => {
 
@@ -198,7 +209,6 @@ const columnsCompletas = generarColumnas([
     },},
 ]);
 
-
 const rowsWithIds = pendientes.map((row) => ({
   ...row,
   id: row.id
@@ -220,8 +230,12 @@ const rowsWithIdsc = completadas.map((row) => ({
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <Typography variant="h4" color={colors.secundary[100]}> SOLICITUDES </Typography>
-        <Button startIcon={<ControlPointIcon />}/>
+        <Typography variant="h1" color={colors.secundary[100]}> SOLICITUDES </Typography>
+        <Tooltip title="crear">
+           <IconButton color="secondary" component={Link} to="/proyecto/ActaSolicitud">
+                <ControlPointIcon sx={{ fontSize: 20 }}/>
+              </IconButton>
+          </Tooltip>
       </div>
       <Box
         sx={{

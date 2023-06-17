@@ -72,12 +72,29 @@ const obtenerReunionesPendientes = async (req, res) => {
     const { id } = req.params; 
     
     try {
-        const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reuniones r JOIN estadoReunion e ON r.id_estado = e.id WHERE r.id_proyecto = $2 AND e.nombre = $1;', ['Pendiente', id])
-        const pendientes = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, pendientes });
+        const updateQuery = `
+        UPDATE reuniones
+        SET id_estado = 2
+        WHERE id_proyecto = $1 AND fecha < CURRENT_DATE AND id_estado != 3;
+        `;
+        const updateValues = [id];
+        await pool.query(updateQuery, updateValues);
+
+        // Obtener reuniones actualizadas
+        const selectQuery = `
+        SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace
+        FROM reuniones r
+        JOIN estadoReunion e ON r.id_estado = e.id
+        WHERE r.id_proyecto = $1 AND e.nombre = 'Pendiente';
+        `;
+        const selectValues = [id];
+        const result = await pool.query(selectQuery, selectValues);
+        const pendientes = result.rows;
+
+        if (pendientes.length > 0) {
+        return res.json({ success: true, pendientes });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay reuniones pendientes' })
+        return res.status(203).json({ success: false, message: 'No hay reuniones pendientes' });
         }
     } catch (error) {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -151,4 +168,98 @@ const obtenerSolicitudesCompletas = async (req, res) => {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
-module.exports = { obtenerProyecto, obtenerEntregasCompletadas , obtenerEntregasPendientes, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas, obtenerSolicitudesPendientes,obtenerSolicitudesCompletas}
+
+const guardarReunion = async (req, res) => {
+
+    const { nombre, fecha, invitados, enlace, id_proyecto, id_estado } = req.body;
+  
+    // Aquí puedes agregar la lógica para validar los datos recibidos si es necesario
+  
+    // Luego, puedes usar un ORM o una consulta SQL para guardar los datos en la base de datos
+    try {
+      // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
+      const query = `
+        INSERT INTO public.reuniones(nombre, fecha, invitados, enlace, id_proyecto, id_estado)
+        VALUES ( $1, $2, $3, $4, $5, $6)
+      `;
+      const values = [ nombre, fecha, invitados, enlace, id_proyecto, id_estado];
+  
+      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Reunión guardada exitosamente' });
+    } catch (error) {
+      console.error('Error al guardar la reunión:', error);
+      res.status(500).json({ message: 'Error al guardar la reunión' });
+    }
+  };
+  
+const obtenerReunion = async (req, res) => {
+    const { id } = req.params; 
+    const id_reunion = req.headers['id_reunion'];
+    console.log("reuniom",id_reunion)
+    try {
+        const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reuniones r JOIN estadoReunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
+        const reunion = result.rows
+        console.log(reunion)
+        if (result.rowCount > 0) {
+            return res.json({ success: true, reunion })
+        } else {
+            return res.status(203).json({ success: false, message: 'No hay reuniones' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+
+}
+
+const cancelarReunion = async (req, res) => {
+
+    const { id } = req.body;   
+
+    try {
+      const query = `
+      UPDATE public.reuniones
+      SET id_estado = 3
+      WHERE id = $1
+      `;
+      const values = [ id];
+  
+      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Reunión cancelada exitosamente' });
+    } catch (error) {
+      console.log(error)
+      console.error('Error al cancelar la reunión:', error);
+      res.status(500).json({ message: 'Error al cancelar la reunión' });
+    }
+  };
+
+const editarReunion = async (req, res) => {
+    const { nombre, fecha, invitados, enlace, id_reunion } = req.body;
+    console.log(id_reunion, enlace)
+    try {
+      const query = `
+        UPDATE public.reuniones
+        SET nombre=$1, fecha=$2, invitados=$3, enlace=$4
+        WHERE id = $5
+      `;
+      const values = [nombre, fecha, invitados, enlace, id_reunion];
+  
+      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Reunión editada exitosamente' });
+    } catch (error) {
+      console.error('Error al editar la reunión:', error);
+      res.status(500).json({ message: 'Error al editar la reunión' });
+    }
+  };
+  
+
+module.exports = { obtenerProyecto, obtenerEntregasCompletadas , obtenerEntregasPendientes, 
+    obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas, 
+    obtenerSolicitudesPendientes,obtenerSolicitudesCompletas, guardarReunion, obtenerReunion,
+     cancelarReunion, editarReunion}

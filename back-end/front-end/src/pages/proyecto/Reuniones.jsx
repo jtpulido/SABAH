@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline, TextField, Grid } from '@mui/material';
@@ -8,6 +6,7 @@ import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { useCookies } from 'react-cookie';
+import { useNavigate } from 'react-router-dom';
 import { tokens } from "../../theme";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
@@ -17,6 +16,12 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { Link } from 'react-router-dom';
+
 
 function CustomToolbar() {
   return (
@@ -59,14 +64,14 @@ function CustomDataGrid({ rows, columns }) {
 const CustomNoRowsMessage = () => {
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      No hay entregas
+      No hay reuniones
     </div>
   );
 };
 
-
 export default function Reuniones() {
 
+  const navigate = useNavigate();
   const [cookies] = useCookies(['id']);
   const token = useSelector(selectToken);
   const theme = useTheme();
@@ -77,12 +82,16 @@ export default function Reuniones() {
   const [completadas, setCompletadas] = useState([]);
   const [canceladas, setCanceladas] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showModal1, setShowModal1] = useState(false);
   const [titulo, setTitulo] = useState("");
-  const [fecha, setFecha] = useState(null);
+  const [fecha, setFecha] = useState(dayjs());
   const [hora, setHora] = useState("");
   const [nombre, setNombre] = useState("");
   const [enlace, setEnlace] = useState("");
   const [rol, setRol] = useState("");
+  const [idReunion, setIdReunion] = useState("");
+  const [reunionSeleccionada, setReunionSeleccionada] = useState(null);
+
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -98,18 +107,116 @@ export default function Reuniones() {
     setRol("");
   };
 
-  const handleSave = () => {
-    console.log("Guardando los valores:");
-    console.log("Título:", titulo);
-    console.log("Fecha:", fecha);
-    console.log("Hora:", hora);
-    console.log("Nombre:", nombre);
-    console.log("Enlace Reunión:", enlace);
-    console.log("Rol:", rol);
-    handleCloseModal();
+  const handleOpenModal1 = (reunionId) => {
+    handleEditarClick(reunionId)
+    
   };
-  const handleDateChange = (fecha) => {
-    setFecha(fecha);
+
+  const handleCloseModal1 = () => {
+    setShowModal1(false);
+    setTitulo("");
+    setFecha(null);
+    setHora("");
+    setNombre("");
+    setEnlace("");
+    setRol("");
+  };
+
+  const handleEditarClick = async (reunionId) => {
+    
+    try {
+      
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${cookies.id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` , 'id_reunion':`${reunionId}`}
+      });
+      const data = await response.json();
+      
+      if (!data.success) {
+        setError(data.message);
+      } else {
+        const formattedReunion = data.reunion.map(row => ({
+          ...row,
+          fecha: dayjs(row.fecha)
+        }));
+        await setReunionSeleccionada(formattedReunion);
+      }
+    }
+    catch (error) {
+      console.log(error)
+      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+    }
+    
+  };
+
+  const editarReunion = async () => {
+    
+    const data = {
+      fecha: fecha,
+      hora: hora,
+      nombre: nombre,
+      enlace: enlace,
+      invitados: rol,
+      id_reunion: reunionSeleccionada[0].id, // Convertir a número entero
+    };
+    console.log("reunion",reunionSeleccionada[0].id)
+    console.log("datos enviados",data)
+    
+    // Realiza la solicitud POST al backend
+    const response = await fetch("http://localhost:5000/proyecto/editarReunion", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+    
+
+    // Verifica si la solicitud fue exitosa
+    if (response.ok) {
+      console.log("La reunion se edito exitosamente.");
+    } else {
+      console.error("Ocurrió un error.");
+    }
+    handleCloseModal1()
+  }
+
+  const handleSave = async () => {
+    try {
+      // Crea un objeto con los datos que deseas enviar al backend
+      const data = {
+        fecha: fecha,
+        hora: hora,
+        nombre: nombre,
+        enlace: enlace,
+        invitados: rol,
+        id_proyecto: cookies.id,
+        id_estado: 1
+        
+      };
+  
+      // Realiza la solicitud POST al backend
+      const response = await fetch("http://localhost:5000/proyecto/guardarReunion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+  
+      // Verifica si la solicitud fue exitosa
+      if (response.ok) {
+        console.log("La reunion se genero exitosamente.");
+      } else {
+        console.error("Ocurrió un error.");
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+    }
   };
   const generarColumnas = (extraColumns) => {
 
@@ -135,7 +242,6 @@ export default function Reuniones() {
 
     return [...commonColumns, ...extraColumns];
   }
-
   const llenarTablaPendientes = async () => {
     
     try {
@@ -161,7 +267,6 @@ export default function Reuniones() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-
   const llenarTablaCompletas = async () => {
     
     try {
@@ -183,11 +288,10 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      console.log(error)
+      console.log(error);
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   }; 
-
   const llenarTablaCanceladas = async () => {
     
     try {
@@ -213,12 +317,20 @@ export default function Reuniones() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-
   useEffect(() => {
     llenarTablaPendientes();
     llenarTablaCompletas();
     llenarTablaCanceladas();
-}, []);
+    if (reunionSeleccionada && reunionSeleccionada.length > 0) {
+      console.log("reunion seleccionada", reunionSeleccionada);
+      setNombre(reunionSeleccionada[0].nombre);
+      setFecha(reunionSeleccionada[0].fecha);
+      setEnlace(reunionSeleccionada[0].enlace);
+      setRol(reunionSeleccionada[0].invitados)
+      setShowModal1(true);
+      // navigate(`/proyecto/VerReunion?${urlParams.toString()}`);
+    }
+  }, [reunionSeleccionada]);
 
 const columnsPendientes = generarColumnas([
   {
@@ -232,12 +344,40 @@ const columnsPendientes = generarColumnas([
       return (
         <Box sx={{ display: 'flex' }}>
           <Tooltip title="Editar">
-           <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={handleOpenModal}>
+           <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => handleOpenModal1(row.id)}>
                 <CreateIcon />
               </IconButton>
           </Tooltip>
-          <Tooltip title="">
-           <IconButton color="secondary">
+          <Tooltip title="Cancelar">
+           <IconButton color="secondary"
+              onClick={() => {
+                if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
+                  // Llamar al método cancelarReunion en el puerto 5000
+                 
+                  fetch('http://localhost:5000/proyecto/cancelarReunion', {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ id: row.id })
+                    // Opcional: si necesitas enviar datos adicionales
+                    // body: JSON.stringify({ reunionId: row.id }),
+                  })
+                  
+                    .then(response => {
+                      if (response.ok) {
+                        alert('La reunión se canceló correctamente');
+                        // Lógica adicional si es necesario
+                      } else {
+                        
+                        alert('Ocurrió un error al cancelar la reunión',error);
+                        // Lógica adicional si es necesario
+                      }
+                    })
+                    .catch(error => {
+                      alert('Ocurrió un error al cancelar la reunión');
+                      console.error(error);
+                    });
+                }
+              }}>
                 <HighlightOffIcon />
               </IconButton >
           </Tooltip>
@@ -245,7 +385,6 @@ const columnsPendientes = generarColumnas([
       );
     },},
 ]);
-
 const columnsCompletas = generarColumnas([
   {
     field: "Acción",
@@ -258,7 +397,7 @@ const columnsCompletas = generarColumnas([
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Tooltip title="">
-           <IconButton color="secondary">
+           <IconButton color="secondary" component={Link} to="/proyecto/ActaReunion">
                 <DescriptionIcon />
               </IconButton>
           </Tooltip>
@@ -267,7 +406,6 @@ const columnsCompletas = generarColumnas([
       );
     },},
 ]);
-
 const columnsCanceladas = generarColumnas([
   {
     field: "Acción",
@@ -289,7 +427,6 @@ const columnsCanceladas = generarColumnas([
       );
     },},
 ]);
-
 const rowsWithIds = pendientes.map((row) => ({
   ...row,
   id: row.id
@@ -315,9 +452,75 @@ const rowsWithIdsx = canceladas.map((row) => ({
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+
         <Typography variant="h1" color={colors.secundary[100]}> REUNIONES </Typography>
-        <Button startIcon={<ControlPointIcon />}/>
+        <Tooltip title="crear">
+           <IconButton color="secondary" onClick={() => handleOpenModal()}>
+                <ControlPointIcon sx={{ fontSize: 20 }}/>
+              </IconButton>
+          </Tooltip>
+
+          <Dialog open={showModal} onClose={handleCloseModal}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <DialogTitle variant="h5">Crear Reunión</DialogTitle>
+              <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon />} />
+            </div>
+
+            <DialogContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DateTimePicker
+                      label="Fecha"
+                      value={fecha}
+                      onChange={(newValue) => setFecha(newValue)}
+                      renderInput={(props) => <input {...props} />} // Optional: Use this line if you're not using MUI TextField component
+                    />
+                  </LocalizationProvider>
+                </Grid>
+              
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Nombre"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Enlace Reunión"
+                    value={enlace}
+                    onChange={(e) => setEnlace(e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Invitado</InputLabel>
+                    <Select
+                      value={rol}
+                      onChange={(e) => setRol(e.target.value)}
+                    >
+                      <MenuItem value="cliente">Cliente</MenuItem>
+                      <MenuItem value="director">Director</MenuItem>
+                      <MenuItem value="lector">Lector</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </DialogContent>
+
+            <DialogActions sx={{ justifyContent: "center" }}>
+              <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
+                Guardar
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+
       </div>
+
       <Box
         sx={{
           "& .MuiDataGrid-root": {
@@ -342,32 +545,26 @@ const rowsWithIdsx = canceladas.map((row) => ({
         Pendientes
       </Typography>
       <CustomDataGrid rows={rowsWithIds} columns={columnsPendientes} />
-      <Dialog open={showModal} onClose={handleCloseModal}>
+
+      <Dialog open={showModal1} onClose={handleCloseModal1}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <DialogTitle variant="h5">Crear Reunión</DialogTitle>
-          <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon />} />
+          <DialogTitle variant="h5">Editar Reunión</DialogTitle>
+          <Button onClick={handleCloseModal1} startIcon={<HighlightOffIcon />} />
         </div>
 
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-                <DatePicker
-                  label="Fecha"
-                  selected={fecha}
-                  onChange={handleDateChange}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="Selecciona una fecha"
-                  item xs={12} sm={6}
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+               label="Fecha"
+               value={fecha}
+               onChange={(newValue) => setFecha(newValue)}
+               renderInput={(props) => <input {...props} />} // Optional: Use this line if you're not using MUI TextField component
                 />
+            </LocalizationProvider>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Hora"
-                value={hora}
-                onChange={(e) => setHora(e.target.value)}
-                fullWidth
-              />
-            </Grid>
+            
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Nombre"
@@ -384,24 +581,19 @@ const rowsWithIdsx = canceladas.map((row) => ({
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Rol</InputLabel>
-                <Select
+            <Grid item xs={12} sm={6}>
+              <TextField
+                  label="Invitado"
                   value={rol}
                   onChange={(e) => setRol(e.target.value)}
-                >
-                  <MenuItem value="cliente">Cliente</MenuItem>
-                  <MenuItem value="director">Director</MenuItem>
-                  <MenuItem value="lector">Lector</MenuItem>
-                </Select>
-              </FormControl>
+                  fullWidth
+                />
             </Grid>
           </Grid>
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: "center" }}>
-          <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
+          <Button onClick={editarReunion} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
             Guardar
           </Button>
         </DialogActions>

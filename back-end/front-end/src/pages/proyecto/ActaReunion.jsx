@@ -6,6 +6,10 @@ import { Button } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+
 
 export default function ActaReunion() {
   const { id } = useParams();
@@ -38,34 +42,13 @@ export default function ActaReunion() {
       <br>
       </br>
 
-      <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
-          Información General * 
-        </Typography>
         <Box >
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <Typography variant="h6" color={colors.primary[100]}>
-                Fecha *
-              </Typography>
-              <TextField fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <Typography variant="h6" color={colors.primary[100]}>
-                Hora *
-              </Typography>
-              <TextField fullWidth />
-            </Grid>
-          </Grid>
-          </Box>  
-        </Box>
-      <Box >
         <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
           Descripción de Objetivos * 
         </Typography>
         <Box >
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Grid item xs={12} >
               <TextField fullWidth />
             </Grid>
           </Grid>
@@ -77,7 +60,7 @@ export default function ActaReunion() {
         </Typography>
         <Box >
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Grid item xs={12} >
               <TextField fullWidth />
             </Grid>
           </Grid>
@@ -85,11 +68,11 @@ export default function ActaReunion() {
         </Box> 
       <Box >
         <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
-          Tareas Sesion Anterior * 
+          Tareas Sesión Anterior * 
         </Typography>
         <Box >
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Grid item xs={12} >
               <TextField fullWidth />
             </Grid>
           </Grid>
@@ -101,35 +84,16 @@ export default function ActaReunion() {
         </Typography>
         <Box >
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Grid item xs={12} >
               <TextField fullWidth />
             </Grid>
           </Grid>
           </Box>  
         </Box>
-      <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
-          Programar Próxima Reunión * 
-        </Typography>
-        <Box >
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <Typography variant="h6" color={colors.primary[100]}>
-                Fecha *
-              </Typography>
-              <TextField fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <Typography variant="h6" color={colors.primary[100]}>
-                Hora *
-              </Typography>
-              <TextField fullWidth />
-            </Grid>
-          </Grid>
-          </Box>  
-        </Box>
-        <Button type="submit"> Enviar </Button>
-    </div>
+        <Box style={{ marginTop: '30px' }}>
+          <Button variant="contained" color="secondary" >Enviar</Button>  </Box>
+        
+      </div>
+
   );
 }
