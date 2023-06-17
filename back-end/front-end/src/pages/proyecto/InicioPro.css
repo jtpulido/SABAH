@@ -36,3 +36,17 @@ footer {
   .facultad img {
     height: 35px;
   }
+
+  button {
+    text-align: center;
+    line-height: 28px;
+    width: 50%;
+    background-color: #8DB33A;
+    color: white;
+    border: none;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 28px;
+  }

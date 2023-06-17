@@ -19,8 +19,10 @@ app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+
 // Configuración de CORS
 const corsOptions = {
+  origin: 'http://localhost:3000',
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   preflightContinue: false

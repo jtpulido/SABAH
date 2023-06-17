@@ -12,7 +12,7 @@ import { Recuperar1 } from '../login/ventanas/recuperar contrasena1/Recuperar1';
 
 export const Login = () => {
 
-  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario']);
+  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario', 'id']);
 
   const token = useSelector(selectToken);
 
@@ -43,48 +43,38 @@ export const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(usuario.username !== "" && usuario.password !== ""){
-      try {
-        const response = await fetch("http://localhost:5000/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(usuario)
-        });
-  
-        const data = await response.json();
-  
-        if (!data.success) {
-          setError(data.message);
-          setInputValues({ username: "", password: "" });
-  
-        } else {
-          const expires = new Date();
-          expires.setTime(expires.getTime() + (2 * 60 * 60 * 1000)); // caduca en dos horas
-  
-          console.log(expires)
-          setCookie('token', data.token, { path: '/', expires });
-          setCookie('tipo_usuario', data.tipo_usuario, { path: '/', expires });
-  
-          const tipo_usuario = data.tipo_usuario
-  
-          if (tipo_usuario === 'admin') {
-            navigate('/admin');
-          } else if (tipo_usuario === 'normal') {
-            navigate('/inicio');
-          } else if (tipo_usuario === 'comite') {
-            navigate('/comite');
-          }
-  
+    try {
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(usuario)
+      });
+      const data = await response.json();
+      console.log(data);
+      if (!data.success) {
+        setError(data.message);
+      } else {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (2 * 60 * 60 * 1000)); // caduca en dos horas
+        setCookie('token', data.token, { path: '/', expires });
+        setCookie('tipo_usuario', data.tipo_usuario, { path: '/', expires });
+        setCookie('id', data.id, { path: '/', expires });
+        const tipo_usuario = data.tipo_usuario
+        if (tipo_usuario === 'admin') {
+          navigate('/admin');
+        } else if (tipo_usuario === 'normal') {
+          navigate('/inicio');
+        } else if (tipo_usuario === 'comite') {
+          navigate('/comite');
+        } else if (tipo_usuario === 'proyecto'){
+          console.log(tipo_usuario);
+          navigate('/proyecto')
         }
+      }
       } catch (error) {
         setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
         setInputValues({ username: "", password: "" });
-      }
-    } else {
-      setInputValues({ username: "", password: "" });
-      setError("Por favor ingrese valores válidos.");
-      
-    }
+     }
   };
 
   // Modal 1
