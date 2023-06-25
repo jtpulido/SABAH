@@ -25,6 +25,9 @@ const {
     agregarAprobacion
 } = require('../controllers/comite.controller')
 
+const {crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId, crearRubrica,obtenerRubricasConItems
+} = require('../controllers/entregas.controller')
+
 const router = Router()
 
 
@@ -49,4 +52,17 @@ router.post('/comite/solicitudes/rechazadas', passport.authenticate('jwt', { ses
 router.post('/comite/solicitudes/verSolicitud', passport.authenticate('jwt', { session: false }), verSolicitud);
 router.post('/comite/solicitudes/verAprobaciones', passport.authenticate('jwt', { session: false }), verAprobacionesSolicitud);
 router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
+
+
+
+// Rutas para items
+router.post('/comite/item', passport.authenticate('jwt', { session: false }),crearItem);
+router.delete('/comite/item/:itemId', passport.authenticate('jwt', { session: false }),eliminarItem);
+router.put('/comite/item/:itemId',passport.authenticate('jwt', { session: false }), modificarItem);
+router.get('/comite/item', passport.authenticate('jwt', { session: false }),obtenerItems);
+router.get('/comite/item/:itemId', passport.authenticate('jwt', { session: false }),obtenerItemPorId);
+router.post('/comite/rubrica', passport.authenticate('jwt', { session: false }),crearRubrica);
+router.get('/comite/obtenerRubricasConItems', passport.authenticate('jwt', { session: false }),obtenerRubricasConItems);
+
+
 module.exports = router;

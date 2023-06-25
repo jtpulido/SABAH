@@ -10,6 +10,7 @@ import Lectores from "./lectores/Lectores";
 import Solicitudes from "./solicitudes/Solicitudes";
 import Entregas from "./entregas/Entregas";
 import Directores from "./directores/Directores";
+import Rubricas from "./entregas/Rubricas";
 
 export default function RoutesCmt() {
 
@@ -22,6 +23,7 @@ export default function RoutesCmt() {
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="entregas" element={<Entregas />} />
                 <Route path="directores" element={<Directores />} />
+                <Route path="rubricas" element={<Rubricas />} />
                 <Route path="verProyecto/:id" element={<VerProyecto />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />

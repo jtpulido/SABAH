@@ -28,7 +28,8 @@ function InicioCmt() {
     director: activeButton === "director" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
     jurado: activeButton === "jurado" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
     entrega: activeButton === "entrega" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
-    solicitud: activeButton === "solicitud" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)"
+    solicitud: activeButton === "solicitud" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    rubricas: activeButton === "rubricas" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)"
   };
 
   const handleClick = (button) => {
@@ -41,10 +42,12 @@ function InicioCmt() {
       navigate('/comite/lectores')
     } else if (button === "jurado") {
       navigate('/comite/jurados')
-    }else if (button === "solicitud") {
+    } else if (button === "solicitud") {
       navigate('/comite/solicitudes')
-    }else if (button === "entrega") {
+    } else if (button === "entrega") {
       navigate('/comite/entregas')
+    } else if (button === "rubricas") {
+      navigate('/comite/rubricas')
     }
   };
   return (<div><CssBaseline />
@@ -125,11 +128,24 @@ function InicioCmt() {
                     <ListItemText primary="SOLICITUDES" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
+                
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("rubricas")} sx={{
+                    backgroundColor: buttonColors.rubricas,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="RUBRICAS" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+
                 <ListItem disablePadding >
                   <ListItemButton onClick={() => cerrarSesion()} >
                     <ListItemText primary="CERRAR SESIÓN" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
+
               </List>
 
             </Box>
