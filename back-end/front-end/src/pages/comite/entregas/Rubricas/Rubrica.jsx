@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 
-import { Alert, Snackbar } from "@mui/material";
+import { tokens } from "../../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import Row from "./ItemRubrica";
-import { Button, TableContainer, TextField, Paper, Table, TableHead, TableBody, TableRow, TableCell, Select, MenuItem, FormControl, InputLabel, Box } from '@mui/material';
+
+import { Typography, useTheme, Alert, Snackbar, Button, TableContainer, TextField, Paper, Table, TableHead, TableBody, TableRow, TableCell, Select, MenuItem, FormControl, InputLabel, Box } from '@mui/material';
 
 export default function Rubrica() {
 
     const token = useSelector(selectToken);
 
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
 
     const [error, setError] = useState(null);
     const [mensaje, setMensaje] = useState(null);
@@ -159,7 +162,12 @@ export default function Rubrica() {
                 </Snackbar>
             )}
 
-            <h1>Crear Rubrica</h1>
+            <Typography
+                variant="h3"
+                color={colors.naranja[100]}
+            >
+                Crear nueva rubrica
+            </Typography>
             <FormControl fullWidth margin="normal">
                 <TextField
                     label="Nombre"
@@ -202,7 +210,12 @@ export default function Rubrica() {
                         ))}
                     </Select>
                 </FormControl>
-                <h3>Items Seleccionados:</h3>
+                <Typography
+                    variant="h4"
+                    color={colors.secundary[100]}
+                >
+                    Items seleccionados
+                </Typography>
                 <TableContainer component={Paper}>
                     <Table>
                         <TableHead>
@@ -244,7 +257,12 @@ export default function Rubrica() {
 
             </FormControl>
 
-            <h1>Rubricas</h1>
+            <Typography
+                variant="h3"
+                color={colors.naranja[100]}
+            >
+                Rubricas
+            </Typography>
 
             <TableContainer component={Paper}>
                 <Table aria-label="Rubricas">

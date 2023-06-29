@@ -2,7 +2,8 @@ import React, { } from "react";
 
 
 import PropTypes from 'prop-types';
-import { IconButton, Collapse, Typography, Table, TableHead, TableBody, TableRow, TableCell, Box } from '@mui/material';
+import { IconButton, Collapse, useTheme, Typography, Table, TableHead, TableBody, TableRow, TableCell, Box } from '@mui/material';
+import { tokens } from "../../../../theme";
 
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -11,6 +12,8 @@ export default function Row(props) {
     const { row } = props;
     const [open, setOpen] = React.useState(false);
 
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -33,8 +36,11 @@ export default function Row(props) {
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1 }}>
-                            <Typography variant="h2">
-                                ITEMS
+                            <Typography
+                                variant="h4"
+                                color={colors.secundary[100]}
+                            >
+                                Items
                             </Typography>
                             <Table>
                                 <TableHead>

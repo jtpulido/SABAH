@@ -9,6 +9,9 @@ export const tokens = () => ({
     },
     secundary: {
         100: "#8db33a"
+    },
+    naranja: {
+        100: "#ec8a01"
     }
 })
 
@@ -23,6 +26,8 @@ export const themeSettings = (mode) => {
             },
             secondary: {
                 main: colors.secundary[100]
+            }, naranja: {
+                main: colors.naranja[100]
             }
         },
         typography: {

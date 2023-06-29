@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
 
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Box, Snackbar } from "@mui/material";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 
-import { Button, TextField, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
+import { tokens } from "../../../../theme";
+import { Button, TextField, Table, TableHead, TableBody, TableRow, TableCell,Typography ,useTheme} from '@mui/material';
 
 
 
 export default function Item() {
 
     const token = useSelector(selectToken);
+
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
 
     const [nombre, setNombre] = useState("");
 
@@ -138,6 +142,12 @@ export default function Item() {
                     </Alert>
                 </Snackbar>
             )}
+            <Typography
+                        variant="h3"
+                        color={colors.naranja[100]}
+                    >
+                        Crear Item
+                    </Typography>
             <TextField
                 label="Nombre del item"
                 value={nombre}
@@ -150,31 +160,39 @@ export default function Item() {
             </Button>
 
             {items.length > 0 && (
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Nombre</TableCell>
-                            <TableCell>Acciones</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {items.map((row) => (
-                            <TableRow key={row.id}>
-                                <TableCell>{row.id}</TableCell>
-                                <TableCell>{row.nombre}</TableCell>
-                                <TableCell>
-                                    <Button variant="contained" color="primary" onClick={() => obtenerItemPorId(row.id)}>
-                                        Ver
-                                    </Button>
-                                    <Button variant="contained" color="secondary" onClick={() => eliminarItem(row.id)}>
-                                        Eliminar
-                                    </Button>
-                                </TableCell>
+                <Box>
+                    <Typography
+                        variant="h3"
+                        color={colors.naranja[100]}
+                    >
+                        Listado de items
+                    </Typography>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Nombre</TableCell>
+                                <TableCell>Acciones</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {items.map((row) => (
+                                <TableRow key={row.id}>
+                                    <TableCell>{row.id}</TableCell>
+                                    <TableCell>{row.nombre}</TableCell>
+                                    <TableCell>
+                                        <Button variant="contained" color="primary" onClick={() => obtenerItemPorId(row.id)}>
+                                            Ver
+                                        </Button>
+                                        <Button variant="contained" color="secondary" onClick={() => eliminarItem(row.id)}>
+                                            Eliminar
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Box>
             )}
 
 
