@@ -40,7 +40,7 @@ const obtenerItems = async (req, res) => {
         const query = 'SELECT * FROM item';
         pool.query(query, (error, result) => {
             if (error) {
-                return res.status(502).json({ success: false, message: error.message });
+                return res.status(502).json({ success: false, message });
             }
             const items = result.rows;
             if (items.length === 0) {
@@ -49,7 +49,7 @@ const obtenerItems = async (req, res) => {
             return res.status(200).json({ success: true, message: 'Items obtenidos correctamente', items });
         });
     } catch (error) {
-        return res.status(502).json({ success: false, message: error.message });
+        return res.status(502).json({ success: false, message });
     }
 };
 
@@ -62,6 +62,9 @@ const eliminarItem = async (req, res) => {
 
         pool.query(query, values, (error) => {
             if (error) {
+                if (error.code == '23503') {
+                    return res.status(502).json({ success: false, message: "No se puede eliminar un item que esta siendo utilizado por una rubrica." });
+                }
                 return res.status(502).json({ success: false, message });
             }
             return res.status(200).json({ success: true, message: 'Item eliminado correctamente' });
@@ -79,7 +82,7 @@ const obtenerItemPorId = async (req, res) => {
         const values = [item_id];
         pool.query(query, values, (error, result) => {
             if (error) {
-                return res.status(502).json({ success: false, message });
+                return res.status(502).json({ success: false, message: error });
             }
             if (result.rows.length === 0) {
                 return res.status(404).json({ success: false, message: 'No se encontró el item' });
@@ -88,7 +91,7 @@ const obtenerItemPorId = async (req, res) => {
             return res.status(200).json({ success: true, message: 'Item obtenido correctamente', item });
         });
     } catch (error) {
-        return res.status(502).json({ success: false, message });
+        return res.status(502).json({ success: false, message: error });
     }
 };
 
@@ -119,49 +122,48 @@ const crearRubrica = async (req, res) => {
     }
 };
 
-
 const obtenerRubricasConItems = async (req, res) => {
     try {
         const query = `
-      SELECT r.id AS rubrica_id, r.nombre AS rubrica_nombre, r.descripcion AS rubrica_descripcion,
-             i.id AS item_id, i.nombre AS item_nombre, ri.puntaje AS item_puntaje
-      FROM rubrica AS r
-      LEFT JOIN rubrica_item AS ri ON r.id = ri.rubrica_id
-      LEFT JOIN item AS i ON ri.item_id = i.id
-    `;
+        SELECT r.id AS rubrica_id, r.nombre AS rubrica_nombre, r.descripcion AS rubrica_descripcion,
+               i.id AS item_id, i.nombre AS item_nombre, ri.puntaje AS item_puntaje
+        FROM rubrica AS r
+        LEFT JOIN rubrica_item AS ri ON r.id = ri.rubrica_id
+        LEFT JOIN item AS i ON ri.item_id = i.id
+      `;
 
-        pool.query(query, (error, result) => {
-            if (error) {
-                return res.status(502).json({ success: false, message: 'Error al obtener las rubricas', error: error.message });
+        const result = await pool.query(query);
+
+        const groupedRows = new Map();
+        result.rows.forEach((row) => {
+            if (!groupedRows.has(row.rubrica_id)) {
+                groupedRows.set(row.rubrica_id, {
+                    rubrica_id: row.rubrica_id,
+                    rubrica_nombre: row.rubrica_nombre,
+                    rubrica_descripcion: row.rubrica_descripcion,
+                    items: [],
+                });
             }
-
-            const rubricas = [];
-            const groupedRows = result.rows.reduce((acc, row) => {
-                if (!acc[row.rubrica_id]) {
-                    acc[row.rubrica_id] = {
-                        rubrica_id: row.rubrica_id,
-                        rubrica_nombre: row.rubrica_nombre,
-                        rubrica_descripcion: row.rubrica_descripcion,
-                        items: [],
-                    };
-                    rubricas.push(acc[row.rubrica_id]);
-                }
-                if (row.item_id) {
-                    acc[row.rubrica_id].items.push({
-                        item_id: row.item_id,
-                        item_nombre: row.item_nombre,
-                        item_puntaje: row.item_puntaje,
-                    });
-                }
-                return acc;
-            }, {});
-
-            return res.status(200).json({ success: true, message: 'Rubricas obtenidas correctamente', rubricas });
+            if (row.item_id) {
+                groupedRows.get(row.rubrica_id).items.push({
+                    item_id: row.item_id,
+                    item_nombre: row.item_nombre,
+                    item_puntaje: row.item_puntaje,
+                });
+            }
         });
+
+        const rubricas = Array.from(groupedRows.values());
+        return res
+            .status(200)
+            .json({ success: true, message: 'Rubricas obtenidas correctamente', rubricas });
     } catch (error) {
-        return res.status(502).json({ success: false, message: 'Error al obtener las rubricas', error: error.message });
+        return res
+            .status(502)
+            .json({ success: false, message: 'Error al obtener las rubricas', error: message });
     }
 };
+
 
 module.exports = {
     crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId, crearRubrica, obtenerRubricasConItems
