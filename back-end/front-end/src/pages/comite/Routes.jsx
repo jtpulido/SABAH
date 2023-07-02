@@ -11,6 +11,7 @@ import Solicitudes from "./solicitudes/Solicitudes";
 import Entregas from "./entregas/Entregas";
 import Directores from "./directores/Directores";
 import Rubricas from "./entregas/Rubricas";
+import Espacios from "./entregas/Espacio";
 
 export default function RoutesCmt() {
 
@@ -24,6 +25,7 @@ export default function RoutesCmt() {
                 <Route path="entregas" element={<Entregas />} />
                 <Route path="directores" element={<Directores />} />
                 <Route path="rubricas" element={<Rubricas />} />
+                <Route path="espacio" element={<Espacios />} />
                 <Route path="verProyecto/:id" element={<VerProyecto />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />

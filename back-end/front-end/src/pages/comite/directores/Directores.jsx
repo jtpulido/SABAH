@@ -80,6 +80,7 @@ export default function Directores() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
+  
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);

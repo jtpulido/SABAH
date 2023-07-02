@@ -25,7 +25,10 @@ const {
     agregarAprobacion
 } = require('../controllers/comite.controller')
 
-const {crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId, crearRubrica,obtenerRubricasConItems
+const { crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
+    crearRubrica, obtenerRubricasConItems,
+    crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
+    obtenerEtapas,obtenerModalidades,obtenerRoles,obtenerRubricas
 } = require('../controllers/entregas.controller')
 
 const router = Router()
@@ -56,13 +59,24 @@ router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt'
 
 
 // Rutas para items
-router.post('/comite/item', passport.authenticate('jwt', { session: false }),crearItem);
-router.delete('/comite/item/:itemId', passport.authenticate('jwt', { session: false }),eliminarItem);
-router.put('/comite/item/:itemId',passport.authenticate('jwt', { session: false }), modificarItem);
-router.get('/comite/item', passport.authenticate('jwt', { session: false }),obtenerItems);
-router.get('/comite/item/:itemId', passport.authenticate('jwt', { session: false }),obtenerItemPorId);
-router.post('/comite/rubrica', passport.authenticate('jwt', { session: false }),crearRubrica);
-router.get('/comite/obtenerRubricasConItems', passport.authenticate('jwt', { session: false }),obtenerRubricasConItems);
+router.post('/comite/item', passport.authenticate('jwt', { session: false }), crearItem);
+router.delete('/comite/item/:itemId', passport.authenticate('jwt', { session: false }), eliminarItem);
+router.put('/comite/item/:itemId', passport.authenticate('jwt', { session: false }), modificarItem);
+router.get('/comite/item', passport.authenticate('jwt', { session: false }), obtenerItems);
+router.get('/comite/item/:itemId', passport.authenticate('jwt', { session: false }), obtenerItemPorId);
+router.post('/comite/rubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
+router.get('/comite/obtenerRubricasConItems', passport.authenticate('jwt', { session: false }), obtenerRubricasConItems);
 
+// Rutas para espacios
+router.post('/comite/espacio', passport.authenticate('jwt', { session: false }), crearEspacio);
+router.delete('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), eliminarEspacio);
+router.put('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), modificarEspacio);
+router.get('/comite/espacio', passport.authenticate('jwt', { session: false }), obtenerEspacio);
+router.get('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), obtenerEspacioPorId);
+
+router.get('/comite/etapas', passport.authenticate('jwt', { session: false }), obtenerEtapas);
+router.get('/comite/modalidades', passport.authenticate('jwt', { session: false }), obtenerModalidades);
+router.get('/comite/roles', passport.authenticate('jwt', { session: false }), obtenerRoles);
+router.get('/comite/rubricas', passport.authenticate('jwt', { session: false }), obtenerRubricas);
 
 module.exports = router;

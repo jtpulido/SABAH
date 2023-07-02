@@ -1,6 +1,6 @@
-DB_USER=postgres
-DB_PASS=qwerty
-DB_HOST=localhost
+DB_USER=uxkr4fk3jjr97qvl3zzp
+DB_PASS=1rK6S0PyEacxJOwX3TXQTt7BbMi1Yj
+DB_HOST=bw3wkzqsan9ppf3u5jc4-postgresql.services.clever-cloud.com
 DB_PORT=5432
-DB_DATABASE=Sabah_db
+DB_DATABASE=bw3wkzqsan9ppf3u5jc4
 JWT_SECRET=Sabah_proyect

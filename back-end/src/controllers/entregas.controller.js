@@ -6,7 +6,7 @@ const crearItem = async (req, res) => {
         const { nombre } = req.body;
         const query = 'INSERT INTO item (nombre) VALUES ($1) RETURNING id';
         const values = [nombre];
-        pool.query(query, values, (error, result) => {
+        await pool.query(query, values, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
@@ -24,7 +24,7 @@ const modificarItem = async (req, res) => {
 
         const query = 'UPDATE item SET nombre = $1 WHERE id = $2';
         const values = [nombre, item_id];
-        pool.query(query, values, (error) => {
+        await pool.query(query, values, (error) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
@@ -38,7 +38,7 @@ const modificarItem = async (req, res) => {
 const obtenerItems = async (req, res) => {
     try {
         const query = 'SELECT * FROM item';
-        pool.query(query, (error, result) => {
+        await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
@@ -60,7 +60,7 @@ const eliminarItem = async (req, res) => {
         const query = 'DELETE FROM item WHERE id = $1';
         const values = [item_id];
 
-        pool.query(query, values, (error) => {
+        await pool.query(query, values, (error) => {
             if (error) {
                 if (error.code == '23503') {
                     return res.status(502).json({ success: false, message: "No se puede eliminar un item que esta siendo utilizado por una rubrica." });
@@ -80,12 +80,12 @@ const obtenerItemPorId = async (req, res) => {
 
         const query = 'SELECT * FROM item WHERE id = $1';
         const values = [item_id];
-        pool.query(query, values, (error, result) => {
+        await pool.query(query, values, (error, result) => {
             if (error) {
-                return res.status(502).json({ success: false, message: error });
+                return res.status(502).json({ success: false, message });
             }
             if (result.rows.length === 0) {
-                return res.status(404).json({ success: false, message: 'No se encontró el item' });
+                return res.status(203).json({ success: false, message: 'No se encontró el item' });
             }
             const item = result.rows[0];
             return res.status(200).json({ success: true, message: 'Item obtenido correctamente', item });
@@ -164,7 +164,203 @@ const obtenerRubricasConItems = async (req, res) => {
     }
 };
 
+const crearEspacio = async (req, res) => {
+    try {
+        const { nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
 
+        const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+        const values = [nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica];
+        await pool.query(query, values, (error) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al crear el espacio. Por favor, intente de nuevo más tarde.' });
+            }
+            return res.status(200).json({ success: true, message: 'Espacio de entrega creado correctamente' });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
+const modificarEspacio = async (req, res) => {
+    try {
+        const { espacio_id } = req.params;
+        const { nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
+
+        const query = `UPDATE espacio_entrega
+        SET nombre = $1, descripcion = $2, fecha_apertura = $3, fecha_cierre = $4, id_rol = $5, id_modalidad = $6, id_etapa = $7, id_rubrica = $8
+        WHERE id = $9
+        RETURNING *`
+        const values = [nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica, espacio_id];
+
+        await pool.query(query, values, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No se pudo encontrar el espacio de entrega' });
+            }
+            return res.status(200).json({ success: true, message: 'Rubrica modificada correctamente' });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
+const obtenerEspacio = async (req, res) => {
+    try {
+        const query = `
+        SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, e.fecha_creacion,
+               r.nombre AS nombre_rol, m.nombre AS nombre_modalidad, et.nombre AS nombre_etapa, rb.nombre AS nombre_rubrica
+        FROM espacio_entrega e
+        INNER JOIN rol r ON e.id_rol = r.id
+        INNER JOIN modalidad m ON e.id_modalidad = m.id
+        INNER JOIN etapa et ON e.id_etapa = et.id
+        INNER JOIN rubrica rb ON e.id_rubrica = rb.id
+      `;
+      await pool.query(query, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+            const espacios = result.rows;
+            if (espacios.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay espacios creados.' });
+            }
+            return res.status(200).json({ success: true, message: 'ESspacios obtenidos correctamente', espacios });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
+
+const eliminarEspacio = async (req, res) => {
+    try {
+        const espacio_id = req.params.espacio_id;
+        const query = 'DELETE FROM espacio_entrega WHERE id = $1';
+        const values = [espacio_id];
+
+        await pool.query(query, values, (error,result) => {
+            if (error) {
+                if (error.code == '23503') {
+                    return res.status(502).json({ success: false, message: "No se puede eliminar un espacio en el que ya se realizaron entregas." });
+                }
+
+                return res.status(502).json({ success: false, message });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No se pudo encontrar el espacio a eliminar' });
+            }
+            return res.status(200).json({ success: true, message: 'Espacio eliminado correctamente' });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
+const obtenerEspacioPorId = async (req, res) => {
+    try {
+        const { espacio_id } = req.params;
+
+        const query = `
+        SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, e.fecha_creacion,
+               r.nombre AS nombre_rol, m.nombre AS nombre_modalidad, et.nombre AS nombre_etapa, rb.nombre AS nombre_rubrica
+        FROM espacio_entrega e
+        INNER JOIN rol r ON e.id_rol = r.id
+        INNER JOIN modalidad m ON e.id_modalidad = m.id
+        INNER JOIN etapa et ON e.id_etapa = et.id
+        INNER JOIN rubrica rb ON e.id_rubrica = rb.id WHERE e.id=$1
+      `;
+        const values = [espacio_id];
+        pool.query(query, values, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: false, message: 'No se encontró el espacio' });
+            }
+            const espacio = result.rows[0];
+            return res.status(200).json({ success: true, message: 'Espacio obtenido correctamente', espacio });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+const obtenerRubricas = async (req, res) => {
+    try {
+        const query = `
+        SELECT id,nombre
+        FROM rubrica`;
+        await pool.query(query, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las rubricas. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay rubricas creados.' });
+            }
+            return res.status(200).json({ success: true, rubricas: result.rows });
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message });
+    }
+};
+const obtenerRoles = async (req, res) => {
+    try {
+        const query = `
+        SELECT id,nombre
+        FROM rol`;
+        await pool.query(query, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los roles. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay roles creados.' });
+            }
+            return res.status(200).json({ success: true, roles: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+const obtenerModalidades = async (req, res) => {
+    try {
+        const query = `
+        SELECT id,nombre
+        FROM modalidad`;
+        await pool.query(query, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las modalidades. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay modalidades creados.' });
+            }
+            return res.status(200).json({ success: true, modalidades: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+const obtenerEtapas = async (req, res) => {
+    try {
+        const query = `
+        SELECT id,nombre
+        FROM etapa`;
+        await pool.query(query, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las etapa. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay etapas creados.' });
+            }
+            return res.status(200).json({ success: true, etapas: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
 module.exports = {
-    crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId, crearRubrica, obtenerRubricasConItems
+    crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
+    crearRubrica, obtenerRubricasConItems,
+    crearEspacio,eliminarEspacio,modificarEspacio,obtenerEspacio,obtenerEspacioPorId,
+    obtenerEtapas,obtenerModalidades,obtenerRoles,obtenerRubricas
 }
