@@ -77,9 +77,10 @@ export default function Proyectos() {
   const verProyecto = (id) => {
     navigate(`/comite/verProyecto/${id}`)
   }
-  const llenarTablaEnCurso = async () => {
+ 
+  const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch("http://localhost:5000/comite/solicitudes/pendienteaprobacion", {
+      const response = await fetch(`http://localhost:5000/comite/solicitudes/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -87,60 +88,28 @@ export default function Proyectos() {
       if (!data.success) {
         setError(data.message);
       } else {
-        setRowsEnCurso(data.solicitudes);
+        setRowsFunc(data.solicitudes);
       }
     }
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-  const llenarTablaAprobadas = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/solicitudes/aprobadas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsAprobadas(data.solicitudes);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
-  const llenarTablaRechazadas = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/solicitudes/rechazadas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsRechazadas(data.solicitudes);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
+
   useEffect(() => {
-    llenarTablaEnCurso()
-    llenarTablaAprobadas()
-    llenarTablaRechazadas()
+    llenarTabla("pendienteaprobacion", setRowsEnCurso);
+    llenarTabla("rechazadas", setRowsRechazadas);
+    llenarTabla("aprobadas", setRowsAprobadas);
   }, []);
+
   const [open, setOpen] = useState(false);
 
   const abrirDialog = (id) => {
     setIdSolicitud(id)
     setOpen(true);
-    llenarTablaEnCurso()
-    llenarTablaAprobadas()
-    llenarTablaRechazadas()
+    llenarTabla("pendienteaprobacion", setRowsEnCurso);
+    llenarTabla("rechazadas", setRowsRechazadas);
+    llenarTabla("aprobadas", setRowsAprobadas);
   };
 
   const cerrarDialog = () => {

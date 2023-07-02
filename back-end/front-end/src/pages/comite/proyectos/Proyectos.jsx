@@ -57,9 +57,9 @@ export default function Proyectos() {
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
-  const llenarTablaEnCurso = async () => {
+  const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch("http://localhost:5000/comite/obtenerEnCurso", {
+      const response = await fetch(`http://localhost:5000/comite/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -67,33 +67,17 @@ export default function Proyectos() {
       if (!data.success) {
         setError(data.message);
       } else {
-        setRowsEnCurso(data.proyectos);
+        setRowsFunc(data.proyectos);
       }
     }
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-  const llenarTablaCerrados = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/obtenerTerminados", {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsTerminados(data.proyectos);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
+
   useEffect(() => {
-    llenarTablaEnCurso()
-    llenarTablaCerrados()
+    llenarTabla("obtenerTerminados", setRowsTerminados);
+    llenarTabla("obtenerEnCurso", setRowsEnCurso);
   }, []);
   return (
     <div style={{ margin: "15px" }} >

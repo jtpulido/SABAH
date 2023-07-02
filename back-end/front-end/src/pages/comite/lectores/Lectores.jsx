@@ -7,11 +7,11 @@ import { Source, Person, Edit } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import CustomDataGrid from "../../layouts/DataGrid";
 
 export default function Lectores() {
   const navigate = useNavigate();
+  
   const generarColumnas = (extraColumns) => {
     const columns = [
       {
@@ -88,9 +88,9 @@ export default function Lectores() {
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
-  const llenarTablaActivos = async () => {
+  const llenarTabla = async (url, setData) => {
     try {
-      const response = await fetch("http://localhost:5000/comite/lectoresproyectos/activos", {
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -98,51 +98,18 @@ export default function Lectores() {
       if (!data.success) {
         setError(data.message);
       } else {
-        setRowsActivos(data.lectores);
+        setData(data.lectores);
       }
     }
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-  const llenarTablaCerrados = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/lectoresproyectos/cerrados", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsCerrados(data.lectores);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
-  const llenarTablaInactivos = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/lectoresproyectos/inactivos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsInactivos(data.lectores);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
+
   useEffect(() => {
-    llenarTablaActivos()
-    llenarTablaCerrados()
-    llenarTablaInactivos()
+    llenarTabla("http://localhost:5000/comite/lectoresproyectos/activos", setRowsActivos);
+    llenarTabla("http://localhost:5000/comite/lectoresproyectos/cerrados", setRowsCerrados);
+    llenarTabla("http://localhost:5000/comite/lectoresproyectos/inactivos", setRowsInactivos);
   }, []);
   return (
     <div style={{ margin: "15px" }} >

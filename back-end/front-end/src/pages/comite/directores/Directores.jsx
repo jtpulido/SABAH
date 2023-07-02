@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, Alert, Snackbar, IconButton, Tooltip } from "@mui/material";
-
 import { Source, Person, Edit } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
-
 
 export default function Directores() {
   const navigate = useNavigate();
@@ -19,8 +16,7 @@ export default function Directores() {
       { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
       {
         field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center",
-        valueGetter: (params) =>
-          `${params.row.etapa || ''} - ${params.row.estado || ''}`,
+        valueGetter: (params) => `${params.row.etapa || ''} - ${params.row.estado || ''}`,
       },
       {
         field: "Acción",
@@ -43,53 +39,47 @@ export default function Directores() {
           );
         },
       }
-    ]
+    ];
     return [...columns, ...extraColumns];
   };
+
   const columnsEditar = generarColumnas([
     {
-      field: "editar", headerName: "", flex: 0.01, headerAlign: "center", align: "center",
+      field: "editar",
+      headerName: "",
+      flex: 0.01,
+      headerAlign: "center",
+      align: "center",
       renderCell: ({ row }) => {
         const { id_director } = row;
+        const tooltipTitle = id_director ? "Cambiar Director" : "Asignar Director";
+        const iconButtonIcon = id_director ? <Edit /> : <Person />;
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            {id_director ? (
-              <Tooltip title="Cambiar Director">
-                <IconButton color="secondary">
-                  <Edit />
-                </IconButton>
-              </Tooltip>
-            ) : (<Tooltip title="Asignar Director">
-              <IconButton color="secondary" >
-                <Person />
+            <Tooltip title={tooltipTitle}>
+              <IconButton color="secondary">
+                {iconButtonIcon}
               </IconButton>
             </Tooltip>
-            )}
           </Box>
         );
       },
     }
   ]);
-  const columns = generarColumnas([
-  ]);
-  const verProyecto = (id_proyecto) => {
-    navigate(`/comite/verProyecto/${id_proyecto}`)
-  }
-  const verDirector = (id_director) => {
-  }
+
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
-  
+
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
-  const llenarTablaActivos = async () => {
+  const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch("http://localhost:5000/comite/directoresproyectos/activos", {
+      const response = await fetch(`http://localhost:5000/comite/directoresproyectos/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -97,52 +87,24 @@ export default function Directores() {
       if (!data.success) {
         setError(data.message);
       } else {
-        setRowsActivos(data.directores);
+        setRowsFunc(data.directores);
       }
     }
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-  const llenarTablaCerrados = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/directoresproyectos/cerrados", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsCerrados(data.directores);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
-  const llenarTablaInactivos = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/directoresproyectos/inactivos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.message);
-      } else {
-        setRowsInactivos(data.directores);
-      }
-    }
-    catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
-    }
-  };
+
   useEffect(() => {
-    llenarTablaActivos()
-    llenarTablaInactivos()
-    llenarTablaCerrados()
+    llenarTabla("activos", setRowsActivos);
+    llenarTabla("cerrados", setRowsCerrados);
+    llenarTabla("inactivos", setRowsInactivos);
   }, []);
+
+  const verProyecto = (id_proyecto) => {
+    navigate(`/comite/verProyecto/${id_proyecto}`);
+  };
+
   return (
     <div style={{ margin: "15px" }} >
       {error && (
@@ -152,11 +114,7 @@ export default function Directores() {
           </Alert>
         </Snackbar>
       )}
-      <Typography
-        variant="h1"
-        color={colors.secundary[100]}
-        fontWeight="bold"
-      >
+      <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         DIRECTORES POR PROYECTO
       </Typography>
       <Box
@@ -178,24 +136,19 @@ export default function Directores() {
           }
         }}
       >
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
+        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Proyectos en desarrollo
         </Typography>
         <CustomDataGrid rows={rowsActivos} columns={columnsEditar} mensaje="No hay directores" />
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
+        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Proyectos cerrados
         </Typography>
-        <CustomDataGrid rows={rowsCerrados} columns={columns} mensaje="No hay directores" />
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
+        <CustomDataGrid rows={rowsCerrados} columns={columnsEditar} mensaje="No hay directores" />
+        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Inactivos
         </Typography>
-        <CustomDataGrid rows={rowsInactivos} columns={columns} mensaje="No hay directores" />
-
+        <CustomDataGrid rows={rowsInactivos} columns={columnsEditar} mensaje="No hay directores" />
       </Box>
-
     </div>
   );
 }

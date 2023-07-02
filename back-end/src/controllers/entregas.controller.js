@@ -53,7 +53,6 @@ const obtenerItems = async (req, res) => {
     }
 };
 
-
 const eliminarItem = async (req, res) => {
     try {
         const item_id = req.params.itemId;
@@ -94,7 +93,6 @@ const obtenerItemPorId = async (req, res) => {
         return res.status(502).json({ success: false, message: error });
     }
 };
-
 
 const crearRubrica = async (req, res) => {
     try {
@@ -217,29 +215,27 @@ const obtenerEspacio = async (req, res) => {
         INNER JOIN etapa et ON e.id_etapa = et.id
         INNER JOIN rubrica rb ON e.id_rubrica = rb.id
       `;
-      await pool.query(query, (error, result) => {
+        await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
-            const espacios = result.rows;
-            if (espacios.length === 0) {
+            if (result.rows.length === 0) {
                 return res.status(203).json({ success: true, message: 'No hay espacios creados.' });
             }
-            return res.status(200).json({ success: true, message: 'ESspacios obtenidos correctamente', espacios });
+            return res.status(200).json({ success: true, espacios: result.rows });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
 };
 
-
 const eliminarEspacio = async (req, res) => {
     try {
         const espacio_id = req.params.espacio_id;
-        const query = 'DELETE FROM espacio_entrega WHERE id = $1';
+        const query = 'DELETE FROM espacio_entrega WHERE id = $1 RETURNING *';
         const values = [espacio_id];
 
-        await pool.query(query, values, (error,result) => {
+        await pool.query(query, values, (error, result) => {
             if (error) {
                 if (error.code == '23503') {
                     return res.status(502).json({ success: false, message: "No se puede eliminar un espacio en el que ya se realizaron entregas." });
@@ -248,7 +244,7 @@ const eliminarEspacio = async (req, res) => {
                 return res.status(502).json({ success: false, message });
             }
             if (result.rows.length === 0) {
-                return res.status(203).json({ success: true, message: 'No se pudo encontrar el espacio a eliminar' });
+                return res.status(203).json({ success: false, message: 'No se pudo encontrar el espacio a eliminar' });
             }
             return res.status(200).json({ success: true, message: 'Espacio eliminado correctamente' });
         });
@@ -361,6 +357,6 @@ const obtenerEtapas = async (req, res) => {
 module.exports = {
     crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
     crearRubrica, obtenerRubricasConItems,
-    crearEspacio,eliminarEspacio,modificarEspacio,obtenerEspacio,obtenerEspacioPorId,
-    obtenerEtapas,obtenerModalidades,obtenerRoles,obtenerRubricas
+    crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
+    obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas
 }

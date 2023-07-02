@@ -1,8 +1,27 @@
-import React, { useState } from "react";
-import { TextField, Button, Box, Select, MenuItem, Alert, Snackbar } from "@mui/material";
+import React, { useState, useEffect } from 'react';
 
+import { tokens } from "../../../../theme";
+import PropTypes from 'prop-types';
+import { useTheme, TextField, Button, Box, Select, MenuItem, Alert, Dialog, AppBar, Toolbar, Typography, Slide, IconButton } from "@mui/material";
 
-export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapas, rubricas }) {
+import CloseIcon from '@mui/icons-material/Close';
+import { SaveOutlined } from '@mui/icons-material';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+
+function CrearEspacio(props) {
+
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+
+    const { onClose, roles: rolesvalueProp, modalidades: modalidadesvalueProp, etapas: etapasvalueProp, rubricas: rubricasvalueProp, open, ...other } = props;
+
+    const [roles, setRoles] = useState(rolesvalueProp);
+    const [modalidades, setModalidades] = useState(modalidadesvalueProp);
+    const [etapas, setEtapas] = useState(etapasvalueProp);
+    const [rubricas, setRubricas] = useState(rubricasvalueProp);
 
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
@@ -55,11 +74,12 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
         const fechaAperturaDate = new Date(fechaApertura);
         const fechaCierreDate = new Date(fechaCierre);
 
-        if (fechaAperturaDate <= today) {
+        if (fechaAperturaDate < today) {
+
             setError("La fecha de apertura debe ser mayor a la fecha actual.");
             return;
         }
-        if (fechaCierreDate <= fechaAperturaDate) {
+        if (fechaCierreDate < fechaAperturaDate) {
             setError("La fecha de cierre debe ser mayor a la fecha de apertura.")
             return;
         }
@@ -73,7 +93,7 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
             id_etapa: idEtapa,
             id_rubrica: idRubrica,
         };
-        onCrearEspacio(espacioData);
+        onClose(espacioData);
         setNombre("");
         setDescripcion("");
         setFechaApertura("");
@@ -82,41 +102,81 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
         setIdModalidad("");
         setIdEtapa("");
         setIdRubrica("");
+        setError("")
     };
 
+    useEffect(() => {
+        if (!open) {
+            setRoles(rolesvalueProp)
+            setModalidades(modalidadesvalueProp)
+            setRubricas(rubricasvalueProp)
+            setEtapas(etapasvalueProp)
+        }
+    }, [rolesvalueProp, modalidadesvalueProp, rubricasvalueProp, etapasvalueProp, open]);
+
+
+    const handleClose = () => {
+        onClose();
+        setNombre("");
+        setDescripcion("");
+        setFechaApertura("");
+        setFechaCierre("");
+        setIdRol("");
+        setIdModalidad("");
+        setIdEtapa("");
+        setIdRubrica("");
+        setError("")
+    };
     return (
-        <form onSubmit={guardarEspacio}>
-
-            <Box display="flex" flexDirection="column" gap={2}>
-
-                <TextField
-                    label="Nombre"
-                    value={nombre}
-                    onChange={handleNombreChange}
-                    required
-                />
-                <TextField
-                    label="Descripción"
-                    value={descripcion}
-                    onChange={handleDescripcionChange}
-                    multiline
-                    rows={4}
-                />
-                <TextField
-                    label="Fecha de apertura"
-                    type="date"
-                    value={fechaApertura}
-                    onChange={handleFechaAperturaChange}
-                    required
-                />
-                <TextField
-                    label="Fecha de cierre"
-                    type="date"
-                    value={fechaCierre}
-                    onChange={handleFechaCierreChange}
-                    required
-                />
-                {roles.length > 0 ? (
+      
+        <Dialog fullScreen TransitionComponent={Transition} open={open} {...other}>
+             <form onSubmit={guardarEspacio}>
+            <AppBar sx={{ position: 'relative' }}>
+                <Toolbar>
+                    <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close" >
+                        <CloseIcon />
+                    </IconButton>
+                    <Typography sx={{ ml: 2, flex: 1 }} variant="h2" component="div">
+                        Espacio de entrega
+                    </Typography>
+                    <Button  type="submit" color="inherit" variant="h2" startIcon={<SaveOutlined />} >
+                        Guardar
+                    </Button>
+                </Toolbar>
+            </AppBar>
+           
+            <Box display="flex" flexDirection="column" gap={1} sx={{ m: 5 }}>
+              
+                    <Typography variant="h2" color={colors.primary[100]} sx={{ mb: "30px" }}>
+                        Crear un nuevo espacio
+                    </Typography>
+                    <TextField
+                        label="Nombre"
+                        value={nombre}
+                        onChange={handleNombreChange}
+                        required
+                    />
+                    <TextField
+                        label="Descripción"
+                        value={descripcion}
+                        onChange={handleDescripcionChange}
+                        multiline
+                        rows={4}
+                    />
+                    <TextField
+                        label="Fecha de apertura"
+                        type="date"
+                        value={fechaApertura}
+                        onChange={handleFechaAperturaChange}
+                        required
+                    />
+                    <TextField
+                        label="Fecha de cierre"
+                        type="date"
+                        value={fechaCierre}
+                        onChange={handleFechaCierreChange}
+                        required
+                    />
                     <Select
                         label="Rol"
                         value={idRol}
@@ -129,10 +189,6 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
                             </MenuItem>
                         ))}
                     </Select>
-                ) : (
-                    <p>Cargando roles...</p>
-                )}
-                {modalidades.length > 0 ? (
                     <Select
                         label="Modalidad"
                         value={idModalidad}
@@ -145,10 +201,6 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
                             </MenuItem>
                         ))}
                     </Select>
-                ) : (
-                    <p>Cargando modalidades...</p>
-                )}
-                {etapas.length > 0 ? (
                     <Select
                         label="Etapa"
                         value={idEtapa}
@@ -161,10 +213,6 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
                             </MenuItem>
                         ))}
                     </Select>
-                ) : (
-                    <p>Cargando etapas...</p>
-                )}
-                {rubricas.length > 0 ? (
                     <Select
                         label="Rúbrica"
                         value={idRubrica}
@@ -177,18 +225,25 @@ export default function CrearEspacio({ onCrearEspacio, roles, modalidades, etapa
                             </MenuItem>
                         ))}
                     </Select>
-                ) : (
-                    <p>Cargando rúbricas...</p>
-                )}
-                {error && (
-                    <Alert severity="error" onClose={menError}>
-                        {error}
-                    </Alert>
-                )}
-                <Button type="submit" variant="contained" color="primary">
-                    Crear Espacio
-                </Button>
+                    {error && (
+                        <Alert severity="error" onClose={menError}>
+                            {error}
+                        </Alert>
+                    )}
+              
             </Box>
-        </form>
+            </form>
+        </Dialog>
+    
     );
 }
+CrearEspacio.propTypes = {
+    onClose: PropTypes.func.isRequired,
+    open: PropTypes.bool.isRequired,
+    roles: PropTypes.array.isRequired,
+    modalidades: PropTypes.array.isRequired,
+    etapas: PropTypes.array.isRequired,
+    rubricas: PropTypes.array.isRequired,
+};
+
+export default CrearEspacio;
