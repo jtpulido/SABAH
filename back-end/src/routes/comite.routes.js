@@ -1,6 +1,9 @@
 const { Router } = require('express');
 const passport = require('passport');
 
+const multer = require('multer');
+const router = Router()
+
 const {
     obtenerProyecto,
     obtenerTodosProyectos,
@@ -28,11 +31,25 @@ const {
 const { crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
     crearRubrica, obtenerRubricasConItems,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
-    obtenerEtapas,obtenerModalidades,obtenerRoles,obtenerRubricas
+    obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
+    verEntregasPendientes,
+    verEntregasRealizadas
 } = require('../controllers/entregas.controller')
 
-const router = Router()
+const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
 
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/comite/guardar', upload.single('file'), async (req, res) => {
+    try {
+        const file = req.file;
+        await guardarDocumentoYEntrega(req, res, file);
+
+    } catch (error) {
+        console.error('Error al subir el archivo y guardar el documento y la entrega:', error);
+        res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
+    }
+});
 
 router.get('/comite/obtenerTodos', passport.authenticate('jwt', { session: false }), obtenerTodosProyectos);
 router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
@@ -78,5 +95,9 @@ router.get('/comite/etapas', passport.authenticate('jwt', { session: false }), o
 router.get('/comite/modalidades', passport.authenticate('jwt', { session: false }), obtenerModalidades);
 router.get('/comite/roles', passport.authenticate('jwt', { session: false }), obtenerRoles);
 router.get('/comite/rubricas', passport.authenticate('jwt', { session: false }), obtenerRubricas);
+
+//Entregas
+router.get('/comite/entrega/pendientes/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
+router.get('/comite/entrega/realizadas/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasRealizadas);
 
 module.exports = router;

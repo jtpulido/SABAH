@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -110,7 +111,7 @@ export default function Espacios() {
             } else if (response.status === 203) {
                 setMensaje(data.message)
             } else if (response.status === 200) {
-               await setEspacios(data.espacios);
+               setEspacios(data.espacios);
             }
         } catch (error) {
             setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");

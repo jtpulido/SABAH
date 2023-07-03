@@ -2,39 +2,54 @@ const pool = require('../database')
 
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id=1')
-        const proyectos = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, proyectos });
-        } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
-        }
+        await pool.query(
+            'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id=1', async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
+                }
+            })
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerProyectosTerminados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id <> 1')
-        const proyectos = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, proyectos });
-        } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
-        }
+       await pool.query(
+            'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id <> 1', async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
+                }
+            })
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const obtenerTodosProyectos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id')
-        const proyectos = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, proyectos });
-        } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
-        }
+       await pool.query(
+            'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id', async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
+                }
+            })
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
@@ -80,7 +95,8 @@ const asignarNuevoCodigo = async (req, res) => {
                     } else {
                         return res.status(500).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                     }
-                } else if (result) {
+                }
+                if (result) {
                     etapa = result.rows[0].nombre;
                     return res.json({ success: true, codigo, etapa })
                 }
@@ -239,29 +255,6 @@ const obtenerLectoresProyectosInactivos = async (req, res) => {
     }
 };
 
-const obtenerSolicitudesProyecto = async (req, res) => {
-    try {
-
-        const { id } = req.body;
-        await pool.query("SELECT s.id AS id_solicitud, ts.nombre AS nombre_tipo_solicitud,s.creado_proyecto, s.fecha AS fecha_solicitud,ad.aprobado AS aprobado_director, TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, ac.aprobado AS aprobado_comite, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s INNER JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.id_proyecto=$1", [id], async (error, result) => {
-            if (error) {
-                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-
-            } else if (result.rowCount > 0) {
-                return res.json({ success: true, lectores });
-
-            } else if (result.rowCount == 0) {
-                return res.status(203).json({ success: false, message: 'No hay solicitudes para el proyecto' })
-
-            } else {
-                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-
-            }
-        })
-    } catch (error) {
-        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
 const obtenerSolicitudesPendientesComite = async (req, res) => {
     try {
         const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.id IS NULL UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.id IS NULL")

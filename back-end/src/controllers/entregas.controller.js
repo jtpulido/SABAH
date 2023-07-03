@@ -354,9 +354,64 @@ const obtenerEtapas = async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
+
+
+const verEntregasPendientes = async (req, res) => {
+    try {
+        const proyecto_id = req.params.proyecto_id;
+
+        const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol, p.id AS id_proyecto
+        FROM espacio_entrega e
+        INNER JOIN rol r ON e.id_rol = r.id
+        LEFT JOIN documento_entrega d ON e.id = d.id_espacio_entrega
+        JOIN proyecto p ON p.id_modalidad = e.id_modalidad AND p.id_etapa = e.id_etapa
+        WHERE d.id_proyecto IS NULL AND p.id = $1
+        `;
+
+        await pool.query(query, [proyecto_id], (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay espacios creados sin entrega para el proyecto especificado.' });
+            }
+            return res.status(200).json({ success: true, espacios: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
+const verEntregasRealizadas= async (req, res) => {
+    try {
+        const proyecto_id = req.params.proyecto_id;
+
+        const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol
+        FROM espacio_entrega e
+        INNER JOIN rol r ON e.id_rol = r.id
+        INNER JOIN documento_entrega d ON e.id = d.id_espacio_entrega
+        JOIN proyecto p ON p.id_modalidad = e.id_modalidad AND p.id_etapa = e.id_etapa
+        WHERE p.id = $1        
+        `;
+
+        await pool.query(query, [proyecto_id], (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay espacios creados sin entrega para el proyecto especificado.' });
+            }
+            return res.status(200).json({ success: true, espacios: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
 module.exports = {
     crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
     crearRubrica, obtenerRubricasConItems,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
-    obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas
+    obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
+    verEntregasPendientes,verEntregasRealizadas
 }

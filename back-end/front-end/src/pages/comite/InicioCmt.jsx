@@ -41,7 +41,7 @@ const menuItems = [
       { label: "ENTREGAS", button: "entregas" }
     ]
   },
-  { label: "SOLICITUDES", button: "solicitud" },
+  { label: "SOLICITUDES", button: "solicitudes" },
   { label: "CERRAR SESIÓN", button: "cerrarSesion" }
 ];
 
