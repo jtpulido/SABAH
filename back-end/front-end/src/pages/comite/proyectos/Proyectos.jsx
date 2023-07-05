@@ -55,8 +55,9 @@ export default function Proyectos() {
   const [rowsTerminados, setRowsTerminados] = useState([]);
 
   const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
-
+  const [mensaje, setMensaje] = useState(null);
+  const menError = () => setError(null);
+  const menSuccess = () => setMensaje(null);
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/${endpoint}`, {
@@ -66,7 +67,9 @@ export default function Proyectos() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
-      } else {
+      } else if (response.status === 203) {
+        setMensaje(data.message)
+      } else if (response.status === 200) {
         setRowsFunc(data.proyectos);
       }
     }
@@ -82,9 +85,16 @@ export default function Proyectos() {
   return (
     <div style={{ margin: "15px" }} >
       {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
+        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert severity="error" onClose={menError}>
             {error}
+          </Alert>
+        </Snackbar>
+      )}
+      {mensaje && (
+        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={menSuccess} severity="success">
+            {mensaje}
           </Alert>
         </Snackbar>
       )}
@@ -116,13 +126,13 @@ export default function Proyectos() {
           sx={{ mt: "30px" }}>
           En desarrollo
         </Typography>
-        <CustomDataGrid rows={rowsEnCurso} columns={columns} mensaje="No hay proyectos"  />
-      
+        <CustomDataGrid rows={rowsEnCurso || []} columns={columns} mensaje="No hay proyectos" />
+
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Cerrados
         </Typography>
-        <CustomDataGrid rows={rowsTerminados} columns={columns} mensaje="No hay proyectos"  />
+        <CustomDataGrid rows={rowsTerminados || []} columns={columns} mensaje="No hay proyectos" />
 
       </Box>
 

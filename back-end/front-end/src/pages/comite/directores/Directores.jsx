@@ -75,8 +75,9 @@ export default function Directores() {
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
   const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
-
+  const [mensaje, setMensaje] = useState(null);
+  const menError = () => setError(null);
+  const menSuccess = () => setMensaje(null);
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/directoresproyectos/${endpoint}`, {
@@ -86,7 +87,9 @@ export default function Directores() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
-      } else {
+      } else if (response.status === 203) {
+        setMensaje(data.message)
+      } else if (response.status === 200) {
         setRowsFunc(data.directores);
       }
     }
@@ -108,9 +111,16 @@ export default function Directores() {
   return (
     <div style={{ margin: "15px" }} >
       {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={handleClose}>
+        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert severity="error" onClose={menError}>
             {error}
+          </Alert>
+        </Snackbar>
+      )}
+      {mensaje && (
+        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={menSuccess} severity="success">
+            {mensaje}
           </Alert>
         </Snackbar>
       )}

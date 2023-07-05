@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import Row from "./Rubricas/ItemRubrica";
+import Row from "./Rubricas/AspectoRubrica";
 
 import { Typography, Alert, useTheme, Divider, Snackbar, TableContainer, Paper, Table, TableHead, TableBody, TableRow, TableCell, Select, MenuItem, FormControl, InputLabel, Box, Button, TextField } from '@mui/material';
 
@@ -17,11 +17,11 @@ export default function Rubricas() {
     const [error, setError] = useState(null);
     const [mensaje, setMensaje] = useState(null);
 
-    const [items, setItems] = useState([]);
+    const [aspectos, setAspectos] = useState([]);
     const [rubricaNombre, setRubricaNombre] = useState('');
     const [rubricaDescripcion, setRubricaDescripcion] = useState('');
-    const [selectedItems, setSelectedItems] = useState([]);
-    const [itemPuntajes, setItemPuntajes] = useState({});
+    const [selectedAspectos, setSelectedAspectos] = useState([]);
+    const [aspectoPuntajes, setAspectoPuntajes] = useState({});
     const [puntajesWarning, setPuntajesWarning] = useState(false);
     const [rubricas, setRubricas] = useState([]);
 
@@ -31,9 +31,9 @@ export default function Rubricas() {
     const menError = () => setError(null);
     const menSuccess = () => setMensaje(null);
 
-    const obtenerItems = async () => {
+    const obtenerAspectos = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/item", {
+            const response = await fetch("http://localhost:5000/comite/aspecto", {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -43,41 +43,41 @@ export default function Rubricas() {
             } else if (response.status === 203) {
                 setMensaje(data.message)
             } else if (response.status === 200) {
-                setItems(data.items);
+                setAspectos(data.aspectos);
             }
 
 
 
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
         }
     };
-    const handleItemSelect = (event) => {
-        const itemId = event.target.value;
-        const selectedItem = items.find((item) => item.id === itemId);
+    const handleAspectoSelect = (event) => {
+        const aspectoId = event.target.value;
+        const selectedAspecto = aspectos.find((aspecto) => aspecto.id === aspectoId);
 
-        // Verificar si el item ya está seleccionado
-        const isItemSelected = selectedItems.some((item) => item.id === itemId);
-        if (!isItemSelected) {
-            setSelectedItems([...selectedItems, selectedItem]);
+        // Verificar si el aspecto ya está seleccionado
+        const isAspectoSelected = selectedAspectos.some((aspecto) => aspecto.id === aspectoId);
+        if (!isAspectoSelected) {
+            setSelectedAspectos([...selectedAspectos, selectedAspecto]);
         }
     };
 
-    const handleItemRemove = (itemId) => {
-        const updatedSelectedItems = selectedItems.filter((item) => item.id !== itemId);
-        setSelectedItems(updatedSelectedItems);
-        // Remove puntaje associated with removed item
-        const updatedItemPuntajes = { ...itemPuntajes };
-        delete updatedItemPuntajes[itemId];
-        setItemPuntajes(updatedItemPuntajes);
+    const handleAspectoRemove = (aspectoId) => {
+        const updatedSelectedAspectos = selectedAspectos.filter((aspecto) => aspecto.id !== aspectoId);
+        setSelectedAspectos(updatedSelectedAspectos);
+        // Remove puntaje associated with removed aspecto
+        const updatedAspectoPuntajes = { ...aspectoPuntajes };
+        delete updatedAspectoPuntajes[aspectoId];
+        setAspectoPuntajes(updatedAspectoPuntajes);
     };
 
-    const handleItemPuntajeChange = (itemId, newPuntaje) => {
+    const handleAspectoPuntajeChange = (aspectoId, newPuntaje) => {
         const parsedPuntaje = parseInt(newPuntaje);
 
-        setItemPuntajes({ ...itemPuntajes, [itemId]: parsedPuntaje });
+        setAspectoPuntajes({ ...aspectoPuntajes, [aspectoId]: parsedPuntaje });
 
-        const puntajesSum = selectedItems.reduce((sum, item) => sum + (itemPuntajes[item.id] || 0), 0);
+        const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
 
         if (puntajesSum == 100) {
             setPuntajesWarning(false);
@@ -87,15 +87,15 @@ export default function Rubricas() {
     };
     const handleSubmit = async () => {
 
-        const puntajesSum = selectedItems.reduce((sum, item) => sum + (itemPuntajes[item.id] || 0), 0);
+        const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
         if (puntajesSum == 100) {
             try {
                 const rubricaData = {
                     nombre: rubricaNombre,
                     descripcion: rubricaDescripcion,
-                    items: selectedItems.map((item) => ({
-                        ...item,
-                        puntaje: itemPuntajes[item.id] || 0,
+                    aspectos: selectedAspectos.map((aspecto) => ({
+                        ...aspecto,
+                        puntaje: aspectoPuntajes[aspecto.id] || 0,
                     })),
                 };
 
@@ -108,8 +108,8 @@ export default function Rubricas() {
                 if (data.success) {
                     setRubricaNombre('');
                     setRubricaDescripcion('');
-                    setSelectedItems([]);
-                    setItemPuntajes({});
+                    setSelectedAspectos([]);
+                    setAspectoPuntajes({});
                     obtenerRubricas();
                     setMensaje(data.mensaje)
                 } else {
@@ -117,10 +117,10 @@ export default function Rubricas() {
                     setError(data.message);
                 }
             } catch (error) {
-                setError("Lo siento, ha ocurrido un error al modificar el item. Por favor, intente de nuevo más tarde.");
+                setError("Lo siento, ha ocurrido un error al modificar el aspecto. Por favor, intente de nuevo más tarde.");
             }
         } else {
-            setError("La suma de los items debe ser 100")
+            setError("La suma de los aspectos debe ser 100")
         }
     };
 
@@ -128,7 +128,7 @@ export default function Rubricas() {
 
     const obtenerRubricas = async () => {
         try {
-            const response = await fetch('http://localhost:5000/comite/obtenerRubricasConItems', {
+            const response = await fetch('http://localhost:5000/comite/obtenerRubricasConAspectos', {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -141,9 +141,9 @@ export default function Rubricas() {
             console.log('Error al obtener las rubricas:', error);
         }
     };
-    const crearItem = async () => {
+    const crearAspecto = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/item", {
+            const response = await fetch("http://localhost:5000/comite/aspecto", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ nombre })
@@ -153,16 +153,16 @@ export default function Rubricas() {
                 setError(data.message);
             } else {
                 setNombre("");
-                obtenerItems();
+                obtenerAspectos();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al crear el item. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al crear el aspecto. Por favor, intente de nuevo más tarde.");
         }
     };
 
-    const eliminarItem = async (itemId) => {
+    const eliminarAspecto = async (aspectoId) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/item/${itemId}`, {
+            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -171,16 +171,16 @@ export default function Rubricas() {
                 setError(data.message);
             } else {
                 setMensaje(data.message);
-                obtenerItems();
+                obtenerAspectos();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al eliminar el item. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al eliminar el aspecto. Por favor, intente de nuevo más tarde.");
         }
     };
 
-    const modificarItem = async (itemId) => {
+    const modificarAspecto = async (aspectoId) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/item/${itemId}`, {
+            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ nombre })
@@ -190,16 +190,16 @@ export default function Rubricas() {
                 setError(data.message);
             } else {
                 setNombre("");
-                obtenerItems();
+                obtenerAspectos();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al modificar el item. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al modificar el aspecto. Por favor, intente de nuevo más tarde.");
         }
     };
 
-    const obtenerItemPorId = async (itemId) => {
+    const obtenerAspectoPorId = async (aspectoId) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/item/${itemId}`, {
+            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -207,15 +207,15 @@ export default function Rubricas() {
             if (!data.success) {
                 setError(data.message);
             } else {
-                // Hacer algo con el item obtenido
+                // Hacer algo con el aspecto obtenido
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener el item. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener el aspecto. Por favor, intente de nuevo más tarde.");
         }
     };
     useEffect(() => {
         obtenerRubricas();
-        obtenerItems();
+        obtenerAspectos();
     }, []);
 
     return (
@@ -239,37 +239,37 @@ export default function Rubricas() {
                 color={colors.secundary[100]}
                 fontWeight="bold"
             >
-                ITEMS Y RUBRICAS DE CALIFICACIÓN
+                ASPECTOS Y RUBRICAS DE CALIFICACIÓN
             </Typography>
             <Divider sx={{ mt: "15px", mb: "15px" }} />
             <Typography variant="h2" color={colors.primary[100]}>
-                ITEMS
+                ASPECTOS
             </Typography>
             <Divider sx={{ mt: "15px", mb: "15px" }} />
             <Typography
                 variant="h3"
                 color={colors.naranja[100]}
             >
-                Crear Item
+                Crear Aspecto
             </Typography>
             <TextField
-                label="Nombre del item"
+                label="Nombre del aspecto"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 fullWidth
                 margin="normal"
             />
-            <Button variant="contained" color="primary" onClick={crearItem}>
-                Crear Item
+            <Button variant="contained" color="primary" onClick={crearAspecto}>
+                Crear Aspecto
             </Button>
 
-            {items.length > 0 && (
+            {aspectos.length > 0 && (
                 <Box>
                     <Typography
                         variant="h3"
                         color={colors.naranja[100]}
                     >
-                        Listado de items
+                        Listado de aspectos
                     </Typography>
                     <Table>
                         <TableHead>
@@ -280,15 +280,15 @@ export default function Rubricas() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {items.map((row) => (
+                            {aspectos.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell>{row.id}</TableCell>
                                     <TableCell>{row.nombre}</TableCell>
                                     <TableCell>
-                                        <Button variant="contained" color="primary" onClick={() => obtenerItemPorId(row.id)}>
+                                        <Button variant="contained" color="primary" onClick={() => obtenerAspectoPorId(row.id)}>
                                             Ver
                                         </Button>
-                                        <Button variant="contained" color="secondary" onClick={() => eliminarItem(row.id)}>
+                                        <Button variant="contained" color="secondary" onClick={() => eliminarAspecto(row.id)}>
                                             Eliminar
                                         </Button>
                                     </TableCell>
@@ -326,28 +326,28 @@ export default function Rubricas() {
                 />
 
                 <FormControl fullWidth margin="normal">
-                    <InputLabel>Seleccionar items</InputLabel>
+                    <InputLabel>Seleccionar aspectos</InputLabel>
                     <Select
                         value=""
-                        onChange={handleItemSelect}
+                        onChange={handleAspectoSelect}
                         renderValue={() => (
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                {selectedItems.map((item) => (
+                                {selectedAspectos.map((aspecto) => (
                                     <Button
-                                        key={item.id}
+                                        key={aspecto.id}
                                         variant="outlined"
                                         color="primary"
-                                        onClick={() => handleItemRemove(item.id)}
+                                        onClick={() => handleAspectoRemove(aspecto.id)}
                                     >
-                                        {item.nombre}
+                                        {aspecto.nombre}
                                     </Button>
                                 ))}
                             </Box>
                         )}
                     >
-                        {items.map((item) => (
-                            <MenuItem key={item.id} value={item.id}>
-                                {item.nombre}
+                        {aspectos.map((aspecto) => (
+                            <MenuItem key={aspecto.id} value={aspecto.id}>
+                                {aspecto.nombre}
                             </MenuItem>
                         ))}
                     </Select>
@@ -356,7 +356,7 @@ export default function Rubricas() {
                     variant="h4"
                     color={colors.secundary[100]}
                 >
-                    Items seleccionados
+                    Aspectos seleccionados
                 </Typography>
                 <TableContainer component={Paper}>
                     <Table>
@@ -368,21 +368,21 @@ export default function Rubricas() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {selectedItems.map((item) => (
-                                <TableRow key={item.id}>
-                                    <TableCell>{item.nombre}</TableCell>
+                            {selectedAspectos.map((aspecto) => (
+                                <TableRow key={aspecto.id}>
+                                    <TableCell>{aspecto.nombre}</TableCell>
                                     <TableCell>
                                         <TextField
                                             type="number"
-                                            value={itemPuntajes[item.id] || ''}
-                                            onChange={(e) => handleItemPuntajeChange(item.id, e.target.value)}
+                                            value={aspectoPuntajes[aspecto.id] || ''}
+                                            onChange={(e) => handleAspectoPuntajeChange(aspecto.id, e.target.value)}
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <Button
                                             variant="outlined"
                                             color="secondary"
-                                            onClick={() => handleItemRemove(item.id)}
+                                            onClick={() => handleAspectoRemove(aspecto.id)}
                                         >
                                             Eliminar
                                         </Button>

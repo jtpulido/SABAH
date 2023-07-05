@@ -19,11 +19,11 @@ export default function RoutesCmt() {
         <Routes>
             <Route path="/" element={<InicioCmt />} >
                 <Route index element={<Proyectos />} />
-                <Route path="lectores" element={<Lectores />} />
-                <Route path="jurados" element={<Jurados />} />
+                <Route path="lector" element={<Lectores />} />
+                <Route path="jurado" element={<Jurados />} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="entregas" element={<Entregas />} />
-                <Route path="directores" element={<Directores />} />
+                <Route path="director" element={<Directores />} />
                 <Route path="rubricas" element={<Rubricas />} />
                 <Route path="espacio" element={<Espacios />} />
                 <Route path="verProyecto/:id" element={<VerProyecto />} />

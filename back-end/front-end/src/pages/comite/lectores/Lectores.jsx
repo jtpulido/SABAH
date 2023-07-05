@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, Alert, Snackbar, IconButton, Tooltip } from "@mui/material";
+import { Box, Typography, useTheme, IconButton, Tooltip } from "@mui/material";
 
 import { Source, Person, Edit } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
+import { useSnackbar } from 'notistack';
 
 export default function Lectores() {
   const navigate = useNavigate();
-  
+
+  const { enqueueSnackbar } = useSnackbar();
+
+  const handleClickVariant = (message, variant) => {
+    enqueueSnackbar(message, { variant });
+  };
+
   const generarColumnas = (extraColumns) => {
     const columns = [
       {
@@ -85,8 +92,7 @@ export default function Lectores() {
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
+
 
   const llenarTabla = async (url, setData) => {
     try {
@@ -96,13 +102,15 @@ export default function Lectores() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
-      } else {
+        handleClickVariant(data.mensaje, "error")
+      } else if (response.status === 203) {
+        handleClickVariant(data.mensaje, "warning")
+      } else if (response.status === 200) {
         setData(data.lectores);
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      handleClickVariant("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
 
@@ -111,60 +119,54 @@ export default function Lectores() {
     llenarTabla("http://localhost:5000/comite/lectoresproyectos/cerrados", setRowsCerrados);
     llenarTabla("http://localhost:5000/comite/lectoresproyectos/inactivos", setRowsInactivos);
   }, []);
+
   return (
+
+
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
-      <Typography
-        variant="h1"
-        color={colors.secundary[100]}
-        fontWeight="bold"
-      >
-        LECTORES POR PROYECTO
-      </Typography>
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cellContent": {
-            textAlign: "center"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      >
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
-          Proyectos en desarrollo
+        <Typography
+          variant="h1"
+          color={colors.secundary[100]}
+          fontWeight="bold"
+        >
+          LECTORES POR PROYECTO
         </Typography>
-        <CustomDataGrid rows={rowsActivos} columns={columnsEditar} mensaje="No hay lectores"/>
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
-          Proyectos cerrados
-        </Typography>
-        <CustomDataGrid rows={rowsCerrados} columns={columns} mensaje="No hay lectores"/>
+        <Box
+          sx={{
+            "& .MuiDataGrid-root": {
+              border: "none",
+            },
+            "& .MuiDataGrid-cellContent": {
+              textAlign: "center"
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              color: colors.primary[100],
+              textAlign: "center",
+              fontSize: 14
+            },
+            "& .MuiDataGrid-toolbarContainer": {
+              justifyContent: 'flex-end',
+              align: "right"
+            }
+          }}
+        >
+          <Typography variant="h2" color={colors.primary[100]}
+            sx={{ mt: "30px" }}>
+            Proyectos en desarrollo
+          </Typography>
+          <CustomDataGrid rows={rowsActivos} columns={columnsEditar} mensaje="No hay lectores" />
+          <Typography variant="h2" color={colors.primary[100]}
+            sx={{ mt: "30px" }}>
+            Proyectos cerrados
+          </Typography>
+          <CustomDataGrid rows={rowsCerrados} columns={columns} mensaje="No hay lectores" />
 
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
-          Inactivos
-        </Typography>
-        <CustomDataGrid rows={rowsInactivos} columns={columns} mensaje="No hay lectores"/>
-
-      </Box>
-
+          <Typography variant="h2" color={colors.primary[100]}
+            sx={{ mt: "30px" }}>
+            Inactivos
+          </Typography>
+          <CustomDataGrid rows={rowsInactivos} columns={columns} mensaje="No hay lectores" />
+        </Box>
     </div>
   );
 }

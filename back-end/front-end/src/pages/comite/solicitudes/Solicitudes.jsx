@@ -18,9 +18,11 @@ export default function Proyectos() {
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsAprobadas, setRowsAprobadas] = useState([]);
   const [rowsRechazadas, setRowsRechazadas] = useState([]);
-  const [error, setError] = useState(null);
   const [idSolicitud, setIdSolicitud] = useState(null);
-  const handleClose = () => setError(null);
+  const [error, setError] = useState(null);
+  const [mensaje, setMensaje] = useState(null);
+  const menError = () => setError(null);
+  const menSuccess = () => setMensaje(null);
   const navigate = useNavigate();
 
   const generarColumnas = (extraColumns) => {
@@ -87,7 +89,9 @@ export default function Proyectos() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
-      } else {
+      } else if (response.status === 203) {
+        setMensaje(data.message)
+      } else if (response.status === 200) {
         setRowsFunc(data.solicitudes);
       }
     }
@@ -117,10 +121,17 @@ export default function Proyectos() {
   }
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={handleClose}>
+        {error && (
+        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert severity="error" onClose={menError}>
             {error}
+          </Alert>
+        </Snackbar>
+      )}
+      {mensaje && (
+        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={menSuccess} severity="success">
+            {mensaje}
           </Alert>
         </Snackbar>
       )}

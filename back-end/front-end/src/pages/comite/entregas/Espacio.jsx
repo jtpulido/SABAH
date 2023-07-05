@@ -41,7 +41,7 @@ export default function Espacios() {
                 setRoles(data.roles);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
         }
     };
     const obtenerModalidades = async () => {
@@ -59,7 +59,7 @@ export default function Espacios() {
                 setModalidades(data.modalidades);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
         }
     };
     const obtenerEtapas = async () => {
@@ -77,7 +77,7 @@ export default function Espacios() {
                 setEtapas(data.etapas);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
 
         }
     };
@@ -96,7 +96,7 @@ export default function Espacios() {
                 setRubricas(data.rubricas);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
         }
     };
     const obtenerEspacios = async () => {
@@ -114,7 +114,7 @@ export default function Espacios() {
                setEspacios(data.espacios);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los items. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
         }
     };
     const obtenerEspacioPorId = async (espacio_id) => {
@@ -127,7 +127,7 @@ export default function Espacios() {
             if (!data.success) {
                 setError(data.message);
             } else {
-                // Hacer algo con el item obtenido
+                // Hacer algo con el aspecto obtenido
             }
         } catch (error) {
             setError("Lo siento, ha ocurrido un error al obtener el esapcio. Por favor, intente de nuevo más tarde.");
@@ -147,7 +147,7 @@ export default function Espacios() {
                 obtenerEspacios();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al crear el item. Por favor, intente de nuevo más tarde.");
+            setError("Lo siento, ha ocurrido un error al crear el aspecto. Por favor, intente de nuevo más tarde.");
         }
     };
     const eliminarEspacio = async (espacio_id) => {

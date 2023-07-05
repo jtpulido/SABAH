@@ -40,7 +40,7 @@ export default function Row(props) {
                                 variant="h4"
                                 color={colors.secundary[100]}
                             >
-                                Items
+                                Aspectos
                             </Typography>
                             <Table>
                                 <TableHead>
@@ -52,13 +52,13 @@ export default function Row(props) {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {row.items.map((item) => (
-                                        <TableRow key={item.item_id}>
+                                    {row.aspectos.map((aspecto) => (
+                                        <TableRow key={aspecto.id_aspecto}>
                                             <TableCell component="th" scope="row" align="center">
-                                                {item.item_id}
+                                                {aspecto.id_aspecto}
                                             </TableCell>
-                                            <TableCell>{item.item_nombre}</TableCell>
-                                            <TableCell align="right">{item.item_puntaje}</TableCell>
+                                            <TableCell>{aspecto.aspecto_nombre}</TableCell>
+                                            <TableCell align="right">{aspecto.aspecto_puntaje}</TableCell>
 
                                         </TableRow>
                                     ))}
@@ -77,11 +77,11 @@ Row.propTypes = {
         rubrica_id: PropTypes.number.isRequired,
         rubrica_nombre: PropTypes.string.isRequired,
         rubrica_descripcion: PropTypes.string.isRequired,
-        items: PropTypes.arrayOf(
+        aspectos: PropTypes.arrayOf(
             PropTypes.shape({
-                item_id: PropTypes.number.isRequired,
-                item_puntaje: PropTypes.number.isRequired,
-                item_nombre: PropTypes.string.isRequired,
+                id_aspecto: PropTypes.number.isRequired,
+                aspecto_puntaje: PropTypes.number.isRequired,
+                aspecto_nombre: PropTypes.string.isRequired,
             }),
         ).isRequired,
     }).isRequired,

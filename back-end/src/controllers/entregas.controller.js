@@ -1,93 +1,93 @@
 const pool = require('../database')
 const message = 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.'
 
-const crearItem = async (req, res) => {
+const crearAspecto = async (req, res) => {
     try {
         const { nombre } = req.body;
-        const query = 'INSERT INTO item (nombre) VALUES ($1) RETURNING id';
+        const query = 'INSERT INTO aspecto (nombre) VALUES ($1) RETURNING id';
         const values = [nombre];
         await pool.query(query, values, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
-            const item_id = result.rows[0].id;
-            return res.status(200).json({ success: true, message: 'Item creado correctamente', item_id });
+            const id_aspecto = result.rows[0].id;
+            return res.status(200).json({ success: true, message: 'aspecto creado correctamente', id_aspecto });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
 };
 
-const modificarItem = async (req, res) => {
+const modificarAspecto = async (req, res) => {
     try {
-        const { item_id, nombre } = req.body;
+        const { id_aspecto, nombre } = req.body;
 
-        const query = 'UPDATE item SET nombre = $1 WHERE id = $2';
-        const values = [nombre, item_id];
+        const query = 'UPDATE aspecto SET nombre = $1 WHERE id = $2';
+        const values = [nombre, id_aspecto];
         await pool.query(query, values, (error) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
-            return res.status(200).json({ success: true, message: 'Item modificado correctamente' });
+            return res.status(200).json({ success: true, message: 'aspecto modificado correctamente' });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
 };
 
-const obtenerItems = async (req, res) => {
+const obtenerAspectos = async (req, res) => {
     try {
-        const query = 'SELECT * FROM item';
+        const query = 'SELECT * FROM aspecto';
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
-            const items = result.rows;
-            if (items.length === 0) {
-                return res.status(203).json({ success: true, message: 'No hay items disponibles' });
+            const aspectos = result.rows;
+            if (aspectos.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay aspectos disponibles' });
             }
-            return res.status(200).json({ success: true, message: 'Items obtenidos correctamente', items });
+            return res.status(200).json({ success: true, message: 'aspectos obtenidos correctamente', aspectos });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
 };
 
-const eliminarItem = async (req, res) => {
+const eliminarAspecto = async (req, res) => {
     try {
-        const item_id = req.params.itemId;
-        const query = 'DELETE FROM item WHERE id = $1';
-        const values = [item_id];
+        const id_aspecto = req.params.aspectoId;
+        const query = 'DELETE FROM aspecto WHERE id = $1';
+        const values = [id_aspecto];
 
         await pool.query(query, values, (error) => {
             if (error) {
                 if (error.code == '23503') {
-                    return res.status(502).json({ success: false, message: "No se puede eliminar un item que esta siendo utilizado por una rubrica." });
+                    return res.status(502).json({ success: false, message: "No se puede eliminar un aspecto que esta siendo utilizado por una rubrica." });
                 }
                 return res.status(502).json({ success: false, message });
             }
-            return res.status(200).json({ success: true, message: 'Item eliminado correctamente' });
+            return res.status(200).json({ success: true, message: 'aspecto eliminado correctamente' });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Error en el servidor' });
     }
 };
 
-const obtenerItemPorId = async (req, res) => {
+const obtenerAspectoPorId = async (req, res) => {
     try {
-        const { item_id } = req.params;
+        const { id_aspecto } = req.params;
 
-        const query = 'SELECT * FROM item WHERE id = $1';
-        const values = [item_id];
+        const query = 'SELECT * FROM aspecto WHERE id = $1';
+        const values = [id_aspecto];
         await pool.query(query, values, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
             if (result.rows.length === 0) {
-                return res.status(203).json({ success: false, message: 'No se encontró el item' });
+                return res.status(203).json({ success: false, message: 'No se encontró el aspecto' });
             }
-            const item = result.rows[0];
-            return res.status(200).json({ success: true, message: 'Item obtenido correctamente', item });
+            const aspecto = result.rows[0];
+            return res.status(200).json({ success: true, message: 'aspecto obtenido correctamente', aspecto });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message: error });
@@ -96,19 +96,19 @@ const obtenerItemPorId = async (req, res) => {
 
 const crearRubrica = async (req, res) => {
     try {
-        const { nombre, descripcion, items } = req.body;
+        const { nombre, descripcion, aspectos } = req.body;
         await pool.query('BEGIN');
         const rubricaQuery = 'INSERT INTO rubrica (nombre, descripcion) VALUES ($1, $2) RETURNING id';
         const rubricaValues = [nombre, descripcion];
         const rubricaResult = await pool.query(rubricaQuery, rubricaValues);
         const rubricaId = rubricaResult.rows[0].id;
 
-        const itemRubricaQuery = 'INSERT INTO rubrica_item (rubrica_id, item_id, puntaje) VALUES ($1, $2, $3)';
+        const aspectoRubricaQuery = 'INSERT INTO rubrica_aspecto (id_rubrica, id_aspecto, puntaje) VALUES ($1, $2, $3)';
 
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const itemRubricaValues = [rubricaId, item.id, item.puntaje];
-            await pool.query(itemRubricaQuery, itemRubricaValues);
+        for (let i = 0; i < aspectos.length; i++) {
+            const aspecto = aspectos[i];
+            const aspectoRubricaValues = [rubricaId, aspecto.id, aspecto.puntaje];
+            await pool.query(aspectoRubricaQuery, aspectoRubricaValues);
         }
 
         await pool.query('COMMIT');
@@ -120,33 +120,33 @@ const crearRubrica = async (req, res) => {
     }
 };
 
-const obtenerRubricasConItems = async (req, res) => {
+const obtenerRubricasConAspectos = async (req, res) => {
     try {
         const query = `
-        SELECT r.id AS rubrica_id, r.nombre AS rubrica_nombre, r.descripcion AS rubrica_descripcion,
-               i.id AS item_id, i.nombre AS item_nombre, ri.puntaje AS item_puntaje
+        SELECT r.id AS id_rubrica, r.nombre AS rubrica_nombre, r.descripcion AS rubrica_descripcion,
+               i.id AS id_aspecto, i.nombre AS aspecto_nombre, ri.puntaje AS aspecto_puntaje
         FROM rubrica AS r
-        LEFT JOIN rubrica_item AS ri ON r.id = ri.rubrica_id
-        LEFT JOIN item AS i ON ri.item_id = i.id
+        LEFT JOIN rubrica_aspecto AS ri ON r.id = ri.id_rubrica
+        LEFT JOIN aspecto AS i ON ri.id_aspecto = i.id
       `;
 
         const result = await pool.query(query);
 
         const groupedRows = new Map();
         result.rows.forEach((row) => {
-            if (!groupedRows.has(row.rubrica_id)) {
-                groupedRows.set(row.rubrica_id, {
-                    rubrica_id: row.rubrica_id,
+            if (!groupedRows.has(row.id_rubrica)) {
+                groupedRows.set(row.id_rubrica, {
+                    id_rubrica: row.id_rubrica,
                     rubrica_nombre: row.rubrica_nombre,
                     rubrica_descripcion: row.rubrica_descripcion,
-                    items: [],
+                    aspectos: [],
                 });
             }
-            if (row.item_id) {
-                groupedRows.get(row.rubrica_id).items.push({
-                    item_id: row.item_id,
-                    item_nombre: row.item_nombre,
-                    item_puntaje: row.item_puntaje,
+            if (row.id_aspecto) {
+                groupedRows.get(row.id_rubrica).aspectos.push({
+                    id_aspecto: row.id_aspecto,
+                    aspecto_nombre: row.aspecto_nombre,
+                    aspecto_puntaje: row.aspecto_puntaje,
                 });
             }
         });
@@ -359,7 +359,7 @@ const obtenerEtapas = async (req, res) => {
 const verEntregasPendientes = async (req, res) => {
     try {
         const proyecto_id = req.params.proyecto_id;
-
+        
         const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol, p.id AS id_proyecto
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
@@ -369,11 +369,14 @@ const verEntregasPendientes = async (req, res) => {
         `;
 
         await pool.query(query, [proyecto_id], (error, result) => {
+           
             if (error) {
+               
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
             if (result.rows.length === 0) {
-                return res.status(203).json({ success: true, message: 'No hay espacios creados sin entrega para el proyecto especificado.' });
+                
+                return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
             }
             return res.status(200).json({ success: true, espacios: result.rows });
         });
@@ -385,7 +388,7 @@ const verEntregasPendientes = async (req, res) => {
 const verEntregasRealizadas= async (req, res) => {
     try {
         const proyecto_id = req.params.proyecto_id;
-
+       
         const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
@@ -398,8 +401,9 @@ const verEntregasRealizadas= async (req, res) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
+        
             if (result.rows.length === 0) {
-                return res.status(203).json({ success: true, message: 'No hay espacios creados sin entrega para el proyecto especificado.' });
+                return res.status(203).json({ success: true, message: 'No se han realizado entregas.' });
             }
             return res.status(200).json({ success: true, espacios: result.rows });
         });
@@ -409,8 +413,8 @@ const verEntregasRealizadas= async (req, res) => {
 };
 
 module.exports = {
-    crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
-    crearRubrica, obtenerRubricasConItems,
+    crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
+    crearRubrica, obtenerRubricasConAspectos,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientes,verEntregasRealizadas

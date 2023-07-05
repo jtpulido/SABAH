@@ -28,8 +28,8 @@ const {
     agregarAprobacion
 } = require('../controllers/comite.controller')
 
-const { crearItem, eliminarItem, modificarItem, obtenerItems, obtenerItemPorId,
-    crearRubrica, obtenerRubricasConItems,
+const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
+    crearRubrica, obtenerRubricasConAspectos,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientes,
@@ -75,14 +75,14 @@ router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt'
 
 
 
-// Rutas para items
-router.post('/comite/item', passport.authenticate('jwt', { session: false }), crearItem);
-router.delete('/comite/item/:itemId', passport.authenticate('jwt', { session: false }), eliminarItem);
-router.put('/comite/item/:itemId', passport.authenticate('jwt', { session: false }), modificarItem);
-router.get('/comite/item', passport.authenticate('jwt', { session: false }), obtenerItems);
-router.get('/comite/item/:itemId', passport.authenticate('jwt', { session: false }), obtenerItemPorId);
+// Rutas para aspectos
+router.post('/comite/aspecto', passport.authenticate('jwt', { session: false }), crearAspecto);
+router.delete('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), eliminarAspecto);
+router.put('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), modificarAspecto);
+router.get('/comite/aspecto', passport.authenticate('jwt', { session: false }), obtenerAspectos);
+router.get('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), obtenerAspectoPorId);
 router.post('/comite/rubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
-router.get('/comite/obtenerRubricasConItems', passport.authenticate('jwt', { session: false }), obtenerRubricasConItems);
+router.get('/comite/obtenerRubricasConAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
 
 // Rutas para espacios
 router.post('/comite/espacio', passport.authenticate('jwt', { session: false }), crearEspacio);

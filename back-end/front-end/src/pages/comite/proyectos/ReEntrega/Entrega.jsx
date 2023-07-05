@@ -15,7 +15,6 @@ import {
 
 function Entrega({ open, onClose, onSubmit, entrega }) {
 
-    const [documento, setDocumento] = useState('');
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -59,7 +58,7 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
             }
         }
 
-
+        onSubmit()
     };
 
     const formatFecha = (fecha) => {

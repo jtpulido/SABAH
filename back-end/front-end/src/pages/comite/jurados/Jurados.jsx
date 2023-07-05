@@ -116,7 +116,9 @@ export default function Jurados() {
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
   const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
+  const [mensaje, setMensaje] = useState(null);
+  const menError = () => setError(null);
+  const menSuccess = () => setMensaje(null);
 
   const llenarTabla = async (endpoint, setRows) => {
     try {
@@ -127,7 +129,9 @@ export default function Jurados() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
-      } else {
+      } else if (response.status === 203) {
+        setMensaje(data.message)
+      } else if (response.status === 200) {
         setRows(data.jurados);
       }
     } catch (error) {
@@ -143,10 +147,17 @@ export default function Jurados() {
 
   return (
     <div style={{ margin: "15px" }}>
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={handleClose}>
+       {error && (
+        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert severity="error" onClose={menError}>
             {error}
+          </Alert>
+        </Snackbar>
+      )}
+      {mensaje && (
+        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={menSuccess} severity="success">
+            {mensaje}
           </Alert>
         </Snackbar>
       )}
