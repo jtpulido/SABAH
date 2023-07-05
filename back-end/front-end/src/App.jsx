@@ -11,12 +11,13 @@ export default function App() {
 
   return (
     <SnackbarProvider maxSnack={3} anchorOrigin={{
-      vertical: "top", // Posición superior
-      horizontal: "right", // Centrado horizontalmente
+      vertical: "top", 
+      horizontal: "right", 
     }}
       ContentProps={{
         style: {
-          width: 100, // Ancho personalizado del Snackbar
+          width: 100,
+           
         },
       }}>
       <ColorModeContext.Provider value={colorMode}>

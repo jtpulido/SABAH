@@ -13,10 +13,10 @@ import { useSnackbar } from 'notistack';
 export default function Lectores() {
   const navigate = useNavigate();
 
-  const { enqueueSnackbar } = useSnackbar();
+  const { alertas } = useSnackbar();
 
   const handleClickVariant = (message, variant) => {
-    enqueueSnackbar(message, { variant });
+    alertas(message, { variant });
   };
 
   const generarColumnas = (extraColumns) => {
