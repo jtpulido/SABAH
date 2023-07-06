@@ -73,11 +73,11 @@ const obtenerProyecto = async (req, res) => {
             if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
                 return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
             } else {
-                return res.status(203).json({ success: false, message: error })
+                return res.status(203).json({ success: true, message: error })
             }
 
         } else {
-            return res.status(203).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
+            return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -144,7 +144,7 @@ const obtenerDirectoresProyectosActivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay directores activos asignados en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay directores activos asignados en proyectos actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -157,7 +157,7 @@ const obtenerDirectoresProyectosCerrados = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay directores activos asignados en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay directores activos asignados en proyectos actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -170,7 +170,7 @@ const obtenerDirectoresProyectosInactivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay directores inactivos asignados en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay directores inactivos asignados en proyectos actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -183,7 +183,7 @@ const obtenerJuradosProyectosActivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay jurados activos en proyectos en desarrollo actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay jurados activos en proyectos en desarrollo actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -196,7 +196,7 @@ const obtenerJuradosProyectosCerrados = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay jurados activos en proyectos cerrados actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay jurados activos en proyectos cerrados actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -209,7 +209,7 @@ const obtenerJuradosProyectosInactivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay jurados inactivos asignado en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay jurados inactivos asignado en proyectos actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -222,7 +222,7 @@ const obtenerLectoresProyectosActivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay lectores activos asignados en proyectos en proyectos en desarrollo actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay lectores activos asignados en proyectos en proyectos en desarrollo actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -235,7 +235,7 @@ const obtenerLectoresProyectosCerrados = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay lectores activos asignados en proyectos cerrados actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay lectores activos asignados en proyectos cerrados actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -248,7 +248,7 @@ const obtenerLectoresProyectosInactivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay lectores inactivos asignado en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay lectores inactivos asignado en proyectos actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -262,7 +262,7 @@ const obtenerSolicitudesPendientesComite = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay solicitudes pendientes por aprobación del comité' })
+            return res.status(203).json({ success: true, message: 'No hay solicitudes pendientes por aprobación del comité' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -275,7 +275,7 @@ const obtenerSolicitudesAprobadasComite = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay solicitudes aprobadas por el comité' })
+            return res.status(203).json({ success: true, message: 'No hay solicitudes aprobadas por el comité' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -288,7 +288,7 @@ const obtenerSolicitudesRechazadasComite = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
         } else {
-            return res.status(203).json({ success: false, message: 'No hay solicitudes rechazadas por el comité' })
+            return res.status(203).json({ success: true, message: 'No hay solicitudes rechazadas por el comité' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });

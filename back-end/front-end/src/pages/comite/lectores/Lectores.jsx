@@ -13,10 +13,10 @@ import { useSnackbar } from 'notistack';
 export default function Lectores() {
   const navigate = useNavigate();
 
-  const { alertas } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const handleClickVariant = (message, variant) => {
-    alertas(message, { variant });
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
   };
 
   const generarColumnas = (extraColumns) => {
@@ -102,15 +102,16 @@ export default function Lectores() {
       });
       const data = await response.json();
       if (!data.success) {
-        handleClickVariant(data.mensaje, "error")
+        mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        handleClickVariant(data.mensaje, "warning")
+        mostrarMensaje(data.message, "success")
+        console.log(data.message);
       } else if (response.status === 200) {
         setData(data.lectores);
       }
     }
     catch (error) {
-      handleClickVariant("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
 
