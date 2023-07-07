@@ -3,22 +3,20 @@ import React, { useState, useEffect } from "react";
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import { Alert, useTheme, Snackbar, Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
+import { useTheme, Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
 import { Delete, Source, AddCircleOutline } from '@mui/icons-material';
 import CrearEspacio from "./Rubricas/CrearEspacio";
 import CustomDataGrid from "../../layouts/DataGrid";
-
+import { useSnackbar } from 'notistack';
 export default function Espacios() {
+    const { enqueueSnackbar } = useSnackbar();
 
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
-
-    const [error, setError] = useState(null);
-    const [mensaje, setMensaje] = useState(null);
-
-    const menError = () => setError(null);
-    const menSuccess = () => setMensaje(null);
 
     const [roles, setRoles] = useState([]);
     const [modalidades, setModalidades] = useState([]);
@@ -34,14 +32,14 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setRoles(data.roles);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const obtenerModalidades = async () => {
@@ -52,14 +50,14 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setModalidades(data.modalidades);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const obtenerEtapas = async () => {
@@ -70,15 +68,14 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setEtapas(data.etapas);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
-
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const obtenerRubricas = async () => {
@@ -89,14 +86,14 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setRubricas(data.rubricas);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const obtenerEspacios = async () => {
@@ -107,14 +104,14 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
-               setEspacios(data.espacios);
+                setEspacios(data.espacios);
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const obtenerEspacioPorId = async (espacio_id) => {
@@ -125,12 +122,10 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
-            } else {
-                // Hacer algo con el aspecto obtenido
+                mostrarMensaje(data.message, "error")
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener el esapcio. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const crearEspacio = async (espacioData) => {
@@ -142,12 +137,12 @@ export default function Espacios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else {
                 obtenerEspacios();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al crear el aspecto. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const eliminarEspacio = async (espacio_id) => {
@@ -156,15 +151,17 @@ export default function Espacios() {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
-            const data = response.json();
+            const data = await response.json();  
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
+            } else {
+                mostrarMensaje(data.message, "success")
+                obtenerEspacios()
             }
-            await obtenerEspacios()
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al eliminar el espacio. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    };
+    };    
 
 
     const generarColumnas = (extraColumns) => {
@@ -246,20 +243,7 @@ export default function Espacios() {
                 onClose={cerrarDialog} roles={roles || []} modalidades={modalidades || []} etapas={etapas || []} rubricas={rubricas || []}
             />
             <Box sx={{ m: 2 }}>
-                {error && (
-                    <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                        <Alert severity="error" onClose={menError}>
-                            {error}
-                        </Alert>
-                    </Snackbar>
-                )}
-                {mensaje && (
-                    <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                        <Alert onClose={menSuccess} severity="success">
-                            {mensaje}
-                        </Alert>
-                    </Snackbar>
-                )}
+
                 <Typography variant="h2" color={colors.primary[100]} sx={{ mb: "30px" }}>
                     Espacios creados
                 </Typography>

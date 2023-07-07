@@ -9,7 +9,7 @@ import Entrega from './Rubricas/Entrega';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-
+import { useSnackbar } from 'notistack';
 export default function Entregas() {
 
   const theme = useTheme();
@@ -18,18 +18,18 @@ export default function Entregas() {
   const proyecto_id = 1;
   const [rowsPendientes, setRowsPendientes] = useState([]);
 
-  const [error, setError] = useState(null);
-  const [mensaje, setMensaje] = useState(null);
+  const { enqueueSnackbar } = useSnackbar();
 
-  const menError = () => setError(null);
-  const menSuccess = () => setMensaje(null);
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
 
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
   useEffect(() => {
     llenarTablaPendientes(proyecto_id);
-  
+
   }, []);
 
   const llenarTablaPendientes = async (proyecto_id) => {
@@ -40,14 +40,14 @@ export default function Entregas() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        setMensaje(data.message)
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRowsPendientes(data.espacios);
       }
     } catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
 
@@ -98,20 +98,7 @@ export default function Entregas() {
   ];
   return (
     <div>
-      {error && (
-        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={menError}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
-      {mensaje && (
-        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert onClose={menSuccess} severity="success">
-            {mensaje}
-          </Alert>
-        </Snackbar>
-      )}
+
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         ENTREGAS
       </Typography>

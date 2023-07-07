@@ -11,7 +11,7 @@ const obtenerProyectosDesarrollo = async (req, res) => {
                 if (result.rowCount > 0) {
                     return res.json({ success: true, proyectos: result.rows });
                 } else if (result.rowCount <= 0) {
-                    return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
+                    return res.status(203).json({ success: true, message: 'No hay proyectos en desarrollo actualmente.' })
                 }
             })
     } catch (error) {
@@ -29,31 +29,14 @@ const obtenerProyectosTerminados = async (req, res) => {
                 if (result.rowCount > 0) {
                     return res.json({ success: true, proyectos: result.rows });
                 } else if (result.rowCount <= 0) {
-                    return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
+                    return res.status(203).json({ success: true, message: 'No hay proyectos terminados actualmente.' })
                 }
             })
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
-const obtenerTodosProyectos = async (req, res) => {
-    try {
-       await pool.query(
-            'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id', async (error, result) => {
-                if (error) {
-                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
 
-                }
-                if (result.rowCount > 0) {
-                    return res.json({ success: true, proyectos: result.rows });
-                } else if (result.rowCount <= 0) {
-                    return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
-                }
-            })
-    } catch (error) {
-        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
 const obtenerProyecto = async (req, res) => {
     const { id } = req.body;
     try {
@@ -157,7 +140,7 @@ const obtenerDirectoresProyectosCerrados = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay directores activos asignados en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay proyecto cerrados.' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -170,7 +153,7 @@ const obtenerDirectoresProyectosInactivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay directores inactivos asignados en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay directores inactivos asignados en proyectos.' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -222,7 +205,7 @@ const obtenerLectoresProyectosActivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay lectores activos asignados en proyectos en proyectos en desarrollo actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay proyectos en desarrollo.' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -235,7 +218,7 @@ const obtenerLectoresProyectosCerrados = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay lectores activos asignados en proyectos cerrados actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay proyectos cerrados, finalizados o rechazados.' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -248,7 +231,7 @@ const obtenerLectoresProyectosInactivos = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay lectores inactivos asignado en proyectos actualmente' })
+            return res.status(203).json({ success: true, message: 'No hay lectores inactivos en proyectos actualmente' })
         }
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -371,7 +354,6 @@ const agregarAprobacion = async (req, res) => {
 
 module.exports = {
     obtenerProyecto,
-    obtenerTodosProyectos,
     obtenerProyectosTerminados,
     obtenerProyectosDesarrollo,
     asignarCodigoProyecto,

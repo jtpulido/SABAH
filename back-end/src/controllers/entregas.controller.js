@@ -1,5 +1,5 @@
 const pool = require('../database')
-const message = 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.'
+const message = 'Lo siento, ha ocurrido un error en el la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.'
 
 const crearAspecto = async (req, res) => {
     try {
@@ -14,6 +14,7 @@ const crearAspecto = async (req, res) => {
             return res.status(200).json({ success: true, message: 'aspecto creado correctamente', id_aspecto });
         });
     } catch (error) {
+        
         return res.status(502).json({ success: false, message });
     }
 };
@@ -114,7 +115,6 @@ const crearRubrica = async (req, res) => {
         await pool.query('COMMIT');
         return res.status(200).json({ success: true, message: 'Rubrica creada exitosamente' });
     } catch (error) {
-        console.log(error)
         await pool.query('ROLLBACK');
         return res.status(502).json({ success: false, message: 'Error al crear la rubrica' });
     }
@@ -237,10 +237,11 @@ const eliminarEspacio = async (req, res) => {
 
         await pool.query(query, values, (error, result) => {
             if (error) {
+                console.log(error);
                 if (error.code == '23503') {
+                    console.log("Hola----------------------------------------");
                     return res.status(502).json({ success: false, message: "No se puede eliminar un espacio en el que ya se realizaron entregas." });
                 }
-
                 return res.status(502).json({ success: false, message });
             }
             if (result.rows.length === 0) {

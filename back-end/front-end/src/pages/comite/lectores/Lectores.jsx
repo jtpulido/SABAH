@@ -104,8 +104,7 @@ export default function Lectores() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "success")
-        console.log(data.message);
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setData(data.lectores);
       }

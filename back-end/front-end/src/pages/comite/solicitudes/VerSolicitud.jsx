@@ -7,14 +7,19 @@ import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { ExpandMore } from '@mui/icons-material';
-import { Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails, useTheme, Alert, CircularProgress, Snackbar, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent } from "@mui/material";
+import { Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails, useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent } from "@mui/material";
 
 import CustomDataGrid from "../../layouts/DataGrid";
-
+ import { useSnackbar } from 'notistack';
 function VerSolicitud(props) {
 
     const { onClose, id_solicitud, open } = props;
 
+    const { enqueueSnackbar } = useSnackbar();
+  
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
     const token = useSelector(selectToken);
 
     const theme = useTheme();
@@ -26,14 +31,9 @@ function VerSolicitud(props) {
     const [comments, setComments] = useState('');
     const [approval, setApproval] = useState('');
 
-    const [error, setError] = useState(null);
-    const [mensaje, setMensaje] = useState(null);
     const [solicitud, setSolicitud] = useState(null);
 
     const [aprobaciones, setAprobaciones] = useState([]);
-
-    const menError = () => setError(null);
-    const menSuccess = () => setMensaje(null);
 
     const handleEntering = () => {
         obtenerInfoSolicitud(id_solicitud)
@@ -43,26 +43,12 @@ function VerSolicitud(props) {
 
     const handleCancel = () => {
         onClose();
-        setError(null)
-        setMensaje(null)
         setSolicitud(null)
         setAprobaciones([])
         setLoading(true)
         setApproval('')
         setComments('')
     };
-
-    const handleOk = () => {
-        onClose();
-        setError(null)
-        setMensaje(null)
-        setSolicitud(null)
-        setAprobaciones([])
-        setLoading(true)
-        setApproval('')
-        setComments('')
-    };
-
 
     const obtenerInfoSolicitud = async (id) => {
         try {
@@ -75,13 +61,13 @@ function VerSolicitud(props) {
             if (response.status === 200) {
                 setSolicitud(data.solicitud)
             } else if (response.status === 502) {
-                setError(data.message)
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             }
         } catch (error) {
             setLoading(true)
-            setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const obtenerAprobacionesSolicitud = async (id) => {
@@ -95,13 +81,13 @@ function VerSolicitud(props) {
             if (response.status === 200) {
                 setAprobaciones(data.aprobaciones)
             } else if (response.status === 502) {
-                setError(data.message)
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             }
         } catch (error) {
             setLoading(true)
-            setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const handleSave = async () => {
@@ -116,20 +102,20 @@ function VerSolicitud(props) {
 
             setIsFormValid(false)
             if (response.status === 200) {
-                setMensaje("Se ha guardado su respuesta!")
+                mostrarMensaje("Se ha guardado su respuesta!","success")
                 obtenerInfoSolicitud(id_solicitud)
                 obtenerAprobacionesSolicitud(id_solicitud)
             } else if (response.status === 502) {
-                setError(data.message)
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203 || response.status === 400) {
-                setError(data.message)
+                mostrarMensaje(data.message, "warning")
             } else {
-                setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
 
             }
         } catch (error) {
             handleCancel()
-            setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
         setLoading(false);
     };
@@ -156,20 +142,7 @@ function VerSolicitud(props) {
 
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md' onClose={handleCancel}>
-            {error && (
-                <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                    <Alert severity="error" onClose={menError}>
-                        {error}
-                    </Alert>
-                </Snackbar>
-            )}
-            {mensaje && (
-                <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                    <Alert onClose={menSuccess} severity="success">
-                        {mensaje}
-                    </Alert>
-                </Snackbar>
-            )}
+           
             <CssBaseline />
 
             <DialogTitle variant="h1" color={colors.primary[100]}>VER SOLICITUD</DialogTitle>
@@ -200,9 +173,9 @@ function VerSolicitud(props) {
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
                                 <Typography variant="h6" color={colors.primary[100]}>
-                                    Nombre del director 
+                                    Nombre del director
                                 </Typography>
-                                <TextField multiline  value={solicitud.nombre_director || ''} fullWidth />
+                                <TextField multiline value={solicitud.nombre_director || ''} fullWidth />
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
@@ -229,13 +202,13 @@ function VerSolicitud(props) {
                                 </Typography>
                                 <TextField value={solicitud.creado_por_proyecto ? 'Proyecto' : 'Director del proyecto' || ''} fullWidth />
                             </Grid>
-                           
+
                             <Grid item xs={12} sm={12} md={12} lg={12}>
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Justificación
                                 </Typography>
-                                <TextField fullWidth multiline value={solicitud.justificacion || ''}  />
-                                                
+                                <TextField fullWidth multiline value={solicitud.justificacion || ''} />
+
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />

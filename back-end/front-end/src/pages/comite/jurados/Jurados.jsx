@@ -7,8 +7,16 @@ import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
 
+import { useSnackbar } from 'notistack';
+
 export default function Jurados() {
   const navigate = useNavigate();
+
+  const { enqueueSnackbar } = useSnackbar();
+
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
   const generarColumnas = (extraColumns) => {
     const columns = [
       {
@@ -115,10 +123,6 @@ export default function Jurados() {
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
-  const [error, setError] = useState(null);
-  const [mensaje, setMensaje] = useState(null);
-  const menError = () => setError(null);
-  const menSuccess = () => setMensaje(null);
 
   const llenarTabla = async (endpoint, setRows) => {
     try {
@@ -128,14 +132,14 @@ export default function Jurados() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        setMensaje(data.message)
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRows(data.jurados);
       }
     } catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
 
@@ -147,20 +151,7 @@ export default function Jurados() {
 
   return (
     <div style={{ margin: "15px" }}>
-       {error && (
-        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={menError}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
-      {mensaje && (
-        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert onClose={menSuccess} severity="success">
-            {mensaje}
-          </Alert>
-        </Snackbar>
-      )}
+      
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         JURADOS POR PROYECTO
       </Typography>

@@ -5,17 +5,22 @@ import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import Row from "./Rubricas/AspectoRubrica";
 
-import { Typography, Alert, useTheme, Divider, Snackbar, TableContainer, Paper, Table, TableHead, TableBody, TableRow, TableCell, Select, MenuItem, FormControl, InputLabel, Box, Button, TextField } from '@mui/material';
+import { useSnackbar } from 'notistack';
+import { Typography, useTheme, Divider, TableContainer, Paper, Table, TableHead, TableBody, TableRow, TableCell, Select, MenuItem, FormControl, InputLabel, Box, Button, TextField } from '@mui/material';
 
 export default function Rubricas() {
 
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
     const token = useSelector(selectToken);
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    const [error, setError] = useState(null);
-    const [mensaje, setMensaje] = useState(null);
 
     const [aspectos, setAspectos] = useState([]);
     const [rubricaNombre, setRubricaNombre] = useState('');
@@ -27,10 +32,6 @@ export default function Rubricas() {
 
     const [nombre, setNombre] = useState("");
 
-
-    const menError = () => setError(null);
-    const menSuccess = () => setMensaje(null);
-
     const obtenerAspectos = async () => {
         try {
             const response = await fetch("http://localhost:5000/comite/aspecto", {
@@ -39,9 +40,9 @@ export default function Rubricas() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                setMensaje(data.message)
+                mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setAspectos(data.aspectos);
             }
@@ -49,7 +50,7 @@ export default function Rubricas() {
 
 
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.","error");
         }
     };
     const handleAspectoSelect = (event) => {
@@ -99,7 +100,7 @@ export default function Rubricas() {
                     })),
                 };
 
-                const response = await fetch('http://localhost:5000/comite/rubrica', {
+                const response = await fetch('http://localhost:5000/comite/crearRubrica', {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(rubricaData),
@@ -111,16 +112,15 @@ export default function Rubricas() {
                     setSelectedAspectos([]);
                     setAspectoPuntajes({});
                     obtenerRubricas();
-                    setMensaje(data.mensaje)
+                    mostrarMensaje(data.mensaje,"success")
                 } else {
-
-                    setError(data.message);
+                    mostrarMensaje(data.message, "error")
                 }
             } catch (error) {
-                setError("Lo siento, ha ocurrido un error al modificar el aspecto. Por favor, intente de nuevo más tarde.");
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
             }
         } else {
-            setError("La suma de los aspectos debe ser 100")
+            mostrarMensaje("La suma de los aspectos debe ser 100", "error")
         }
     };
 
@@ -138,7 +138,7 @@ export default function Rubricas() {
                 setRubricas(data.rubricas);
             }
         } catch (error) {
-            console.log('Error al obtener las rubricas:', error);
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     const crearAspecto = async () => {
@@ -150,13 +150,13 @@ export default function Rubricas() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else {
                 setNombre("");
                 obtenerAspectos();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al crear el aspecto. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
@@ -168,13 +168,13 @@ export default function Rubricas() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else {
-                setMensaje(data.message);
+                mostrarMensaje(data.message, "success")
                 obtenerAspectos();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al eliminar el aspecto. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
@@ -187,13 +187,13 @@ export default function Rubricas() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else {
                 setNombre("");
                 obtenerAspectos();
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al modificar el aspecto. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
@@ -205,12 +205,12 @@ export default function Rubricas() {
             });
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error")
             } else {
                 // Hacer algo con el aspecto obtenido
             }
         } catch (error) {
-            setError("Lo siento, ha ocurrido un error al obtener el aspecto. Por favor, intente de nuevo más tarde.");
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
     useEffect(() => {
@@ -220,20 +220,7 @@ export default function Rubricas() {
 
     return (
         <div style={{ margin: "15px" }} >
-            {error && (
-                <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                    <Alert severity="error" onClose={menError}>
-                        {error}
-                    </Alert>
-                </Snackbar>
-            )}
-            {mensaje && (
-                <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                    <Alert onClose={menSuccess} severity="success">
-                        {mensaje}
-                    </Alert>
-                </Snackbar>
-            )}
+
             <Typography
                 variant="h1"
                 color={colors.secundary[100]}
@@ -286,7 +273,7 @@ export default function Rubricas() {
                                     <TableCell>{row.nombre}</TableCell>
                                     <TableCell>
                                         <Button variant="contained" color="primary" onClick={() => obtenerAspectoPorId(row.id)}>
-                                            Ver
+                                            Editar
                                         </Button>
                                         <Button variant="contained" color="secondary" onClick={() => eliminarAspecto(row.id)}>
                                             Eliminar

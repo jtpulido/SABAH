@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import { useParams } from 'react-router-dom';
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton } from "@mui/material";
+import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton } from "@mui/material";
 
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
@@ -12,17 +12,20 @@ import CustomDataGrid from "../../layouts/DataGrid";
 import Entrega from './ReEntrega/Entrega';
 
 import CambiarCodigo from './CambiarCodigo';
-import { PostAdd, Source } from "@mui/icons-material";
+import { PostAdd } from "@mui/icons-material";
 
+import { useSnackbar } from 'notistack';
 export default function VerProyectos() {
   const { id } = useParams();
   const token = useSelector(selectToken);
+
+  const { enqueueSnackbar } = useSnackbar();
+
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [error, setError] = useState(null);
-  const [mensaje, setMensaje] = useState(null);
-  const menError = () => setError(null);
-  const menSuccess = () => setMensaje(null);
   const [existe, setExiste] = useState([]);
   const [proyecto, setProyecto] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -46,16 +49,16 @@ export default function VerProyectos() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
         setExiste(false)
       } else {
         actualizarProyecto(data.codigo, data.etapa)
 
-        setMensaje("Se ha asignado un código al proyecto");
+        mostrarMensaje("Se ha asignado un código al proyecto", "success");
       }
     } catch (error) {
       setExiste(false)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   }
   const modificarCodigo = async (nuevo_cod) => {
@@ -67,17 +70,17 @@ export default function VerProyectos() {
       });
       const data = await response.json();
       if (response.status === 400) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
       } else if (data.success) {
         actualizarProyecto(nuevo_cod, proyecto.etapa)
-        setMensaje("Se ha actualizado el código del proyecto");
+        mostrarMensaje("Se ha actualizado el código del proyecto", "success");
       } else {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
       }
     }
     catch (error) {
       setExiste(false)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
   const actualizarProyecto = (nuevoCodigo, etapa) => {
@@ -101,7 +104,7 @@ export default function VerProyectos() {
 
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
         setExiste(false)
       } else {
         setProyecto(data.proyecto);
@@ -116,7 +119,7 @@ export default function VerProyectos() {
     }
     catch (error) {
       setExiste(false)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
@@ -127,14 +130,14 @@ export default function VerProyectos() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        setMensaje(data.message)
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRowsFunc(data.espacios);
       }
     } catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   }
 
@@ -209,20 +212,7 @@ export default function VerProyectos() {
 
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={menError}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
-      {mensaje && (
-        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert onClose={menSuccess} severity="success">
-            {mensaje}
-          </Alert>
-        </Snackbar>
-      )}
+
       {existe ? (
 
         <Box sx={{ '& button': { mt: 1 } }}>
@@ -388,7 +378,7 @@ export default function VerProyectos() {
           )}
         </Box>
       ) : (
-        <Typography variant="h6" color={colors.primary[100]}>{error}</Typography>
+        <Typography variant="h6" color={colors.primary[100]}>Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
       )}
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         ENTREGAS

@@ -9,22 +9,23 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions, CssBaseline, Grid,
-    TextField, Alert, useTheme, Snackbar, Typography, Divider
+    TextField, useTheme, Typography, Divider
 } from '@mui/material';
 
 
+import { useSnackbar } from 'notistack';
+
 function Entrega({ open, onClose, onSubmit, entrega }) {
 
+    const { enqueueSnackbar } = useSnackbar();
+
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
-
-    const [error, setError] = useState(null);
-    const [mensaje, setMensaje] = useState(null);
-
-    const menError = () => setError(null);
-    const menSuccess = () => setMensaje(null);
 
     const [selectedFile, setSelectedFile] = useState(null);
 
@@ -49,12 +50,12 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    setMensaje(data.message)
+                    mostrarMensaje(data.message, "success")
                 } else {
-                    setError(data.message)
+                    mostrarMensaje(data.message, "error")
                 }
             } catch (error) {
-                console.error('Error al cargar el archivo:', error);
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
             }
         }
 
@@ -68,20 +69,7 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
 
     return (
         <Dialog open={open} fullWidth maxWidth='md' onClose={onClose}>
-            {error && (
-                <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                    <Alert severity="error" onClose={menError}>
-                        {error}
-                    </Alert>
-                </Snackbar>
-            )}
-            {mensaje && (
-                <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                    <Alert onClose={menSuccess} severity="success">
-                        {mensaje}
-                    </Alert>
-                </Snackbar>
-            )}
+
             <CssBaseline />
             <form onSubmit={handleSubmit}>
                 <DialogTitle variant="h1" color={colors.primary[100]}>Entrega de Documento</DialogTitle>

@@ -6,7 +6,6 @@ const router = Router()
 
 const {
     obtenerProyecto,
-    obtenerTodosProyectos,
     obtenerProyectosTerminados,
     obtenerProyectosDesarrollo,
     asignarCodigoProyecto,
@@ -51,7 +50,6 @@ router.post('/comite/guardar', upload.single('file'), async (req, res) => {
     }
 });
 
-router.get('/comite/obtenerTodos', passport.authenticate('jwt', { session: false }), obtenerTodosProyectos);
 router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
 router.post('/comite/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
@@ -81,7 +79,7 @@ router.delete('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { sessi
 router.put('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), modificarAspecto);
 router.get('/comite/aspecto', passport.authenticate('jwt', { session: false }), obtenerAspectos);
 router.get('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), obtenerAspectoPorId);
-router.post('/comite/rubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
+router.post('/comite/crearRubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
 router.get('/comite/obtenerRubricasConAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
 
 // Rutas para espacios

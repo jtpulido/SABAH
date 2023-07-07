@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
+import { Box, Typography, useTheme, IconButton } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
+import { useSnackbar } from 'notistack';
 
 import CustomDataGrid from "../../layouts/DataGrid";
 
@@ -54,10 +55,12 @@ export default function Proyectos() {
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);
 
-  const [error, setError] = useState(null);
-  const [mensaje, setMensaje] = useState(null);
-  const menError = () => setError(null);
-  const menSuccess = () => setMensaje(null);
+  const { enqueueSnackbar } = useSnackbar();
+
+  const mostrarMensaje = (mensaje, variante) => {
+      enqueueSnackbar(mensaje, { variant: variante });
+  };
+
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/${endpoint}`, {
@@ -66,15 +69,15 @@ export default function Proyectos() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        setMensaje(data.message)
+        mostrarMensaje(data.message,"warning")
       } else if (response.status === 200) {
         setRowsFunc(data.proyectos);
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
 
@@ -84,20 +87,7 @@ export default function Proyectos() {
   }, []);
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={4000} onClose={menError} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert severity="error" onClose={menError}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
-      {mensaje && (
-        <Snackbar open={true} autoHideDuration={3000} onClose={menSuccess} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          <Alert onClose={menSuccess} severity="success">
-            {mensaje}
-          </Alert>
-        </Snackbar>
-      )}
+     
       <Typography
         variant="h1"
         color={colors.secundary[100]}
