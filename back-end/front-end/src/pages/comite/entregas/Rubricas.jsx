@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import Row from "./Rubricas/AspectoRubrica";
+import Row from "./Ventanas/AspectoRubrica";
 
 import { useSnackbar } from 'notistack';
 import { Typography, useTheme, Divider, TableContainer, Paper, Table, TableHead, TableBody, TableRow, TableCell, Select, MenuItem, FormControl, InputLabel, Box, Button, TextField } from '@mui/material';
