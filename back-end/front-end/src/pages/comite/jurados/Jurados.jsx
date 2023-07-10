@@ -24,8 +24,8 @@ export default function Jurados() {
         headerName: 'Nombre del jurado',
         flex: 0.2,
         minWidth: 150,
-        headerAlign: "center",
-        align: "center",
+        
+        
         renderCell: (params) => {
           return params.value || "Por Asignar";
         },
@@ -35,8 +35,8 @@ export default function Jurados() {
         headerName: 'Fecha de asignación',
         flex: 0.2,
         minWidth: 150,
-        headerAlign: "center",
-        align: "center",
+        
+        
         valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES')
       },
       {
@@ -44,7 +44,7 @@ export default function Jurados() {
         headerName: 'Código del proyecto',
         flex: 0.1,
         minWidth: 100,
-        headerAlign: "center",
+        
         align: "center"
       },
       {
@@ -52,8 +52,8 @@ export default function Jurados() {
         headerName: 'Estado del proyecto',
         flex: 0.2,
         minWidth: 100,
-        headerAlign: "center",
-        align: "center",
+        
+        
         valueGetter: (params) =>
           `${params.row.etapa || ''} - ${params.row.estado || ''}`,
       },
@@ -62,8 +62,8 @@ export default function Jurados() {
         headerName: "",
         width: 200,
         flex: 0.01,
-        headerAlign: "center",
-        align: "center",
+        
+        
         renderCell: ({ row }) => {
           const { id_proyecto } = row;
           return (
@@ -86,8 +86,8 @@ export default function Jurados() {
       field: "editar",
       headerName: "",
       flex: 0.01,
-      headerAlign: "center",
-      align: "center",
+      
+      
       renderCell: ({ row }) => {
         const { id_jurado } = row;
         return (
@@ -155,25 +155,7 @@ export default function Jurados() {
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         JURADOS POR PROYECTO
       </Typography>
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cellContent": {
-            textAlign: "center"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      >
+      <Box      >
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Proyectos en desarrollo
         </Typography>

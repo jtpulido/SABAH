@@ -71,8 +71,8 @@ export default function Entregas() {
       field: "Acción",
       flex: 0.1,
       minWidth: 50,
-      headerAlign: "center",
-      align: "center",
+      
+      
       renderCell: ({ row }) => {
         return (
           <Box width="100%" ml="10px" display="flex" justifyContent="center">
@@ -90,36 +90,18 @@ export default function Entregas() {
         );
       },
     },
-    { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" }
+    { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150,  align: "center" },
+    { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150,  align: "center" },
+    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100,  align: "center" }
   ];
   return (
     <div>
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         ENTREGAS
       </Typography>
-      <Box sx={{
-        m: 2,
-        "& .MuiDataGrid-root": {
-          border: "none",
-        },
-        "& .MuiDataGrid-cellContent": {
-          textAlign: "center"
-        },
-        "& .MuiDataGrid-columnHeaders": {
-          color: colors.primary[100],
-          textAlign: "center",
-          fontSize: 14
-        },
-        "& .MuiDataGrid-toolbarContainer": {
-          justifyContent: 'flex-end',
-          align: "right"
-        }
-      }}
-      >
+      <Box >
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>

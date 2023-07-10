@@ -22,15 +22,15 @@ export default function Lectores() {
   const generarColumnas = (extraColumns) => {
     const columns = [
       {
-        field: 'nombre_lector', headerName: 'Nombre del lector', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center",
+        field: 'nombre_lector', headerName: 'Nombre del lector', flex: 0.2, minWidth: 150,  
         renderCell: (params) => {
           return params.value || "Por Asignar";
         },
       },
-      { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-      { field: 'codigo', headerName: 'Código del proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
+      { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo', headerName: 'Código del proyecto', flex: 0.2, minWidth: 100,  align: "center" },
       {
-        field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center",
+        field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100,  
         valueGetter: (params) =>
           `${params.row.etapa || ''} - ${params.row.estado || ''}`,
       },
@@ -39,8 +39,8 @@ export default function Lectores() {
         width: 200,
         flex: 0.05,
         minWidth: 100,
-        headerAlign: "center",
-        align: "center",
+        
+        
         renderCell: ({ row }) => {
           const { id_proyecto } = row;
           return (
@@ -60,7 +60,7 @@ export default function Lectores() {
   };
   const columnsEditar = generarColumnas([
     {
-      field: "editar", headerName: "", flex: 0.01, headerAlign: "center", align: "center",
+      field: "editar", headerName: "", flex: 0.01,  
       renderCell: ({ row }) => {
         const { id_lector } = row;
         return (
@@ -131,25 +131,7 @@ export default function Lectores() {
         >
           LECTORES POR PROYECTO
         </Typography>
-        <Box
-          sx={{
-            "& .MuiDataGrid-root": {
-              border: "none",
-            },
-            "& .MuiDataGrid-cellContent": {
-              textAlign: "center"
-            },
-            "& .MuiDataGrid-columnHeaders": {
-              color: colors.primary[100],
-              textAlign: "center",
-              fontSize: 14
-            },
-            "& .MuiDataGrid-toolbarContainer": {
-              justifyContent: 'flex-end',
-              align: "right"
-            }
-          }}
-        >
+        <Box>
           <Typography variant="h2" color={colors.primary[100]}
             sx={{ mt: "30px" }}>
             Proyectos en desarrollo

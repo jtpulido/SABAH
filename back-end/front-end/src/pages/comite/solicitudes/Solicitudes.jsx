@@ -33,7 +33,7 @@ export default function Proyectos() {
   const generarColumnas = (extraColumns) => {
     const commonColumns = [
       {
-        field: "Acción", headerName: "", flex: 0.01, minWidth: 50, headerAlign: "center", align: "center",
+        field: "Acción", headerName: "", flex: 0.01, minWidth: 50,  
         renderCell: ({ row }) => {
           const { id, id_proyecto } = row;
           return (
@@ -52,12 +52,12 @@ export default function Proyectos() {
           );
         },
       },
-      { field: 'creado_por', headerName: 'Creado por', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
-      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
+      { field: 'creado_por', headerName: 'Creado por', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
+      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150,  align: "center" },
+      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.15, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.2, minWidth: 100,  align: "center" },
       {
-        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center",
+        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,  
         valueGetter: (params) =>
           `${params.row.etapa_proyecto || ''} - ${params.row.estado || ''}`,
       },
@@ -68,17 +68,17 @@ export default function Proyectos() {
   };
 
   const columnsPendientes = generarColumnas([{
-    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center", renderCell: (params) => {
+    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,   renderCell: (params) => {
       return params.value || "N/A";
     },
   }]);
   const columnsAprobadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,  align: "center" },
+    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.15, minWidth: 150,  align: "center" }
   ]);
   const columnsRechazadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.15, minWidth: 150, headerAlign: "center", align: "center" }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,  align: "center" },
+    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.15, minWidth: 150,  align: "center" }
   ]);
 
   const verProyecto = (id) => {
@@ -140,22 +140,8 @@ export default function Proyectos() {
         SOLICITUDES
       </Typography>
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box   > 
+        <Typography variant="h2" color={colors.primary[100]}
         sx={{ mt: "30px" }}>
           Pendientes
         </Typography>

@@ -417,21 +417,68 @@ const verEntregasPendientes = async (req, res) => {
     try {
         const query =
             `SELECT 
+            ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
+            ee.id AS id_espacio_entrega,
+            ee.nombre AS nombre_espacio_entrega,
+            p.nombre AS nombre_proyecto,
+            r.nombre AS nombre_rol,
+            u.nombre AS evaluador,
+            ee.fecha_apertura,
+            ee.fecha_cierre
+                FROM 
+            proyecto p
+            INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
+            INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+            INNER JOIN usuario u ON ur.id_usuario = u.id
+            INNER JOIN rol r ON ur.id_rol = r.id
+                WHERE 
+            NOT EXISTS (
+                SELECT 1
+                FROM documento_entrega de
+                WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+            )
+                ORDER BY 
+            ee.fecha_cierre;
+        `;
+
+        await pool.query(query, (error, result) => {
+            if (error) {
+                console.log(error)
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay entregas pendientes por realizar' });
+            }
+            return res.status(200).json({ success: true, entregas: result.rows });
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message });
+    }
+};
+const verEntregasRealizadasSinCalificar = async (req, res) => {
+    try {
+        const query =
+            `SELECT 
+        de.id,
         ee.nombre AS nombre_espacio_entrega,
-        de.fecha_entrega,
-        p.nombre AS nombre_proyecto,
         r.nombre AS nombre_rol,
-        u.nombre AS evaluador
-    FROM 
+        ee.fecha_apertura,
+        ee.fecha_cierre,
+        p.nombre AS nombre_proyecto,
+        u.nombre AS evaluador,
+        de.fecha_entrega
+            FROM 
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
-    WHERE 
-        de.id NOT IN (SELECT id_documento_entrega FROM calificacion)
-    ORDER BY 
+            WHERE 
+        de.id NOT IN (SELECT id_doc_entrega FROM calificacion)
+            ORDER BY 
         de.fecha_entrega`;
 
         await pool.query(query, (error, result) => {
@@ -441,9 +488,49 @@ const verEntregasPendientes = async (req, res) => {
             }
 
             if (result.rows.length === 0) {
-                return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
+                return res.status(203).json({ success: true, message: 'No hay entregas pendientes por calificar' });
             }
-            return res.status(200).json({ success: true, espacios: result.rows });
+            return res.status(200).json({ success: true, entregas: result.rows });
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message });
+    }
+};
+const verEntregasRealizadasCalificadas = async (req, res) => {
+    try {
+        const query =
+            `SELECT 
+        c.id,
+        ee.nombre AS nombre_espacio_entrega,
+        r.nombre AS nombre_rol,
+        p.nombre AS nombre_proyecto,
+        u.nombre AS evaluador,
+        de.fecha_entrega,
+        c.fecha_evaluacion,
+        c.nota_final
+    FROM 
+        documento_entrega de
+        INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+        INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+        INNER JOIN usuario u ON ur.id_usuario = u.id
+        INNER JOIN rol r ON ur.id_rol = r.id
+        INNER JOIN calificacion c ON de.id = c.id_doc_entrega
+    ORDER BY 
+        de.fecha_entrega;
+    `;
+
+        await pool.query(query, (error, result) => {
+            if (error) {
+                console.log(error)
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay entregas calificadas' });
+            }
+            return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
         console.log(error)
@@ -457,5 +544,5 @@ module.exports = {
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientesProyecto, verEntregasRealizadasProyecto,
-    verEntregasPendientes
+    verEntregasPendientes,verEntregasRealizadasSinCalificar,verEntregasRealizadasCalificadas
 }

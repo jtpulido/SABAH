@@ -121,10 +121,10 @@ function VerSolicitud(props) {
     };
 
     const columns = [
-        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80, headerAlign: "center", align: "center" },
-        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80, headerAlign: "center", align: "center" },
-        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
-        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, headerAlign: "center", align: "center" }
+        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80,  align: "center" },
+        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80,  align: "center" },
+        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100,  align: "center" },
+        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150,  align: "center" }
     ];
     const handleApprovalChange = (event) => {
         setApproval(event.target.value);

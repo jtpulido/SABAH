@@ -33,7 +33,9 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientesProyecto,
     verEntregasRealizadasProyecto,
-    verEntregasPendientes
+    verEntregasPendientes,
+    verEntregasRealizadasCalificadas,
+    verEntregasRealizadasSinCalificar
 
 } = require('../controllers/entregas.controller')
 
@@ -102,5 +104,7 @@ router.get('/comite/entrega/realizadas/:proyecto_id', passport.authenticate('jwt
 
 //Entregas general
 router.post('/comite/entregas/pendientes', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
+router.post('/comite/entregas/realizadas/calificadas', passport.authenticate('jwt', { session: false }), verEntregasRealizadasCalificadas);
+router.post('/comite/entregas/realizadas/porCalificar', passport.authenticate('jwt', { session: false }), verEntregasRealizadasSinCalificar);
 
 module.exports = router;

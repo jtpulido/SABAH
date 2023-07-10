@@ -167,11 +167,10 @@ export default function Espacios() {
     const generarColumnas = (extraColumns) => {
         const columns = [
             {
-                field: "Acción",
                 flex: 0.1,
                 minWidth: 50,
-                headerAlign: "center",
-                align: "center",
+                
+                
                 renderCell: ({ row }) => {
                     const { id } = row;
                     return (
@@ -190,15 +189,15 @@ export default function Espacios() {
                     );
                 },
             },
-            { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-            { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-            { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-            { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-            { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" }
+            { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150,  align: "center" },
+            { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150,  align: "center" },
+            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100,  align: "center" },
+            { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100,  align: "center" },
+            { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100,  align: "center" },
+            { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.1, minWidth: 100,  align: "center" }
         ]
         return [...columns, ...extraColumns];
     };

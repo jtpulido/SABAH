@@ -18,17 +18,17 @@ export default function Proyectos() {
       field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
       headerAlign: "center"
     },
-    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100,   },
+    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100,   },
+    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100,   },
+    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100,   },
+    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100,   },
+    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100,   },
     {
       field: "id",
       headerName: "Acción",
       width: 100,
-      flex: 0.05, minWidth: 100, headerAlign: "center", align: "center",
+      flex: 0.05, minWidth: 100,  
       renderCell: ({ row: { id } }) => {
         return (
           <Box
@@ -96,22 +96,7 @@ export default function Proyectos() {
         PROYECTOS
       </Typography>
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      >
+      <Box>
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           En desarrollo

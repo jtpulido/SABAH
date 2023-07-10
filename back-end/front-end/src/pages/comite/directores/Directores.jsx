@@ -20,48 +20,13 @@ export default function Directores() {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-
-  const generarColumnas = (extraColumns) => {
-    const columns = [
-      { field: 'nombre_director', headerName: 'Nombre del director', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-      { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-      { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-      {
-        field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center",
-        valueGetter: (params) => `${params.row.etapa || ''} - ${params.row.estado || ''}`,
-      },
-      {
-        field: "Acción",
-        headerName: '',
-        width: 200,
-        flex: 0.1,
-        minWidth: 100,
-        headerAlign: "center",
-        align: "center",
-        renderCell: ({ row }) => {
-          const { id_proyecto } = row;
-          return (
-            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-              <Tooltip title="Ver proyecto">
-                <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
-                  <Source />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          );
-        },
-      }
-    ];
-    return [...columns, ...extraColumns];
-  };
-
-  const columnsEditar = generarColumnas([
+  const columnsEditar = [
     {
       field: "editar",
       headerName: "",
       flex: 0.01,
-      headerAlign: "center",
-      align: "center",
+      
+      
       renderCell: ({ row }) => {
         const { id_director } = row;
         const tooltipTitle = id_director ? "Cambiar Director" : "Asignar Director";
@@ -76,8 +41,36 @@ export default function Directores() {
           </Box>
         );
       },
+    },
+    { field: 'nombre_director', headerName: 'Nombre del director', flex: 0.2, minWidth: 150},
+    { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100},
+    {
+      field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100,  
+      valueGetter: (params) => `${params.row.etapa || ''} - ${params.row.estado || ''}`,
+    },
+    {
+      field: "Acción",
+      headerName: '',
+      width: 200,
+      flex: 0.1,
+      minWidth: 100,
+      
+      
+      renderCell: ({ row }) => {
+        const { id_proyecto } = row;
+        return (
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+            <Tooltip title="Ver proyecto">
+              <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
     }
-  ]);
+  ];
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -97,7 +90,7 @@ export default function Directores() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message,"warning")
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRowsFunc(data.directores);
       }
@@ -123,25 +116,7 @@ export default function Directores() {
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         DIRECTORES POR PROYECTO
       </Typography>
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cellContent": {
-            textAlign: "center"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      >
+      <Box>
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Proyectos en desarrollo
         </Typography>
