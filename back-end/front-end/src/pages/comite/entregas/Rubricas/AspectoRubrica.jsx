@@ -27,7 +27,7 @@ export default function Row(props) {
                     </IconButton>
                 </TableCell>
                 <TableCell component="th" scope="row" align="center">
-                    {row.rubrica_id}
+                    {row.id_rubrica}
                 </TableCell>
                 <TableCell >{row.rubrica_nombre}</TableCell>
                 <TableCell >{row.rubrica_descripcion}</TableCell>
@@ -74,7 +74,7 @@ export default function Row(props) {
 
 Row.propTypes = {
     row: PropTypes.shape({
-        rubrica_id: PropTypes.number.isRequired,
+        id_rubrica: PropTypes.number.isRequired,
         rubrica_nombre: PropTypes.string.isRequired,
         rubrica_descripcion: PropTypes.string.isRequired,
         aspectos: PropTypes.arrayOf(

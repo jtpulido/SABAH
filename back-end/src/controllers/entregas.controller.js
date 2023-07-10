@@ -14,7 +14,7 @@ const crearAspecto = async (req, res) => {
             return res.status(200).json({ success: true, message: 'aspecto creado correctamente', id_aspecto });
         });
     } catch (error) {
-        
+
         return res.status(502).json({ success: false, message });
     }
 };
@@ -116,6 +116,7 @@ const crearRubrica = async (req, res) => {
         return res.status(200).json({ success: true, message: 'Rubrica creada exitosamente' });
     } catch (error) {
         await pool.query('ROLLBACK');
+        console.log(error)
         return res.status(502).json({ success: false, message: 'Error al crear la rubrica' });
     }
 };
@@ -357,10 +358,10 @@ const obtenerEtapas = async (req, res) => {
 };
 
 
-const verEntregasPendientes = async (req, res) => {
+const verEntregasPendientesProyecto = async (req, res) => {
     try {
         const proyecto_id = req.params.proyecto_id;
-        
+
         const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol, p.id AS id_proyecto
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
@@ -370,13 +371,13 @@ const verEntregasPendientes = async (req, res) => {
         `;
 
         await pool.query(query, [proyecto_id], (error, result) => {
-           
+
             if (error) {
-               
+
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
             if (result.rows.length === 0) {
-                
+
                 return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
             }
             return res.status(200).json({ success: true, espacios: result.rows });
@@ -386,10 +387,10 @@ const verEntregasPendientes = async (req, res) => {
     }
 };
 
-const verEntregasRealizadas= async (req, res) => {
+const verEntregasRealizadasProyecto = async (req, res) => {
     try {
         const proyecto_id = req.params.proyecto_id;
-       
+
         const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
@@ -402,7 +403,7 @@ const verEntregasRealizadas= async (req, res) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
-        
+
             if (result.rows.length === 0) {
                 return res.status(203).json({ success: true, message: 'No se han realizado entregas.' });
             }
@@ -412,11 +413,49 @@ const verEntregasRealizadas= async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
+const verEntregasPendientes = async (req, res) => {
+    try {
+        const query =
+            `SELECT 
+        ee.nombre AS nombre_espacio_entrega,
+        de.fecha_entrega,
+        p.nombre AS nombre_proyecto,
+        r.nombre AS nombre_rol,
+        u.nombre AS evaluador
+    FROM 
+        documento_entrega de
+        INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+        INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+        INNER JOIN usuario u ON ur.id_usuario = u.id
+        INNER JOIN rol r ON ur.id_rol = r.id
+    WHERE 
+        de.id NOT IN (SELECT id_documento_entrega FROM calificacion)
+    ORDER BY 
+        de.fecha_entrega`;
+
+        await pool.query(query, (error, result) => {
+            if (error) {
+                console.log(error)
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
+            }
+            return res.status(200).json({ success: true, espacios: result.rows });
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message });
+    }
+};
 
 module.exports = {
     crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
     crearRubrica, obtenerRubricasConAspectos,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
-    verEntregasPendientes,verEntregasRealizadas
+    verEntregasPendientesProyecto, verEntregasRealizadasProyecto,
+    verEntregasPendientes
 }

@@ -46,13 +46,11 @@ export default function Rubricas() {
             } else if (response.status === 200) {
                 setAspectos(data.aspectos);
             }
-
-
-
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.","error");
         }
     };
+    
     const handleAspectoSelect = (event) => {
         const aspectoId = event.target.value;
         const selectedAspecto = aspectos.find((aspecto) => aspecto.id === aspectoId);
@@ -405,7 +403,7 @@ export default function Rubricas() {
                     </TableHead>
                     <TableBody>
                         {rubricas.map((row) => (
-                            <Row key={row.rubrica_id} row={row} />
+                            <Row key={row.id_rubrica} row={row} />
                         ))}
                     </TableBody>
                 </Table>

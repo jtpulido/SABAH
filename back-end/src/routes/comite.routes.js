@@ -31,8 +31,10 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     crearRubrica, obtenerRubricasConAspectos,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
-    verEntregasPendientes,
-    verEntregasRealizadas
+    verEntregasPendientesProyecto,
+    verEntregasRealizadasProyecto,
+    verEntregasPendientes
+
 } = require('../controllers/entregas.controller')
 
 const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
@@ -94,8 +96,11 @@ router.get('/comite/modalidades', passport.authenticate('jwt', { session: false 
 router.get('/comite/roles', passport.authenticate('jwt', { session: false }), obtenerRoles);
 router.get('/comite/rubricas', passport.authenticate('jwt', { session: false }), obtenerRubricas);
 
-//Entregas
-router.get('/comite/entrega/pendientes/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
-router.get('/comite/entrega/realizadas/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasRealizadas);
+//Entregas proyecto
+router.get('/comite/entrega/pendientes/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasPendientesProyecto);
+router.get('/comite/entrega/realizadas/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasRealizadasProyecto);
+
+//Entregas general
+router.post('/comite/entregas/pendientes', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
 
 module.exports = router;

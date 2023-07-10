@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, Typography, Alert, useTheme, Snackbar, Tooltip, IconButton } from '@mui/material';
+import { Box, Typography, useTheme, Tooltip, IconButton } from '@mui/material';
 import { Source, PostAdd } from '@mui/icons-material';
 
 import CustomDataGrid from "../../layouts/DataGrid";
-import Entrega from './Rubricas/Entrega';
-
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -15,8 +13,9 @@ export default function Entregas() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
-  const proyecto_id = 1;
   const [rowsPendientes, setRowsPendientes] = useState([]);
+  const [rowsCalificadas, setRowsPorCalificar] = useState([]);
+  const [rowsPorCalificar, setRowsCalificadas] = useState([]);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -24,18 +23,11 @@ export default function Entregas() {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
 
-  useEffect(() => {
-    llenarTablaPendientes(proyecto_id);
-
-  }, []);
-
-  const llenarTablaPendientes = async (proyecto_id) => {
+  const llenarTabla = async (url, setData) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/entrega/pendientes/${proyecto_id}`, {
-        method: "GET",
+      const response = await fetch(`http://localhost:5000/comite/entregas/${url}`, {
+        method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -44,27 +36,22 @@ export default function Entregas() {
       } else if (response.status === 203) {
         mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
-        setRowsPendientes(data.espacios);
+        setData(data.lectores);
       }
-    } catch (error) {
+    }
+    catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   };
-
   const handleOpenDialog = (row) => {
-    setSelectedRow(row);
-    setOpenDialog(true);
-  };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
+  }
+  useEffect(() => {
+    llenarTabla("pendientes", setRowsPendientes);
+    llenarTabla("realizadas/calificadas", setRowsCalificadas);
+    llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
+  }, []);
 
-  const handleSubmitDocumento = () => {
-
-    setOpenDialog(false);
-    llenarTablaPendientes(proyecto_id)
-  };
 
   const columnas = [
     {
@@ -90,11 +77,11 @@ export default function Entregas() {
         );
       },
     },
-    { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" }
+    { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.3, minWidth: 150, headerAlign: "center", align: "center", valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" },
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" }
   ];
   return (
     <div>
@@ -124,13 +111,16 @@ export default function Entregas() {
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>
-        <CustomDataGrid rows={rowsPendientes} columns={columnas} mensaje="No entregas pendientes" />
-        <Entrega
-          open={openDialog}
-          onClose={handleCloseDialog}
-          onSubmit={handleSubmitDocumento}
-          entrega={selectedRow || {}}
-        />
+        <CustomDataGrid rows={rowsPendientes} columns={columnas} mensaje="No hay entregas pendientes" />
+        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+          Entregas por calificar
+        </Typography>
+        <CustomDataGrid rows={rowsPorCalificar} columns={columnas} mensaje="No entregas por calificar" />
+        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+          Entregas calificadas
+        </Typography>
+        <CustomDataGrid rows={rowsCalificadas} columns={columnas} mensaje="No hay entregas calificadas" />
+
       </Box>
     </div>
   );
