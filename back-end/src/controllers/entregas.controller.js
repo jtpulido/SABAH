@@ -116,7 +116,6 @@ const crearRubrica = async (req, res) => {
         return res.status(200).json({ success: true, message: 'Rubrica creada exitosamente' });
     } catch (error) {
         await pool.query('ROLLBACK');
-        console.log(error)
         return res.status(502).json({ success: false, message: 'Error al crear la rubrica' });
     }
 };
@@ -238,9 +237,7 @@ const eliminarEspacio = async (req, res) => {
 
         await pool.query(query, values, (error, result) => {
             if (error) {
-                console.log(error);
                 if (error.code == '23503') {
-                    console.log("Hola----------------------------------------");
                     return res.status(502).json({ success: false, message: "No se puede eliminar un espacio en el que ya se realizaron entregas." });
                 }
                 return res.status(502).json({ success: false, message });
@@ -298,7 +295,6 @@ const obtenerRubricas = async (req, res) => {
             return res.status(200).json({ success: true, rubricas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -420,6 +416,7 @@ const verEntregasPendientes = async (req, res) => {
             ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
             ee.id AS id_espacio_entrega,
             ee.nombre AS nombre_espacio_entrega,
+            p.id AS id_proyecto,
             p.nombre AS nombre_proyecto,
             r.nombre AS nombre_rol,
             u.nombre AS evaluador,
@@ -443,7 +440,6 @@ const verEntregasPendientes = async (req, res) => {
 
         await pool.query(query, (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -453,7 +449,6 @@ const verEntregasPendientes = async (req, res) => {
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -462,6 +457,7 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
         const query =
             `SELECT 
         de.id,
+        ee.id AS id_espacio_entrega,
         ee.nombre AS nombre_espacio_entrega,
         r.nombre AS nombre_rol,
         ee.fecha_apertura,
@@ -483,7 +479,6 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
 
         await pool.query(query, (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -493,7 +488,6 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -523,7 +517,6 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
 
         await pool.query(query, (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -533,8 +526,78 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
+    }
+};
+const verInfoDocEntregado = async (req, res) => {
+    try {
+
+        const id = req.params.id_doc_entrega;
+        const query =
+            `SELECT 
+            de.id,
+            d.nombre AS nombre_documento,
+            d.id AS id_doc,
+            d.uuid,
+            de.fecha_entrega
+        FROM 
+            documento_entrega de
+            INNER JOIN documento d ON de.id_documento = d.id
+        WHERE de.id = $1  
+    `;
+        await pool.query(query, [id], (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+            }
+            return res.status(200).json({ success: true, documento: result.rows[0] });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};const verAspectosEspacio = async (req, res) => {
+    try {
+        const id = req.params.id_esp_entrega;
+        console.log(id);
+        const query =
+            `SELECT 
+            i.id AS id_aspecto, 
+            i.nombre AS aspecto_nombre, 
+            ri.puntaje AS aspecto_puntaje,
+            ri.id AS id_rubrica_aspecto
+         FROM 
+            espacio_entrega ee 
+         INNER JOIN rubrica r ON ee.id_rubrica = r.id
+         LEFT JOIN rubrica_aspecto AS ri ON r.id = ri.id_rubrica
+         LEFT JOIN aspecto AS i ON ri.id_aspecto = i.id
+         WHERE ee.id = $1  
+    `;
+        await pool.query(query, [id], (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+            }
+            return res.status(200).json({ success: true, aspectos: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
+const guardarCalificacion = async (req, res) => {
+    try {
+    const { id_doc_entrega,calificacion_aspecto} = req.body;
+       console.log(id_doc_entrega);
+       console.log(calificacion_aspecto);
+        return res.status(200).json({ success: true, message: 'Rubrica creada exitosamente' });
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Error al crear la rubrica' });
     }
 };
 
@@ -544,5 +607,6 @@ module.exports = {
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientesProyecto, verEntregasRealizadasProyecto,
-    verEntregasPendientes,verEntregasRealizadasSinCalificar,verEntregasRealizadasCalificadas
+    verEntregasPendientes, verEntregasRealizadasSinCalificar, verEntregasRealizadasCalificadas,
+    verInfoDocEntregado,verAspectosEspacio,guardarCalificacion
 }

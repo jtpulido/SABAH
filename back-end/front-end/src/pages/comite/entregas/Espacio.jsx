@@ -5,9 +5,10 @@ import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useTheme, Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
 import { Delete, Source, AddCircleOutline } from '@mui/icons-material';
-import CrearEspacio from "./Rubricas/CrearEspacio";
+import CrearEspacio from "./Ventanas/CrearEspacio";
 import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
+
 export default function Espacios() {
     const { enqueueSnackbar } = useSnackbar();
 
@@ -151,7 +152,7 @@ export default function Espacios() {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
-            const data = await response.json();  
+            const data = await response.json();
             if (!data.success) {
                 mostrarMensaje(data.message, "error")
             } else {
@@ -161,16 +162,16 @@ export default function Espacios() {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    };    
+    };
 
 
     const generarColumnas = (extraColumns) => {
         const columns = [
             {
+                field: "editar",
+                headerName: "",
                 flex: 0.1,
                 minWidth: 50,
-                
-                
                 renderCell: ({ row }) => {
                     const { id } = row;
                     return (
@@ -189,15 +190,15 @@ export default function Espacios() {
                     );
                 },
             },
-            { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150,  align: "center" },
-            { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150,  align: "center" },
-            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100,  align: "center" },
-            { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100,  align: "center" },
-            { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100,  align: "center" },
-            { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.1, minWidth: 100,  align: "center" }
+            { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, align: "center" },
+            { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150, align: "center" },
+            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100, align: "center" },
+            { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, align: "center" },
+            { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100, align: "center" },
+            { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.1, minWidth: 100, align: "center" }
         ]
         return [...columns, ...extraColumns];
     };
@@ -239,7 +240,7 @@ export default function Espacios() {
             </AppBar>
             <CrearEspacio
                 open={open}
-                onClose={cerrarDialog} roles={roles || []} modalidades={modalidades || []} etapas={etapas || []} rubricas={rubricas || []}
+                onClose={cerrarDialog} roles={roles} modalidades={modalidades} etapas={etapas} rubricas={rubricas}
             />
             <Box sx={{ m: 2 }}>
 

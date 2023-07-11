@@ -35,8 +35,10 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     verEntregasRealizadasProyecto,
     verEntregasPendientes,
     verEntregasRealizadasCalificadas,
-    verEntregasRealizadasSinCalificar
-
+    verEntregasRealizadasSinCalificar,
+    verInfoDocEntregado,
+    verAspectosEspacio,
+    guardarCalificacion
 } = require('../controllers/entregas.controller')
 
 const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
@@ -103,8 +105,14 @@ router.get('/comite/entrega/pendientes/:proyecto_id', passport.authenticate('jwt
 router.get('/comite/entrega/realizadas/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasRealizadasProyecto);
 
 //Entregas general
-router.post('/comite/entregas/pendientes', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
-router.post('/comite/entregas/realizadas/calificadas', passport.authenticate('jwt', { session: false }), verEntregasRealizadasCalificadas);
-router.post('/comite/entregas/realizadas/porCalificar', passport.authenticate('jwt', { session: false }), verEntregasRealizadasSinCalificar);
+router.get('/comite/entregas/pendientes', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
+router.get('/comite/entregas/realizadas/calificadas', passport.authenticate('jwt', { session: false }), verEntregasRealizadasCalificadas);
+router.get('/comite/entregas/realizadas/porCalificar', passport.authenticate('jwt', { session: false }), verEntregasRealizadasSinCalificar);
+router.get('/comite/documento/:id_doc_entrega', passport.authenticate('jwt', { session: false }), verInfoDocEntregado);
+router.get('/comite/documento/aspectos/:id_esp_entrega', passport.authenticate('jwt', { session: false }), verAspectosEspacio);
+
+//calificación
+router.post('/comite/documento/guardarCalificacion', passport.authenticate('jwt', { session: false }), guardarCalificacion);
+
 
 module.exports = router;

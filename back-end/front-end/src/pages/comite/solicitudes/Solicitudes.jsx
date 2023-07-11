@@ -116,9 +116,6 @@ export default function Proyectos() {
   const abrirDialog = (id) => {
     setIdSolicitud(id)
     setOpen(true);
-    llenarTabla("pendienteaprobacion", setRowsEnCurso);
-    llenarTabla("rechazadas", setRowsRechazadas);
-    llenarTabla("aprobadas", setRowsAprobadas);
   };
 
   const cerrarDialog = () => {

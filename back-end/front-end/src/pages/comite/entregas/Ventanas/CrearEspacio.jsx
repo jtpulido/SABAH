@@ -16,7 +16,7 @@ function CrearEspacio(props) {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    const { onClose, roles: rolesvalueProp, modalidades: modalidadesvalueProp, etapas: etapasvalueProp, rubricas: rubricasvalueProp, open, ...other } = props;
+    const { onClose, roles: rolesvalueProp = [], modalidades: modalidadesvalueProp = [], etapas: etapasvalueProp = [], rubricas: rubricasvalueProp = [], open, ...other } = props;
 
     const [roles, setRoles] = useState(rolesvalueProp);
     const [modalidades, setModalidades] = useState(modalidadesvalueProp);

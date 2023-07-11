@@ -3,19 +3,19 @@ import React, { useState, useEffect } from 'react';
 
 import PropTypes from 'prop-types';
 
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import { useSelector } from "react-redux";
-import { selectToken } from "../../../store/authSlice";
+import { selectToken } from "../../../../store/authSlice";
 import { ExpandMore } from '@mui/icons-material';
 import { Typography, Stack, RadioGroup, TextareaAutosize, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails, useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent } from "@mui/material";
 
-import CustomDataGrid from "../../layouts/DataGrid";
+import CustomDataGrid from "../../../layouts/DataGrid";
 
 import { useSnackbar } from 'notistack';
 
 function CalificarEntrega(props) {
 
-    const { onClose, id_solicitud, open } = props;
+    const { onClose, entrega, open } = props;
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -31,12 +31,11 @@ function CalificarEntrega(props) {
     const [puntaje, setPuntaje] = useState({});
     const [comentario, setComentario] = useState({});
     const [aspectos, setAspectos] = useState([]);
-    const [entrega, setEntrega] = useState(null);
-    const [espacio, setEspacio] = useState(null);
+    const [docEntregado, setDocEntregado] = useState(null);
 
     const handleEntering = () => {
-        obtenerInfoSolicitud(id_solicitud)
-        obtenerAprobacionesSolicitud(id_solicitud)
+        infoDocEntrega(entrega.id);
+        obtenerAspectos(entrega.id_espacio_entrega)
         setLoading(false);
     };
 
@@ -46,8 +45,6 @@ function CalificarEntrega(props) {
         setComentario({})
         setAspectos([])
         setLoading(true)
-        setApproval('')
-        setComments('')
     };
     const handlePuntajeChange = (aspectoId, value) => {
         setPuntaje((prevPuntaje) => ({
@@ -63,61 +60,67 @@ function CalificarEntrega(props) {
         }));
     };
 
+    const infoDocEntrega = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/comite/documento/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (response.status === 200) {
+                setDocEntregado(data.documento)
+            } else if (response.status === 502) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning")
+            }
+        } catch (error) {
+            setLoading(true)
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+    };
+    const obtenerAspectos = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/comite/documento/aspectos/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (response.status === 200) {
+                setAspectos(data.aspectos)
+            } else if (response.status === 502) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning")
+            }
+        } catch (error) {
+            setLoading(true)
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+    };
 
-    const obtenerInfoSolicitud = async (id) => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/verSolicitud", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id })
-            });
-            const data = await response.json();
-            if (response.status === 200) {
-                setSolicitud(data.solicitud)
-            } else if (response.status === 502) {
-                mostrarMensaje(data.message, "error")
-            } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
-            }
-        } catch (error) {
-            setLoading(true)
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
-    const obtenerAprobacionesSolicitud = async (id) => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/verAprobaciones", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id })
-            });
-            const data = await response.json();
-            if (response.status === 200) {
-                setAprobaciones(data.aprobaciones)
-            } else if (response.status === 502) {
-                mostrarMensaje(data.message, "error")
-            } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
-            }
-        } catch (error) {
-            setLoading(true)
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
-    const handleSave = async () => {
+    const guardarCalificacion = async (event) => {
         setLoading(true);
         event.preventDefault();
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/agregarAprobacion", {
+
+            const calificacionData = {
+                id_doc_entrega: entrega.id,
+                calificacion_aspecto: aspectos.map((aspecto) => ({
+                    id_rubrica_aspecto: aspecto.id_rubrica_aspecto,
+                    puntaje: puntaje[aspecto.id_aspecto] || 0,
+                    comentario: comentario[aspecto.id_aspecto] || ""
+                })),
+            };
+
+            const response = await fetch("http://localhost:5000/comite/documento/guardarCalificacion", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ aprobado: approval, comentario: comments, id_solicitud })
+                body: JSON.stringify(calificacionData)
             });
             const data = await response.json();
             if (response.status === 200) {
                 mostrarMensaje("Se ha guardado su respuesta!", "success")
-                obtenerInfoSolicitud(id_solicitud)
-                obtenerAprobacionesSolicitud(id_solicitud)
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203 || response.status === 400) {
@@ -132,65 +135,67 @@ function CalificarEntrega(props) {
         }
         setLoading(false);
     };
-
-    const columns = [
-        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80, align: "center" },
-        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80, align: "center" },
-        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, align: "center" },
-        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, align: "center" }
-    ];
-
-
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md' onClose={handleCancel}>
             <CssBaseline />
-            <form onSubmit={handleSave}>
-            <DialogTitle variant="h1" color={colors.primary[100]}>CALIFICAR ENTREGA</DialogTitle>
-            <DialogContent dividers  >
-                {espacio === null ||entrega === null || aspectos===null || loading ? (
-                    <Box sx={{ display: 'flex' }}>
-                        <CircularProgress />
-                    </Box>
-                ) : (
-                    <>
-                        {aspectos.map((aspecto) => (
-                            <div key={aspecto.id}>
-                                <TextField
-                                    label={aspecto.nombre}
-                                    type="number"
-                                    value={puntaje[aspecto.id] || ''}
-                                    onChange={(e) => handlePuntajeChange(aspecto.id, e.target.value)}
-                                    required
-                                />
-                                <TextareaAutosize
-                                    placeholder="Comentario"
-                                    value={comentario[aspecto.id] || ''}
-                                    onChange={(e) => handleComentarioChange(aspecto.id, e.target.value)}
-                                    rows={4}
-                                    minRows={4}
-                                    required
-                                />
-                            </div>
-                        ))}
+            <form onSubmit={guardarCalificacion}>
+                <DialogTitle variant="h1" color={colors.primary[100]}>CALIFICAR ENTREGA</DialogTitle>
+                <DialogContent dividers  >
+                    {loading ? (
+                        <Box sx={{ display: 'flex' }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <>
+                            {aspectos.map((aspecto) => (
+                                <div key={aspecto.id_aspecto}>
+                                    <TextField
+                                        label={aspecto.aspecto_nombre}
+                                        type="number"
+                                        value={puntaje[aspecto.id_aspecto] || ""}
+                                        onChange={(e) => handlePuntajeChange(aspecto.id_aspecto, e.target.value)}
+                                        inputProps={{
+                                            min: 0,
+                                            max: aspecto.aspecto_puntaje,
+                                        }}
+                                        required
+                                        error={
+                                            puntaje[aspecto.id_aspecto] > aspecto.aspecto_puntaje ||
+                                            puntaje[aspecto.id_aspecto] < 0
+                                        }
+                                        
+                                        helperText={`Valor debe estar entre 0 y ${aspecto.aspecto_puntaje}`}
+                                        fullWidth
+                                    />
+                                    <TextareaAutosize
+                                        placeholder="Comentario"
+                                        value={comentario[aspecto.id_aspecto] || ""}
+                                        onChange={(e) => handleComentarioChange(aspecto.id_aspecto, e.target.value)}
+                                        rows={4}
+                                        minRows={4}
+                                        required
+                                    />
+                                </div>
+                            ))}
 
-                    </>
-                )}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleCancel}>
-                    Cerrar
-                </Button>
-                <Button variant="contained" type="submit">
-                    Guardar calificación
-                </Button>
-            </DialogActions>
-<</form>
+                        </>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel}>
+                        Cerrar
+                    </Button>
+                    <Button variant="contained" type="submit">
+                        Guardar calificación
+                    </Button>
+                </DialogActions>
+            </form>
         </Dialog>
     )
 }
-VerSolicitud.propTypes = {
+CalificarEntrega.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired
 };
 
-export default VerSolicitud;
+export default CalificarEntrega;
