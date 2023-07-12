@@ -558,10 +558,9 @@ const verInfoDocEntregado = async (req, res) => {
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
-};const verAspectosEspacio = async (req, res) => {
+}; const verAspectosEspacio = async (req, res) => {
     try {
         const id = req.params.id_esp_entrega;
-        console.log(id);
         const query =
             `SELECT 
             i.id AS id_aspecto, 
@@ -592,12 +591,29 @@ const verInfoDocEntregado = async (req, res) => {
 
 const guardarCalificacion = async (req, res) => {
     try {
-    const { id_doc_entrega,calificacion_aspecto} = req.body;
-       console.log(id_doc_entrega);
-       console.log(calificacion_aspecto);
-        return res.status(200).json({ success: true, message: 'Rubrica creada exitosamente' });
+        const { id_doc_entrega, calificacion_aspecto } = req.body;
+        await pool.query('BEGIN');
+        const insertCal = 'INSERT INTO calificacion (id_doc_entrega) VALUES ($1) RETURNING id';
+        const calResult = await pool.query(insertCal, [id_doc_entrega]);
+        const id_calificacion = calResult.rows[0].id;
+
+        let puntaje = 0;
+        const calAspRubricaQuery = 'INSERT INTO calificacion_aspecto (id_calificacion, id_rubrica_aspecto, puntaje, comentario) VALUES ($1, $2, $3, $4)';
+        for (let i = 0; i < calificacion_aspecto.length; i++) {
+            const calificacion = calificacion_aspecto[i];
+            puntaje = puntaje + Number(calificacion.puntaje)
+            const valuesCalificacion = [id_calificacion, calificacion.id_rubrica_aspecto, calificacion.puntaje, calificacion.comentario];
+            await pool.query(calAspRubricaQuery, valuesCalificacion);
+        }
+        const nota_final = (puntaje * 5) / 100
+        const query = 'UPDATE calificacion SET nota_final = $1 WHERE id = $2';
+        await pool.query(query, [nota_final, id_calificacion]);
+
+        await pool.query('COMMIT');
+        return res.status(200).json({ success: true, message: 'Calificación guardada correctamente' });
     } catch (error) {
-        return res.status(502).json({ success: false, message: 'Error al crear la rubrica' });
+        await pool.query('ROLLBACK');
+        return res.status(502).json({ success: false, message: 'Error guardar la calificación' });
     }
 };
 
@@ -608,5 +624,5 @@ module.exports = {
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientesProyecto, verEntregasRealizadasProyecto,
     verEntregasPendientes, verEntregasRealizadasSinCalificar, verEntregasRealizadasCalificadas,
-    verInfoDocEntregado,verAspectosEspacio,guardarCalificacion
+    verInfoDocEntregado, verAspectosEspacio, guardarCalificacion
 }

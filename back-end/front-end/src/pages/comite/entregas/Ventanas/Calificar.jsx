@@ -120,7 +120,7 @@ function CalificarEntrega(props) {
             });
             const data = await response.json();
             if (response.status === 200) {
-                mostrarMensaje("Se ha guardado su respuesta!", "success")
+                mostrarMensaje(data.message, "success")
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203 || response.status === 400) {
