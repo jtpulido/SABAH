@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
-import { TextField, Alert, Snackbar } from "@mui/material";
+import { TextField } from "@mui/material";
 import "./Recuperar1.css";
-import { Recuperar2 } from "../recuperar contrasena2/Recuperar2"
+import { Recuperar2 } from "../recuperar contrasena2/Recuperar2";
+import { useSnackbar } from 'notistack';
 
 export const Recuperar1 = ({ isVisible, closeModal }) => {
 
@@ -38,13 +39,10 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
     setVisible2(true);
   };
 
-  const esperar = (ms) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
   };
-
-  // Variable del SnackBar
-  const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-  const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
 
   const handleReset = async (event) => {
     event.preventDefault();
@@ -69,7 +67,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
             const data = await response.json();
             // Si existe el proyecto
             if (data.success) {
-              setMensaje({ tipo: "success", texto: "El código de proyecto ingresado está registrado en nuestro sistema." });
+              mostrarMensaje("El código de proyecto ingresado está registrado en nuestro sistema.", "success");
               setIsProyecto(true);
               try {
                 const response2 = await fetch("http://localhost:5000/sendEmails", {
@@ -82,35 +80,32 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
                 // Si no se envío el correo con exito
                 if (!data2.success) {
                   setCorreo("");
-                  setMensaje({ tipo: "error", texto: data.message });
-                  await esperar(1500);
+                  mostrarMensaje(data.message, "error");
                   handleClose();
 
                   // Si fue enviado con éxito el correo
                 } else {
-                  setMensaje({ tipo: "success", texto: "Se ha enviado un correo electrónico con el código de verificación." });
-                  await esperar(2000);
+                  mostrarMensaje("Se ha enviado un correo electrónico con el código de verificación.", "success");
                   handleClose();
                   handleOpen2();
                   setCorreo("");
                 }
               } catch (error) {
                 setCorreo("");
-                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
               }
-
             } else {
-              setMensaje({ tipo: "error", texto: data.message });
+              mostrarMensaje(data.message, "error");
               setCorreo("")
             }
           } catch (error) {
             setCorreo("");
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
           }
 
           // Si el correo si existe
         } else {
-          setMensaje({ tipo: "success", texto: "El correo electrónico ingresado está registrado en nuestro sistema." });
+          mostrarMensaje("El correo electrónico ingresado está registrado en nuestro sistema.", "success");
           // Enviar codigo de verificacion
           event.preventDefault();
           try {
@@ -125,31 +120,30 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
             // Si no se envío el correo con exito
             if (!data2.success) {
               setCorreo("");
-              setMensaje({ tipo: "error", texto: data.message });
+              mostrarMensaje(data.message, "error");
               handleClose();
 
               // Si fue enviado con éxito el correo
             } else {
-              setMensaje({ tipo: "success", texto: "Se ha enviado un correo electrónico con el código de verificación." });
-              await esperar(2000);
+              mostrarMensaje("Se ha enviado un correo electrónico con el código de verificación.", "success");
               handleClose();
               handleOpen2();
               setCorreo("");
             }
           } catch (error) {
             setCorreo("");
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
           }
         }
       } catch (error) {
         setCorreo("");
-        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+        mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
       }
 
       // Si el valor es null
     } else {
       setCorreo("");
-      setMensaje({ tipo: "error", texto: "Por favor ingrese un valor de correo electrónico o código de proyecto válido." });
+      mostrarMensaje("Por favor ingrese un valor de correo electrónico o código de proyecto válido.", "info");
     }
   };
 
@@ -164,18 +158,6 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
         className='modal_recuperar1'
         style={{ borderRadius: 0 }}
       >
-        {mensaje.texto && (
-          <Snackbar
-            open={true}
-            autoHideDuration={5000}
-            onClose={handleCloseMensaje}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          >
-            <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-              {mensaje.texto}
-            </Alert>
-          </Snackbar>
-        )}
         <div className="div">
           <p className='text'>Ingrese el correo o código del proyecto</p>
         </div>

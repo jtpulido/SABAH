@@ -15,10 +15,10 @@ export default function App() {
       backgroundColor: '#8db33aD9',
     },
     '&.notistack-MuiContent-error': {
-      backgroundColor: '#ff0000D9',
+      backgroundColor: '#CB3234D9',
     },
     '&.notistack-MuiContent-info': {
-      backgroundColor: '#576a3dD9',
+      backgroundColor: '#00917CD9',
     },
     '&.notistack-MuiContent-warning': {
       backgroundColor: '#ec8a01D9',
@@ -32,7 +32,7 @@ export default function App() {
     <SnackbarProvider
       maxSnack={6}
       preventDuplicate
-      autoHideDuration={2000}
+      autoHideDuration={3500}
       anchorOrigin={{
         vertical: "bottom",
         horizontal: "right",
