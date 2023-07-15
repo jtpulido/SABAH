@@ -6,11 +6,8 @@ import { Button } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
+import { useSnackbar } from 'notistack';
 import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-
 
 export default function ActaReunion() {
   const { id } = useParams();
@@ -33,7 +30,11 @@ export default function ActaReunion() {
     "Otros",
     "Enviar solicitud de aval"
   ];
+  const { enqueueSnackbar } = useSnackbar();
 
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
   const handleChange = (event) => {
     setSelectedOption(event.target.value);
   };

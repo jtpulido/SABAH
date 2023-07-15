@@ -73,7 +73,8 @@ export const Login = () => {
           } else if (tipo_usuario === 'comite') {
             navigate('/comite');
           } else if (tipo_usuario === 'proyecto') {
-            navigate('/proyecto', { state: { id_usuario } });
+            sessionStorage.setItem('id_proyecto', id_usuario);
+            navigate('/proyecto');
           }
 
         }

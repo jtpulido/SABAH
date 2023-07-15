@@ -1,31 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams } from 'react-router-dom';
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, CssBaseline, TableContainer, TableHead, TableRow, TableCell, TableBody, Grid } from "@mui/material";
+import { Typography, useTheme, Box, TextField, CssBaseline, Grid } from "@mui/material";
 import "./InicioPro.css";
 import { Button } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { useSnackbar } from 'notistack';
 
 export default function ActaReunion() {
   const { id } = useParams();
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
   const [objetivos, setObjetivos] = useState("");
   const [resultados, setResultados] = useState("");
   const [tareas, setTareas] = useState("");
   const [compromisos, setCompromisos] = useState("");
   const [info, setInfo] = useState("");
-  
+  const { enqueueSnackbar } = useSnackbar();
 
+const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
 const traerInfo = async ( id) => {
-    console.log("hhhh",id)
+    
     try {
       // Llama a tu API para generar el PDF en el backend
       const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${id}`, { 
@@ -36,19 +35,18 @@ const traerInfo = async ( id) => {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message,'error');
       }
       await setInfo(data);
       generarPDF();
       
       }catch(error){
-        console.log(error);
-        console.error('Error al generar el PDF:', error);
+        mostrarMensaje('Error al generar el PDF', 'error');
       }
     }
 
 const generarPDF = async () => {
-  console.log(info)
+ 
     try {
       const data = {
         fecha: info.acta[0].fecha,
@@ -70,8 +68,7 @@ const generarPDF = async () => {
       downloadLink.download = 'mi-archivo.pdf';
       downloadLink.click();
     } catch (error) {
-      console.log(error);
-      console.error('Error al generar el PDF:', error);
+      mostrarMensaje('Error al generar el PDF:','error');
     }
   }
 
@@ -100,25 +97,18 @@ const generarPDF = async () => {
   
       // Verifica si la solicitud fue exitosa
       if (response.ok) {
-        console.log("El acta se guardo exitosamente.");
+        mostrarMensaje("El acta se guardo exitosamente.",'success');
       } else {
-        console.error("Ocurrió un error.");
+        mostrarMensaje("Ocurrió un error.",'error');
       }
       
     } catch (error) {
-      console.error("Ocurrió un error al realizar el acta :", error);
+      mostrarMensaje("Ocurrió un error al realizar el acta", 'error');
     }
   }
 
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
       <CssBaseline />
       <Typography
         variant="h4"

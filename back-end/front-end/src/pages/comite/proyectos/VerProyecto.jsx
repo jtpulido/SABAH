@@ -9,14 +9,15 @@ import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
 
 import CustomDataGrid from "../../layouts/DataGrid";
-import Entrega from './ReEntrega/Entrega';
+import Entrega from './Ventana/Entrega';
 
 import CambiarCodigo from './CambiarCodigo';
 import { PostAdd } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 export default function VerProyectos() {
-  const { id } = useParams();
+  const id = sessionStorage.getItem('id_proyecto');
+  alert(id)
   const token = useSelector(selectToken);
 
   const { enqueueSnackbar } = useSnackbar();

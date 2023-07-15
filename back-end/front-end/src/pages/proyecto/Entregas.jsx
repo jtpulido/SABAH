@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
-import {  Button, IconButton, Tooltip } from "@mui/material";
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, CssBaseline, TableContainer, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import {  IconButton, Tooltip } from "@mui/material";
+import { Typography, useTheme, Alert, Snackbar, Box, TextField } from "@mui/material";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import "./Entregas.css";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import { tokens } from "../../theme";
-import { useCookies } from 'react-cookie';
 import axios from 'axios';
-import { Source, Feed } from '@mui/icons-material';
-import CreateIcon from '@mui/icons-material/Create';
+import { Feed } from '@mui/icons-material';
 import InsertLinkIcon from '@mui/icons-material/InsertLink';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -65,7 +63,7 @@ const CustomNoRowsMessage = () => {
 export default function Entregas() {
   
   const [file, setFile] = useState(null);
-  const [cookies] = useCookies(['id']);
+  const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -123,7 +121,7 @@ export default function Entregas() {
       const data = {
         link: link,
         tipol: 'A'  ,
-        id: cookies.id
+        id: id
       };
   
       // Realiza la solicitud POST al backend
@@ -139,15 +137,15 @@ export default function Entregas() {
   
       // Verifica si la solicitud fue exitosa
       if (response.ok) {
-        console.log("La solicitud se genero exitosamente.");
+        alert("La solicitud se genero exitosamente.");
       } else {
-        console.error("Ocurrió un error.");
+        alert("Ocurrió un error.");
       }
       handleCloseModal()
     } catch (error) {
-      console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+      alert("Ocurrió un error al realizar la solicitud al backend:", error);
     }
-    console.log("Guardando el valor:", link);
+    alert("Guardando el valor:", link);
     handleCloseModal();
   };
     const handleSaveProyecto = async () => {
@@ -157,7 +155,7 @@ export default function Entregas() {
         const data = {
           link: link,
           tipol: 'D'  ,
-          id: cookies.id
+          id: id
         };
     
         // Realiza la solicitud POST al backend
@@ -173,15 +171,15 @@ export default function Entregas() {
     
         // Verifica si la solicitud fue exitosa
         if (response.ok) {
-          console.log("La solicitud se genero exitosamente.");
+          alert("La solicitud se genero exitosamente.");
         } else {
-          console.error("Ocurrió un error.");
+         alert("Ocurrió un error.");
         }
         handleCloseModal()
       } catch (error) {
-        console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+       alert("Ocurrió un error al realizar la solicitud al backend:", error);
       }
-    console.log("Guardando el valor:", link);
+    alert("Guardando el valor:", link);
     handleCloseModal();
   };
 
@@ -237,7 +235,7 @@ export default function Entregas() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerentregasPendientes/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerentregasPendientes/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -247,11 +245,11 @@ export default function Entregas() {
         setError(data.message);
       } else {
         setPendientes(data.pendientes.pendientes);
-        console.log(pendientes)
+        
       }
     }
     catch (error) {
-      console.log(error)
+      alert(error)
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
@@ -259,7 +257,7 @@ export default function Entregas() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerEntregasCompletadas/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerEntregasCompletadas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -272,7 +270,6 @@ export default function Entregas() {
       }
     }
     catch (error) {
-      console.log(error)
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };

@@ -8,7 +8,7 @@ import { selectToken } from "../../store/authSlice";
 import './VerProyecto.css';
 
 export default function VerProyectos() {
-  const [cookies] = useCookies([ 'id']);
+  const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -27,7 +27,7 @@ export default function VerProyectos() {
 
   const infoProyecto = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
       });
@@ -39,7 +39,6 @@ export default function VerProyectos() {
       } else {
         setProyecto(data.proyecto);
         setEstudiantes(data.estudiantes);
-        console.log("est",estudiantes)
         setDirector(data.director);
         setExisteLector(data.lector.existe_lector)
         setLector(data.lector.existe_lector ? data.lector.nombre : "");
