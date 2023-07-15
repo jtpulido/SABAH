@@ -86,7 +86,7 @@ router.put('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session:
 router.get('/comite/aspecto', passport.authenticate('jwt', { session: false }), obtenerAspectos);
 router.get('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), obtenerAspectoPorId);
 router.post('/comite/crearRubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
-router.get('/comite/obtenerRubricasConAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
+router.get('/comite/obtenerRubricasAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
 
 // Rutas para espacios
 router.post('/comite/espacio', passport.authenticate('jwt', { session: false }), crearEspacio);

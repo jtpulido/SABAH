@@ -122,8 +122,7 @@ const crearRubrica = async (req, res) => {
 
 const obtenerRubricasConAspectos = async (req, res) => {
     try {
-        const query = `
-        SELECT r.id AS id_rubrica, r.nombre AS rubrica_nombre, r.descripcion AS rubrica_descripcion,
+        const query = `SELECT r.id, r.nombre AS rubrica_nombre, r.descripcion AS rubrica_descripcion,
                i.id AS id_aspecto, i.nombre AS aspecto_nombre, ri.puntaje AS aspecto_puntaje
         FROM rubrica AS r
         LEFT JOIN rubrica_aspecto AS ri ON r.id = ri.id_rubrica
@@ -136,7 +135,7 @@ const obtenerRubricasConAspectos = async (req, res) => {
         result.rows.forEach((row) => {
             if (!groupedRows.has(row.id_rubrica)) {
                 groupedRows.set(row.id_rubrica, {
-                    id_rubrica: row.id_rubrica,
+                    id: row.id,
                     rubrica_nombre: row.rubrica_nombre,
                     rubrica_descripcion: row.rubrica_descripcion,
                     aspectos: [],

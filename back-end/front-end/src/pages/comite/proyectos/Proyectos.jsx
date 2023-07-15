@@ -15,7 +15,7 @@ export default function Proyectos() {
   const navigate = useNavigate();
   const columns = [
     {
-      field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
+      field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150,
       headerAlign: "center"
     },
     { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100,   },

@@ -33,10 +33,17 @@ const menuItems = [
   { label: "LECTORES", button: "lector" },
   { label: "JURADOS", button: "jurado" },
   {
-    label: "ENTREGAS",
-    button: "entrega",
+    label: "RUBRICAS Y ASPECTOS",
+    button: "rub",
     subItems: [
-      { label: "RUBRICAS", button: "rubricas" },
+      { label: "ASPECTOS", button: "aspectos" },
+      { label: "RUBRICAS", button: "rubricas" }
+    ]
+  },
+  {
+    label: "ESPACIOS Y ENTREGAS",
+    button: "ent",
+    subItems: [
       { label: "ESPACIOS", button: "espacio" },
       { label: "ENTREGAS", button: "entregas" }
     ]
