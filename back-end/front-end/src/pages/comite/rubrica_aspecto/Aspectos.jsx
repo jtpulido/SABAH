@@ -7,17 +7,17 @@ import { useSnackbar } from 'notistack';
 import {
     Typography,
     useTheme,
-    Divider,
     Box,
-    Button,
-    TextField,
     AppBar,
     Toolbar,
     IconButton,
-    Tooltip
+    Tooltip,
+    Button
 } from '@mui/material';
 
-import { Delete, Source } from "@mui/icons-material";
+import { AddCircleOutline, Delete, Source } from "@mui/icons-material";
+import CrearAspecto from "./Ventanas/CrearAspecto";
+import VerModificarAspecto from "./Ventanas/VerModificarAspecto";
 
 export default function Aspectos() {
     const { enqueueSnackbar } = useSnackbar();
@@ -31,8 +31,9 @@ export default function Aspectos() {
     const colors = tokens(theme.palette.mode);
 
     const [aspectos, setAspectos] = useState([]);
+    const [aspecto, setAspecto] = useState({});
 
-    const [nombre, setNombre] = useState("");
+
 
     const obtenerAspectos = async () => {
         try {
@@ -56,25 +57,6 @@ export default function Aspectos() {
         }
     };
 
-    const crearAspecto = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/aspecto", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ nombre })
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-                setNombre("");
-                obtenerAspectos();
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    };
-
     const eliminarAspecto = async (aspectoId) => {
         try {
             const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
@@ -92,42 +74,14 @@ export default function Aspectos() {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     };
+    const crearAspecto = async () => {
+        abrirCrearAspecto()
+    }
+    const verModificarAspecto = async (aspecto) => {
+        setAspecto(aspecto)
+        abrirModificarAspecto()
 
-    const modificarAspecto = async (aspectoId) => {
-        try {
-            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ nombre })
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-                setNombre("");
-                obtenerAspectos();
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    };
-
-    const obtenerAspectoPorId = async (aspectoId) => {
-        try {
-            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-                // Hacer algo con el aspecto obtenido
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    };
+    }
     const columnas = [
         { field: 'id', headerName: 'Identificador', flex: 0.1, minWidth: 200, align: "center" },
         { field: 'nombre', headerName: 'Nombre', flex: 0.8, minWidth: 100, align: "center" },
@@ -136,17 +90,17 @@ export default function Aspectos() {
             headerName: "",
             flex: 0.1,
             minWidth: 50,
-            renderCell: ({ id }) => {
+            renderCell: ({ row }) => {
                 return (
                     <Box width="100%" ml="10px" display="flex" justifyContent="center">
                         <Tooltip title="Ver aspecto">
-                            <IconButton color="secondary" onClick={() => obtenerAspectoPorId(id)}>
+                            <IconButton color="secondary" onClick={() => verModificarAspecto(row)}>
                                 <Source />
                             </IconButton>
 
                         </Tooltip>
                         <Tooltip title="Eliminar Aspecto">
-                            <IconButton color="secondary" onClick={() => eliminarAspecto(id)}>
+                            <IconButton color="secondary" onClick={() => eliminarAspecto(row.id)}>
                                 <Delete />
                             </IconButton>
                         </Tooltip>
@@ -155,16 +109,30 @@ export default function Aspectos() {
             },
         }
     ]
+    const [abrirCrear, setAbrirCrear] = useState(false);
+
+    const abrirCrearAspecto = () => {
+        setAbrirCrear(true);
+    };
+
+    const cerrarCrearAspecto = () => {
+        setAbrirCrear(false);
+        obtenerAspectos()
+    }
+    const [abrirModificar, setAbrirModificar] = useState(false);
+
+    const abrirModificarAspecto = () => {
+        setAbrirModificar(true);
+    };
+
+    const cerrarModificarAspecto = () => {
+        setAbrirModificar(false);
+        obtenerAspectos()
+    }
+
     useEffect(() => {
         obtenerAspectos();
     }, []);
-
-    const handleNombreASChange = (value) => {
-        const isOnlyWhitespace = /^\s*$/.test(value);
-        setNombre(isOnlyWhitespace ? "" : value);
-    };
-
-
 
     return (
         <div style={{ margin: "15px" }}>
@@ -173,29 +141,20 @@ export default function Aspectos() {
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ASPECTOS
                     </Typography>
+                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearAspecto}>
+                        Crear Aspecto
+                    </Button>
                 </Toolbar>
             </AppBar>
-            <Typography variant="h3" color={colors.naranja[100]}>
-                Crear Aspecto
-            </Typography>
-            <form onSubmit={crearAspecto}>
-                <TextField
-                    label="Nombre del aspecto"
-                    value={nombre}
-                    required
-                    onChange={(e) => handleNombreASChange(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    error={!nombre}
-                    helperText={'Ingresa el nombre del aspecto'}
-                />
-                <Button variant="contained" color="primary" type='submit'>
-                    Crear Aspecto
-                </Button>
-            </form>
-
-            <Divider sx={{ mt: "15px", mb: "15px" }} />
-
+            <CrearAspecto
+                open={abrirCrear}
+                onClose={cerrarCrearAspecto}
+            />
+            <VerModificarAspecto
+                open={abrirModificar}
+                onClose={cerrarModificarAspecto}
+                aspecto={aspecto}
+            />
             <CustomDataGrid rows={aspectos} columns={columnas} mensaje="No hay aspectos." />
         </div>
     );

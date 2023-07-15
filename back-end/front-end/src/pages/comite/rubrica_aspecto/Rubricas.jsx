@@ -30,8 +30,6 @@ export default function Rubricas() {
 
     const [rubricas, setRubricas] = useState([]);
 
-    const [nombre, setNombre] = useState("");
-
     const [open, setOpen] = useState(false);
 
     const mostrarMensaje = (mensaje, variante) => {

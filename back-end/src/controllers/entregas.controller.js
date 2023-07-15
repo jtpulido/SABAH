@@ -10,8 +10,13 @@ const crearAspecto = async (req, res) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
-            const id_aspecto = result.rows[0].id;
-            return res.status(200).json({ success: true, message: 'aspecto creado correctamente', id_aspecto });
+
+            if (result.rowCount > 0) {
+                return res.status(200).json({ success: true, message: 'Aspecto creado correctamente.' });
+
+            } else {
+                return res.status(203).json({ success: true, message: 'No se creo el aspecto.' })
+            }
         });
     } catch (error) {
 
@@ -21,16 +26,21 @@ const crearAspecto = async (req, res) => {
 
 const modificarAspecto = async (req, res) => {
     try {
-        const { id_aspecto, nombre } = req.body;
+        const { aspectoId } = req.params;
+        const {  nombre } = req.body;
 
         const query = 'UPDATE aspecto SET nombre = $1 WHERE id = $2';
-        const values = [nombre, id_aspecto];
-        await pool.query(query, values, (error) => {
+        const values = [nombre, aspectoId];
+        await pool.query(query, values, (error,result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
-            return res.status(200).json({ success: true, message: 'aspecto modificado correctamente' });
-        });
+            if (result.rowCount > 0) {
+                return res.status(200).json({ success: true, message: 'Aspecto modificado correctamente.' });
+
+            } else {
+                return res.status(203).json({ success: true, message: 'No se ha modificado ningun aspecto.' })
+            } });
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
