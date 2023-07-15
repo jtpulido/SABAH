@@ -5,7 +5,7 @@ import { Box, CssBaseline  } from '@mui/material';
 import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { useCookies } from 'react-cookie';
+
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import {  TextField, Grid } from '@mui/material';
 import { tokens } from "../../theme";
@@ -71,8 +71,7 @@ const CustomNoRowsMessage = () => {
 
 export default function Solicitudes() {
 
-  const [cookies] = useCookies(['id']);
-  const token = useSelector(selectToken);
+  const id = sessionStorage.getItem('id_proyecto');  const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [error, setError] = useState(null);
@@ -137,7 +136,7 @@ export default function Solicitudes() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesPendientes/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesPendientes/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -163,7 +162,7 @@ export default function Solicitudes() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesCompletas/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesCompletas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

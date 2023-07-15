@@ -1,12 +1,9 @@
-import { useHistory } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline, TextField, Grid } from '@mui/material';
 import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { tokens } from "../../theme";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
@@ -73,7 +70,7 @@ const CustomNoRowsMessage = () => {
 export default function Reuniones() {
 
   const navigate = useNavigate();
-  const [cookies] = useCookies(['id']);
+  const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -127,7 +124,7 @@ export default function Reuniones() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` , 'id_reunion':`${reunionId}`}
       });
@@ -144,7 +141,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      console.log(error)
+      alert(error)
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
     
@@ -160,8 +157,7 @@ export default function Reuniones() {
       invitados: rol,
       id_reunion: reunionSeleccionada[0].id, // Convertir a número entero
     };
-    console.log("reunion",reunionSeleccionada[0].id)
-    console.log("datos enviados",data)
+  
     
     // Realiza la solicitud POST al backend
     const response = await fetch("http://localhost:5000/proyecto/editarReunion", {
@@ -176,9 +172,9 @@ export default function Reuniones() {
 
     // Verifica si la solicitud fue exitosa
     if (response.ok) {
-      console.log("La reunion se edito exitosamente.");
+      alert("La reunion se edito exitosamente.");
     } else {
-      console.error("Ocurrió un error.");
+      alert("Ocurrió un error.");
     }
     handleCloseModal1()
   }
@@ -192,7 +188,7 @@ export default function Reuniones() {
         nombre: nombre,
         enlace: enlace,
         invitados: rol,
-        id_proyecto: cookies.id,
+        id_proyecto:id,
         id_estado: 1
         
       };
@@ -210,9 +206,9 @@ export default function Reuniones() {
   
       // Verifica si la solicitud fue exitosa
       if (response.ok) {
-        console.log("La reunion se genero exitosamente.");
+        alert("La reunion se genero exitosamente.");
       } else {
-        console.error("Ocurrió un error.");
+        alert("Ocurrió un error.");
       }
       handleCloseModal()
     } catch (error) {
@@ -247,7 +243,7 @@ export default function Reuniones() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -264,7 +260,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      console.log(error)
+      
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
@@ -272,7 +268,7 @@ export default function Reuniones() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -289,7 +285,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      console.log(error);
+      alert(error);
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   }; 
@@ -297,7 +293,7 @@ export default function Reuniones() {
     
     try {
       
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${cookies.id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -314,7 +310,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      console.log(error)
+      alert(error)
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
@@ -323,7 +319,7 @@ export default function Reuniones() {
     llenarTablaCompletas();
     llenarTablaCanceladas();
     if (reunionSeleccionada && reunionSeleccionada.length > 0) {
-      console.log("reunion seleccionada", reunionSeleccionada);
+      alert("reunion seleccionada", reunionSeleccionada);
       setNombre(reunionSeleccionada[0].nombre);
       setFecha(reunionSeleccionada[0].fecha);
       setEnlace(reunionSeleccionada[0].enlace);
@@ -396,7 +392,7 @@ const columnsCompletas = generarColumnas([
     headerAlign: "center",
     align: "center",
     renderCell: ({ row }) => {
-const id = row && row.id; // Verificar si row existe y tiene una propiedad id      console.log("aisodkx,",columnaId)
+const id = row && row.id; // Verificar si row existe y tiene una propiedad id      alert("aisodkx,",columnaId)
       const ruta = `/proyecto/ActaReunion/${id}`; // Agregar el ID a la ruta
 
       return (

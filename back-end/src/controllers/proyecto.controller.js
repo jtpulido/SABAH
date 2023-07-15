@@ -189,7 +189,6 @@ const guardarReunion = async (req, res) => {
   
       res.status(200).json({ message: 'Reunión guardada exitosamente' });
     } catch (error) {
-      console.error('Error al guardar la reunión:', error);
       res.status(500).json({ message: 'Error al guardar la reunión' });
     }
   };
@@ -197,7 +196,6 @@ const guardarReunion = async (req, res) => {
 const obtenerReunion = async (req, res) => {
     const { id } = req.params; 
     const id_reunion = req.headers['id_reunion'];
-    console.log("reuniom",id_reunion)
     try {
         
         const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reuniones r JOIN estadoReunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
@@ -208,7 +206,6 @@ const obtenerReunion = async (req, res) => {
             return res.status(203).json({ success: false, message: 'No hay reuniones' })
         }
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 
@@ -231,8 +228,6 @@ const cancelarReunion = async (req, res) => {
   
       res.status(200).json({ message: 'Reunión cancelada exitosamente' });
     } catch (error) {
-      console.log(error)
-      console.error('Error al cancelar la reunión:', error);
       res.status(500).json({ message: 'Error al cancelar la reunión' });
     }
   };
@@ -252,7 +247,6 @@ const editarReunion = async (req, res) => {
   
       res.status(200).json({ message: 'Reunión editada exitosamente' });
     } catch (error) {
-      console.error('Error al editar la reunión:', error);
       res.status(500).json({ message: 'Error al editar la reunión' });
     }
   };
@@ -279,7 +273,6 @@ const guardarSolicitud = async (req, res) => {
   
       res.status(200).json({ message: 'Solicitud enviada exitosamente' });
     } catch (error) {
-      console.error('Error al enviar la solicitud:', error);
       res.status(500).json({ message: 'Error al enviar la solicitud' });
     }
   };
@@ -303,7 +296,7 @@ const guardarInfoActa = async (req, res) => {
   
       res.status(200).json({ message: 'Acta guardada exitosamente' });
     } catch (error) {
-      console.error('Error al enviar la solicitud:', error);
+      console.log(id_reunion);
       res.status(500).json({ message: 'Error al guardar el acta' });
     }
   };
@@ -323,7 +316,6 @@ const obtenerInfoActa = async (req, res) => {
             return res.status(203).json({ success: false, message: 'No hay actas' })
         }
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 
@@ -331,7 +323,6 @@ const obtenerInfoActa = async (req, res) => {
 
 const generarPDF = async (req, res) => {
     const { fecha,  invitados, compromisos, objetivos, tareas, nombre} = req.body;
-    console.log(fecha);
     const PDFDocument = require('pdfkit');
     const fs = require('fs');
     try {
@@ -372,7 +363,6 @@ const generarPDF = async (req, res) => {
     
       return outputPath;
     } catch (error) {
-      console.log(error);
       res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   };
@@ -422,11 +412,9 @@ const generarPDF = async (req, res) => {
   const guardarLink = async (req, res) => {
 
     const { id, tipol, link } = req.body;
-    console.log(id);
     try {
         const result = await pool.query('SELECT id, artefactos, documentos  FROM public.links WHERE id IN ($1)  ;'        
         , [id])
-        console.log(result.rowCount)
       // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
       if (result.rowCount < 0 && tipol=='A') {
         const query = `
@@ -471,16 +459,9 @@ const generarPDF = async (req, res) => {
     } else {
         return res.status(203).json({ success: false, message: 'No existe el proyecto' })
     }
-      
-      
-  
-      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
-      await pool.query(query, values);
-  
-      res.status(200).json({ message: 'Acta guardada exitosamente' });
+
     } catch (error) {
-      console.error('Error al enviar la solicitud:', error);
-      res.status(500).json({ message: 'Error al guardar el acta' });
+      res.status(500).json({ message: 'Error al guardar el link' });
     }
   };
   

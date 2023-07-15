@@ -16,7 +16,8 @@ import { PostAdd } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 export default function VerProyectos() {
-  const { id } = useParams();
+  const id = sessionStorage.getItem('id_proyecto');
+  alert(id)
   const token = useSelector(selectToken);
 
   const { enqueueSnackbar } = useSnackbar();
