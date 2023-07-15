@@ -1,12 +1,65 @@
 const { Router } = require('express');
 const passport = require('passport');
-const { obtenerProyecto,obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo } = require('../controllers/comite.controller')
+
+const multer = require('multer');
 const router = Router()
 
+const {
+    obtenerProyecto,
+    obtenerProyectosTerminados,
+    obtenerProyectosDesarrollo,
+    asignarCodigoProyecto,
+    obtenerDirectoresProyectosActivos,
+    obtenerDirectoresProyectosInactivos,
+    obtenerJuradosProyectosActivos,
+    obtenerJuradosProyectosInactivos,
+    obtenerLectoresProyectosActivos,
+    obtenerLectoresProyectosInactivos,
+    obtenerSolicitudesPendientesComite,
+    obtenerSolicitudesAprobadasComite,
+    obtenerSolicitudesRechazadasComite,
+    obtenerJuradosProyectosCerrados,
+    obtenerDirectoresProyectosCerrados,
+    obtenerLectoresProyectosCerrados,
+    asignarNuevoCodigo,
+    verAprobacionesSolicitud,
+    verSolicitud,
+    agregarAprobacion
+} = require('../controllers/comite.controller')
 
-router.get('/comite/obtenerTodos', passport.authenticate('jwt', { session: false }), obtenerTodosProyectos);
+
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/comite/guardar', upload.single('file'), async (req, res) => {
+    try {
+        const file = req.file;
+        await guardarDocumentoYEntrega(req, res, file);
+
+    } catch (error) {
+        console.error('Error al subir el archivo y guardar el documento y la entrega:', error);
+        res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
+    }
+});
+
 router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
 router.post('/comite/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.post('/comite/asignarCodigo', passport.authenticate('jwt', { session: false }), asignarCodigoProyecto);
+router.post('/comite/cambiarCodigo', passport.authenticate('jwt', { session: false }), asignarNuevoCodigo);
+router.post('/comite/directoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosActivos);
+router.post('/comite/directoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosCerrados);
+router.post('/comite/directoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosInactivos);
+router.post('/comite/juradosproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosActivos);
+router.post('/comite/juradosproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosCerrados);
+router.post('/comite/juradosproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosInactivos);
+router.post('/comite/lectoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosActivos);
+router.post('/comite/lectoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosCerrados);
+router.post('/comite/lectoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosInactivos);
+router.post('/comite/solicitudes/pendienteaprobacion', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesComite);
+router.post('/comite/solicitudes/aprobadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesAprobadasComite);
+router.post('/comite/solicitudes/rechazadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesRechazadasComite);
+router.post('/comite/solicitudes/verSolicitud', passport.authenticate('jwt', { session: false }), verSolicitud);
+router.post('/comite/solicitudes/verAprobaciones', passport.authenticate('jwt', { session: false }), verAprobacionesSolicitud);
+router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
 
 module.exports = router;
