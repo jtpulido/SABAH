@@ -18,7 +18,7 @@ export default function RoutesPro() {
             <Route path="/" element={<InicioPro />} >
                 <Route index element={<VerProyecto />} />
                 <Route path="Entregas" element={<Entregas />} />
-                <Route path="ActaReunion" element={<ActaReunion />} />
+                <Route path="ActaReunion/:id" element={<ActaReunion />} />
                 <Route path="ActaSolicitud" element={<ActaSolicitud />} />
                 <Route path="Reuniones" element={<Reuniones />} />
                 <Route path="Solicitudes" element={<Solicitudes />} />

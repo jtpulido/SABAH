@@ -199,9 +199,9 @@ const obtenerReunion = async (req, res) => {
     const id_reunion = req.headers['id_reunion'];
     console.log("reuniom",id_reunion)
     try {
+        
         const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reuniones r JOIN estadoReunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
         const reunion = result.rows
-        console.log(reunion)
         if (result.rowCount > 0) {
             return res.json({ success: true, reunion })
         } else {
@@ -239,7 +239,6 @@ const cancelarReunion = async (req, res) => {
 
 const editarReunion = async (req, res) => {
     const { nombre, fecha, invitados, enlace, id_reunion } = req.body;
-    console.log(id_reunion, enlace)
     try {
       const query = `
         UPDATE public.reuniones
@@ -258,8 +257,234 @@ const editarReunion = async (req, res) => {
     }
   };
   
+const guardarSolicitud = async (req, res) => {
 
+    const { tipo_solicitud, justificacion, id_proyecto } = req.body;
+  
+    // Aquí puedes agregar la lógica para validar los datos recibidos si es necesario
+  
+    // Luego, puedes usar un ORM o una consulta SQL para guardar los datos en la base de datos
+    try {
+      // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
+      const id_tipo_solicitud = await pool.query('SELECT id FROM tipo_solicitud WHERE nombre = $1;', [id_proyecto])
+        const id_tipo = id_tipo_solicitud.rows
+      const query = `
+        INSERT INTO public.solicitud(fecha, justificacion, id_tipo_solicitud)
+        VALUES ( $1, $2, $3)
+      `;
+      const values = [ tipo_solicitud, justificacion, id_tipo_solicitud[0]];
+  
+      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Solicitud enviada exitosamente' });
+    } catch (error) {
+      console.error('Error al enviar la solicitud:', error);
+      res.status(500).json({ message: 'Error al enviar la solicitud' });
+    }
+  };
+
+const guardarInfoActa = async (req, res) => {
+
+    const { id_reunion, objetivos, resultados, tareas, compromisos } = req.body;
+
+    try {
+      // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
+     
+      const query = `
+        INSERT INTO public.actasreunion(
+            id, descrip_obj, resultados_reu, tareas_ant, compromisos)
+        VALUES ( $1, $2, $3, $4, $5 )
+      `;
+      const values = [ id_reunion, objetivos, resultados, tareas, compromisos];
+  
+      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Acta guardada exitosamente' });
+    } catch (error) {
+      console.error('Error al enviar la solicitud:', error);
+      res.status(500).json({ message: 'Error al guardar el acta' });
+    }
+  };
+const obtenerInfoActa = async (req, res) => {
+    
+    const {id} = req.params;
+    
+    try {
+        
+        const result = await pool.query('SELECT t1.fecha, t1.invitados,t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM public.reuniones t1, public.actasreunion t2  WHERE t1.id = $1 AND t2.id = $1 ;'        
+        , [id])
+        const acta = result.rows
+        
+        if (result.rowCount > 0) {
+            return res.json({ success: true, acta })
+        } else {
+            return res.status(203).json({ success: false, message: 'No hay actas' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+
+}
+
+const generarPDF = async (req, res) => {
+    const { fecha,  invitados, compromisos, objetivos, tareas, nombre} = req.body;
+    console.log(fecha);
+    const PDFDocument = require('pdfkit');
+    const fs = require('fs');
+    try {
+      
+    
+      const doc = new PDFDocument();
+    
+      // Agrega contenido al PDF
+      doc.text("");
+    
+      const tableData = [
+        ['Fecha', fecha],
+        ['invitados', invitados],
+        ['Compromisos', compromisos],
+        ['Objetivos',objetivos],
+	    ['Tareas',tareas],
+	    ['Nombre', nombre]
+      ];
+    
+      const table = {
+        headers: ['Nombre', 'Edad'],
+        rows: tableData
+      };
+    
+      doc.moveDown();
+      drawTable(doc, table, {
+        x: 50,
+        y: doc.y,
+        width: 200,
+        height: 0,
+        cellMargin: 10
+      });
+    
+      // Guarda el archivo en el sistema de archivos
+      const outputPath = nombre + '.pdf';
+      doc.pipe(fs.createWriteStream(outputPath));
+      doc.end();
+    
+      return outputPath;
+    } catch (error) {
+      console.log(error);
+      res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+  };
+  
+  function drawTable(doc, table, settings) {
+    const startX = settings.x;
+    const startY = settings.y;
+    const marginCell = settings.cellMargin || 0;
+  
+    const columnCount = table.headers.length;
+    const columnWidth = settings.width / columnCount;
+    const rowHeight = settings.rowHeight || 20;
+    const pageHeight = doc.page.height;
+  
+    doc.font('Helvetica-Bold');
+  
+    // Dibuja los encabezados de la tabla
+    doc.fillColor('black');
+    doc.fontSize(12);
+  
+    let currentY = startY;
+    table.headers.forEach((header, columnIndex) => {
+      const currentX = startX + columnIndex * columnWidth;
+      doc.text(header, currentX, currentY, { width: columnWidth, align: 'left' });
+    });
+  
+    // Dibuja las filas de la tabla
+    doc.font('Helvetica');
+    doc.fontSize(10);
+  
+    table.rows.forEach((row, rowIndex) => {
+      currentY += rowHeight;
+      let rowText = '';
+      row.forEach((cell, cellIndex) => {
+        const currentX = startX + cellIndex * columnWidth;
+        doc.text(cell, currentX, currentY, { width: columnWidth - marginCell, align: 'left' });
+      });
+    });
+  
+    // Calcula la altura de la tabla
+    const tableHeight = currentY - startY + rowHeight;
+    if (tableHeight > settings.height) {
+      doc.addPage();
+    }
+  }
+ 
+  const guardarLink = async (req, res) => {
+
+    const { id, tipol, link } = req.body;
+    console.log(id);
+    try {
+        const result = await pool.query('SELECT id, artefactos, documentos  FROM public.links WHERE id IN ($1)  ;'        
+        , [id])
+        console.log(result.rowCount)
+      // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
+      if (result.rowCount < 0 && tipol=='A') {
+        const query = `
+        INSERT INTO public.links(
+            id, artefactos)
+            VALUES ($1, $2);
+      `;
+      const values = [ id, link];
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Link guardado exitosamente' });
+    } else if (result.rowCount < 0 && tipol=='D') {
+        const query = `
+        INSERT INTO public.links(
+            id, documentos)
+            VALUES ($1, $2);
+      `;
+      const values = [ id, link];
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Link guardado exitosamente' });
+    } else if (tipol=='A') {
+        const query = `
+        UPDATE public.links
+        SET  artefactos = $2
+        WHERE  id = $1;
+      `;
+      const values = [ id, link];
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Link guardado exitosamente' });
+    } else if (tipol=='D') {
+        const query = `
+        UPDATE public.links
+        SET  documentos = $2
+        WHERE  id = $1;
+      `;
+      const values = [ id, link];
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Link guardado exitosamente' });
+    } else {
+        return res.status(203).json({ success: false, message: 'No existe el proyecto' })
+    }
+      
+      
+  
+      // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
+      await pool.query(query, values);
+  
+      res.status(200).json({ message: 'Acta guardada exitosamente' });
+    } catch (error) {
+      console.error('Error al enviar la solicitud:', error);
+      res.status(500).json({ message: 'Error al guardar el acta' });
+    }
+  };
+  
 module.exports = { obtenerProyecto, obtenerEntregasCompletadas , obtenerEntregasPendientes, 
     obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas, 
     obtenerSolicitudesPendientes,obtenerSolicitudesCompletas, guardarReunion, obtenerReunion,
-     cancelarReunion, editarReunion}
+     cancelarReunion, editarReunion, guardarSolicitud, guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink}

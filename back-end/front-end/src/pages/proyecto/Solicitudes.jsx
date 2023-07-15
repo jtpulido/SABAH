@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from "react";
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline  } from '@mui/material';
 import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { useCookies } from 'react-cookie';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import {  TextField, Grid } from '@mui/material';
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
 import CreateIcon from '@mui/icons-material/Create';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Link } from 'react-router-dom';
-
+import verSolicitud from './verSolicitud';
 
 function CustomToolbar() {
   return (
@@ -62,7 +69,6 @@ const CustomNoRowsMessage = () => {
   );
 };
 
-
 export default function Solicitudes() {
 
   const [cookies] = useCookies(['id']);
@@ -74,13 +80,32 @@ export default function Solicitudes() {
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
   const [showModal, setShowModal] = useState(false);
-
+  const [tipoSol, setTipoSol] = useState("");
+  const [fecha, setFecha] = useState(dayjs());
+  const [nombre, setNombre] = useState("");
+  const [justificacion, setJustificacion] = useState("");
+  const [open, setOpen] = useState(false);
+  const [idSolicitud, setIdSolicitud] = useState(null);
+  const abrirDialog = (id) => {
+    setIdSolicitud(id)
+    setOpen(true);
+  };
+  
+  const cerrarDialog = () => {
+    setOpen(false);
+  }
   const handleOpenModal = () => {
     setShowModal(true);
+    setFecha(null);
+    setNombre("");
+    setJustificacion("");
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setFecha(null);
+    setNombre("");
+    setJustificacion("");
   };
 
   const generarColumnas = (extraColumns) => {
@@ -159,6 +184,37 @@ export default function Solicitudes() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   }; 
+  const handleSave = async () => {
+    try {
+      // Crea un objeto con los datos que deseas enviar al backend
+      const data = {
+        fecha: fecha,
+        justificacion: justificacion  ,
+        nombre: nombre
+      };
+  
+      // Realiza la solicitud POST al backend
+      const response = await fetch("http://localhost:5000/proyecto/guardarSolicitud", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+  
+      // Verifica si la solicitud fue exitosa
+      if (response.ok) {
+        console.log("La solicitud se genero exitosamente.");
+      } else {
+        console.error("Ocurrió un error.");
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+    }
+  };
 
   useEffect(() => {
     llenarTablaPendientes();
@@ -187,6 +243,7 @@ const columnsPendientes = generarColumnas([
     },},
 ]);
 
+
 const columnsCompletas = generarColumnas([
   {
     field: "Acción",
@@ -196,11 +253,12 @@ const columnsCompletas = generarColumnas([
     headerAlign: "center",
     align: "center",
     renderCell: ({ row }) => {
+      const { id, id_proyecto } = row;
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Tooltip title="Ver información">
            <IconButton color="secondary">
-                <VisibilityIcon />
+                <VisibilityIcon  color="secondary" onClick={() => abrirDialog(id)}/>
               </IconButton>
           </Tooltip>
 
@@ -232,10 +290,50 @@ const rowsWithIdsc = completadas.map((row) => ({
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
         <Typography variant="h1" color={colors.secundary[100]}> SOLICITUDES </Typography>
         <Tooltip title="crear">
-           <IconButton color="secondary" component={Link} to="/proyecto/ActaSolicitud">
+           <IconButton color="secondary" onClick={() => handleOpenModal()}>
                 <ControlPointIcon sx={{ fontSize: 20 }}/>
               </IconButton>
           </Tooltip>
+
+          <Dialog open={showModal} onClose={handleCloseModal}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <DialogTitle variant="h5">Crear Solicitud</DialogTitle>
+              <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon />} />
+            </div>
+
+            <DialogContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={12}>
+                <FormControl fullWidth>
+                    <InputLabel>Tipo De Solicitud</InputLabel>
+                    <Select
+                      onChange={(e) => setTipoSol(e.target.value)}
+                    >
+                      <MenuItem value="sol1">sol1</MenuItem>
+                      <MenuItem value="sol2">sol2</MenuItem>
+                      <MenuItem value="sol3">sol3</MenuItem>
+                    </Select>
+                  </FormControl>
+                  </Grid>
+              
+                <Grid item xs={12} sm={12}>
+                  <TextField
+                    label="Justificacion"
+                    value={justificacion}
+                    onChange={(e) => setJustificacion(e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                
+              </Grid>
+            </DialogContent>
+
+            <DialogActions sx={{ justifyContent: "center" }}>
+              <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
+                Enviar
+              </Button>
+            </DialogActions>
+          </Dialog>
       </div>
       <Box
         sx={{

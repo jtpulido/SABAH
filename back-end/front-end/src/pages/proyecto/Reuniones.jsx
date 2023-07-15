@@ -1,3 +1,4 @@
+import { useHistory } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
@@ -385,6 +386,7 @@ const columnsPendientes = generarColumnas([
       );
     },},
 ]);
+
 const columnsCompletas = generarColumnas([
   {
     field: "Acción",
@@ -394,18 +396,47 @@ const columnsCompletas = generarColumnas([
     headerAlign: "center",
     align: "center",
     renderCell: ({ row }) => {
+const id = row && row.id; // Verificar si row existe y tiene una propiedad id      console.log("aisodkx,",columnaId)
+      const ruta = `/proyecto/ActaReunion/${id}`; // Agregar el ID a la ruta
+
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Tooltip title="">
-           <IconButton color="secondary" component={Link} to="/proyecto/ActaReunion">
-                <DescriptionIcon />
-              </IconButton>
+            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`}>
+              <DescriptionIcon />
+            </IconButton>
           </Tooltip>
-
         </Box>
       );
-    },},
+    },
+  },
 ]);
+
+/** 
+const columnsCompletas = generarColumnas([
+  {
+    field: "Acción",
+    headerName: "Acción",
+    flex: 0.01,
+    minWidth: 150,
+    headerAlign: "center",
+    align: "center",
+    renderCell: ({ row }) => {
+      const columnaId = row.id; // Obtener el ID de la columna
+
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Tooltip title="">
+            <IconButton color="secondary" component={Link} to={{ pathname: '/proyecto/ActaReunion', state: { id: columnaId } }}>
+              <DescriptionIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  },
+]);
+*/
 const columnsCanceladas = generarColumnas([
   {
     field: "Acción",
@@ -496,17 +527,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Invitado</InputLabel>
-                    <Select
-                      value={rol}
-                      onChange={(e) => setRol(e.target.value)}
-                    >
-                      <MenuItem value="cliente">Cliente</MenuItem>
-                      <MenuItem value="director">Director</MenuItem>
-                      <MenuItem value="lector">Lector</MenuItem>
-                    </Select>
-                  </FormControl>
+                  rol
                 </Grid>
               </Grid>
             </DialogContent>

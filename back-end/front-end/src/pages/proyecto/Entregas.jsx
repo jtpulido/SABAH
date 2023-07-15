@@ -117,11 +117,70 @@ export default function Entregas() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    try {
+      // Crea un objeto con los datos que deseas enviar al backend
+      const data = {
+        link: link,
+        tipol: 'A'  ,
+        id: cookies.id
+      };
+  
+      // Realiza la solicitud POST al backend
+      const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+  
+      // Verifica si la solicitud fue exitosa
+      if (response.ok) {
+        console.log("La solicitud se genero exitosamente.");
+      } else {
+        console.error("Ocurrió un error.");
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+    }
     console.log("Guardando el valor:", link);
     handleCloseModal();
   };
-    const handleSaveProyecto = () => {
+    const handleSaveProyecto = async () => {
+
+      try {
+        // Crea un objeto con los datos que deseas enviar al backend
+        const data = {
+          link: link,
+          tipol: 'D'  ,
+          id: cookies.id
+        };
+    
+        // Realiza la solicitud POST al backend
+        const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+  
+        });
+    
+        // Verifica si la solicitud fue exitosa
+        if (response.ok) {
+          console.log("La solicitud se genero exitosamente.");
+        } else {
+          console.error("Ocurrió un error.");
+        }
+        handleCloseModal()
+      } catch (error) {
+        console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+      }
     console.log("Guardando el valor:", link);
     handleCloseModal();
   };
@@ -217,7 +276,6 @@ export default function Entregas() {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-
 
   useEffect(() => {
       llenarTablaPendientes();
@@ -430,7 +488,7 @@ export default function Entregas() {
          sx={{ mt: "30px" }}>
         Abiertas
       </Typography>
-      <CustomDataGrid rows={rowsWithIds} columns={columnsPendientes} />
+      <DataGrid rows={rowsWithIds} columns={columnsPendientes} />
     </Box>
     
       <Box

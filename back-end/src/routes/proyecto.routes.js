@@ -4,7 +4,7 @@ const { subirArchivo } = require('../controllers/entregas.controller')
 const { obtenerProyecto, obtenerEntregasPendientes , obtenerEntregasCompletadas, 
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
    obtenerSolicitudesPendientes, obtenerSolicitudesCompletas, guardarReunion, obtenerReunion, 
-   cancelarReunion, editarReunion} = require('../controllers/proyecto.controller')
+   cancelarReunion, editarReunion, guardarSolicitud, guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink} = require('../controllers/proyecto.controller')
 
 const router = Router()
 const multer = require('multer');
@@ -28,5 +28,11 @@ router.post('/proyecto/guardarReunion',  passport.authenticate('jwt', {session: 
 router.get('/proyecto/obtenerReunion/:id',  passport.authenticate('jwt', {session: false}), obtenerReunion);
 router.post('/proyecto/cancelarReunion', passport.authenticate('jwt', {session: false}), cancelarReunion);
 router.post('/proyecto/editarReunion', passport.authenticate('jwt', {session: false}), editarReunion);
+router.post('/proyecto/guardarSolicitud', passport.authenticate('jwt', {session: false}), guardarSolicitud);
+router.post('/proyecto/guardarInfoActa', passport.authenticate('jwt', {session: false}), guardarInfoActa);
+router.post('/proyecto/generarPDF', passport.authenticate('jwt', {session: false}), generarPDF);
+router.get('/proyecto/obtenerInfoActa/:id', passport.authenticate('jwt', {session: false}), obtenerInfoActa);
+router.post('/proyecto/guardarLink', passport.authenticate('jwt', {session: false}), guardarLink);
+
 
 module.exports = router;
