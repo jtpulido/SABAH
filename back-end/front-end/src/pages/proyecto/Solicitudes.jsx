@@ -2,26 +2,19 @@ import React, { useState, useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline  } from '@mui/material';
-import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
+import { Typography, useTheme} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import {  TextField, Grid } from '@mui/material';
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
-import CreateIcon from '@mui/icons-material/Create';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { Link } from 'react-router-dom';
-import verSolicitud from './verSolicitud';
+import { useSnackbar } from 'notistack';
 
 function CustomToolbar() {
   return (
@@ -74,8 +67,6 @@ export default function Solicitudes() {
   const id = sessionStorage.getItem('id_proyecto');  const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -89,10 +80,11 @@ export default function Solicitudes() {
     setIdSolicitud(id)
     setOpen(true);
   };
-  
-  const cerrarDialog = () => {
-    setOpen(false);
-  }
+  const { enqueueSnackbar } = useSnackbar();
+
+  const mostrarMensaje = (mensaje, variante) => {
+      enqueueSnackbar(mensaje, { variant: variante });
+    };
   const handleOpenModal = () => {
     setShowModal(true);
     setFecha(null);
@@ -143,7 +135,7 @@ export default function Solicitudes() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message,'error');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -153,8 +145,7 @@ export default function Solicitudes() {
       }
     }
     catch (error) {
-      console.log(error)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.","error");
     }
   };
 
@@ -169,7 +160,7 @@ export default function Solicitudes() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message,'error');
       } else {
         const formattedCompletadas = data.completas.map(row => ({
           ...row,
@@ -179,8 +170,7 @@ export default function Solicitudes() {
       }
     }
     catch (error) {
-      console.log(error)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
     }
   }; 
   const handleSave = async () => {
@@ -205,13 +195,13 @@ export default function Solicitudes() {
   
       // Verifica si la solicitud fue exitosa
       if (response.ok) {
-        console.log("La solicitud se genero exitosamente.");
+        mostrarMensaje("La solicitud se genero exitosamente.", 'success');
       } else {
-        console.error("Ocurrió un error.");
+        mostrarMensaje("Ocurrió un error.",'error');
       }
       handleCloseModal()
     } catch (error) {
-      console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+      mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
   };
 
@@ -229,7 +219,7 @@ const columnsPendientes = generarColumnas([
     minWidth: 150,
     headerAlign: "center",
     align: "center",
-    renderCell: ({ row }) => {
+    renderCell: () => {
       return (
         <Box sx={{ display: 'flex' }}>
           <Tooltip title="Ver información">
@@ -252,7 +242,7 @@ const columnsCompletas = generarColumnas([
     headerAlign: "center",
     align: "center",
     renderCell: ({ row }) => {
-      const { id, id_proyecto } = row;
+      const { id } = row;
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Tooltip title="Ver información">
@@ -277,13 +267,7 @@ const rowsWithIdsc = completadas.map((row) => ({
 
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
+      
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>

@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
-import { clearSession,clearCookies} from '../../store/authSlice';
+import { clearSession} from '../../store/authSlice';
 import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemText, Toolbar } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
 import "./InicioPro.css";
 import { Outlet } from 'react-router-dom';
-import { useCookies } from 'react-cookie';
 const drawerWidth = 240;
 
 function InicioPro() {
