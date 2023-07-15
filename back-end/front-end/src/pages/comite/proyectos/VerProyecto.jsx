@@ -9,7 +9,7 @@ import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
 
 import CustomDataGrid from "../../layouts/DataGrid";
-import Entrega from './ReEntrega/Entrega';
+import Entrega from './Ventana/Entrega';
 
 import CambiarCodigo from './CambiarCodigo';
 import { PostAdd } from "@mui/icons-material";
