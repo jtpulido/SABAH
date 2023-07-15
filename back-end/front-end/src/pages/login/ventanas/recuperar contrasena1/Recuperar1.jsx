@@ -10,7 +10,9 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
   const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
 
   const [correo, setCorreo] = useState("");
-  const [correosProyecto, setCorreosProyecto] = useState([]);
+
+  // Variable para saber si es un usuario normal o un proyecto
+  const [isProyecto, setIsProyecto] = useState(false);
 
   React.useEffect(() => {
     setIsModalVisible(isVisible);
@@ -22,7 +24,6 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
 
   const handleClose = () => {
     setCorreo("");
-    setCorreosProyecto([]);
     closeModal();
   };
 
@@ -30,7 +31,6 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
   const [visible2, setVisible2] = useState(false);
   const handleClose2 = () => {
     setCorreo("");
-    setCorreosProyecto([]);
     setVisible2(false);
   };
 
@@ -57,7 +57,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
         });
 
         const data = await response.json();
-        // Si no el correo no existe u otro error
+        // Si el correo no existe buscar si existe codigo de proyecto
         if (!data.success) {
           try {
             const response = await fetch("http://localhost:5000/login/confirmarCodigo", {
@@ -67,9 +67,10 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
             });
 
             const data = await response.json();
+            // Si existe el proyecto
             if (data.success) {
-              alert(data.correos)
-              alert(data.correos[0].correo)
+              setMensaje({ tipo: "success", texto: "El código de proyecto ingresado está registrado en nuestro sistema." });
+              setIsProyecto(true);
               try {
                 const response2 = await fetch("http://localhost:5000/sendEmails", {
                   method: "POST",
@@ -82,6 +83,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
                 if (!data2.success) {
                   setCorreo("");
                   setMensaje({ tipo: "error", texto: data.message });
+                  await esperar(1500);
                   handleClose();
 
                   // Si fue enviado con éxito el correo
@@ -181,7 +183,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
           <TextField type="text" name="correo" id="correo" className='input' value={correo} onChange={handleChange}></TextField>
         </div>
         <Button className='boton_enviar' onClick={handleReset}>Enviar Código</Button>
-        <Recuperar2 isVisible2={visible2} handleClose2={handleClose2} />
+        <Recuperar2 isVisible2={visible2} handleClose2={handleClose2} isProyecto={isProyecto} />
       </Modal>
     </>
   );

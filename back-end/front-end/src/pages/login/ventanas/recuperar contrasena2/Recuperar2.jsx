@@ -4,9 +4,10 @@ import { TextField, Alert, Snackbar } from "@mui/material";
 import "./Recuperar2.css";
 import { Recuperar3 } from "../recuperar contrasena3/Recuperar3"
 
-export const Recuperar2 = ({ isVisible2, handleClose2 }) => {
+export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
 
   const [isModalVisible, setIsModalVisible] = React.useState(isVisible2);
+  const [isProyecto2, setIsProyecto2] = React.useState(isProyecto);
 
   const [codigoIngresado, setCodigoIngresado] = useState("");
 
@@ -39,6 +40,10 @@ export const Recuperar2 = ({ isVisible2, handleClose2 }) => {
   React.useEffect(() => {
     setIsModalVisible(isVisible2);
   }, [isVisible2]);
+
+  React.useEffect(() => {
+    setIsProyecto2(isProyecto);
+  }, [isProyecto]);
 
   // Variable del SnackBar
   const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
@@ -112,7 +117,7 @@ export const Recuperar2 = ({ isVisible2, handleClose2 }) => {
         </div>
         <Button className='boton_enviar' onClick={handleSubmit}>Cambiar Contraseña</Button>
       </Modal>
-      <Recuperar3 isVisible3={visible3} handleClose3={handleClose3} />
+      <Recuperar3 isVisible3={visible3} handleClose3={handleClose3} isProyecto2={isProyecto2} />
     </>
   );
 };

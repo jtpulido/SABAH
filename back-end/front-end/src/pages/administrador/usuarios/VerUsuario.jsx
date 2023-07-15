@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-import { useParams } from 'react-router-dom';
-import { Typography, IconButton, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Checkbox, FormControlLabel, Button } from "@mui/material";
+import { Typography, IconButton, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Checkbox, FormControlLabel } from "@mui/material";
 import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
@@ -30,7 +29,7 @@ function CustomToolbar() {
 
 export default function VerUsuario() {
 
-  const { id } = useParams();
+  const id = sessionStorage.getItem('admin_id_usuario');
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -91,10 +90,11 @@ export default function VerUsuario() {
   const navigate = useNavigate();
 
   const verProyecto = (id) => {
-    navigate(`/admin/verProyecto/${id}`)
+    sessionStorage.setItem('admin_id_proyecto', id);
+    navigate(`/admin/verProyecto`);
   }
 
-  const infoUsuario = async () => {
+  const infoUsuario = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/verUsuario", {
         method: "POST",
@@ -115,9 +115,9 @@ export default function VerUsuario() {
       setExiste(false);
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
-  const rolDirector = async () => {
+  const rolDirector = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/rolDirector", {
         method: "POST",
@@ -135,9 +135,9 @@ export default function VerUsuario() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
-  const rolLector = async () => {
+  const rolLector = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/rolLector", {
         method: "POST",
@@ -155,9 +155,9 @@ export default function VerUsuario() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
-  const rolJurado = async () => {
+  const rolJurado = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/rolJurado", {
         method: "POST",
@@ -175,9 +175,9 @@ export default function VerUsuario() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
-  const llenarTablaDirector = async () => {
+  const llenarTablaDirector = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/obtenerProyectosDirector", {
         method: "POST",
@@ -196,9 +196,9 @@ export default function VerUsuario() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
-  const llenarTablaLector = async () => {
+  const llenarTablaLector = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/obtenerProyectosLector", {
         method: "POST",
@@ -217,9 +217,9 @@ export default function VerUsuario() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
-  const llenarTablaJurado = async () => {
+  const llenarTablaJurado = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/obtenerProyectosJurado", {
         method: "POST",
@@ -238,20 +238,20 @@ export default function VerUsuario() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
   useEffect(() => {
-    rolDirector()
-    rolJurado()
-    rolLector()
-    infoUsuario()
-    llenarTablaDirector()
-    llenarTablaJurado()
-    llenarTablaLector()
-  }, []);
+    rolDirector();
+    rolJurado();
+    rolLector();
+    infoUsuario();
+    llenarTablaDirector();
+    llenarTablaJurado();
+    llenarTablaLector();
+  }, [rolDirector, rolJurado, rolLector, infoUsuario, llenarTablaDirector, llenarTablaJurado, llenarTablaLector]);
 
   const handleModificarUsuario = () => {
-    navigate(`/admin/modificarUsuario/${id}`)
+    navigate(`/admin/modificarUsuario`)
   };
 
   const CustomNoRowsMessage = (mensaje) => {
@@ -283,11 +283,9 @@ export default function VerUsuario() {
         <Tooltip title="Modificar Usuario" sx={{ fontSize: '20px' }}>
           <EditIcon sx={{ color: '#B8CF69', fontSize: 25, marginLeft: "5px", cursor: "pointer" }} onClick={handleModificarUsuario} />
         </Tooltip>
-
       </div>
 
       {existe ? (
-
         <Box >
           <CssBaseline />
           <Box >

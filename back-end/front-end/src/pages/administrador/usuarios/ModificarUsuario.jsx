@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 import { tokens } from "../../../theme";
 
@@ -11,14 +10,12 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ModificarUsuario() {
 
-    const { id } = useParams();
-
+    const id = sessionStorage.getItem('admin_id_usuario');
     const token = useSelector(selectToken);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
     const navigate = useNavigate();
-    const [existe, setExiste] = useState([]);
     const [usuarioInicial, setUsuarioInicial] = useState([]);
     const [usuario, setUsuario] = useState([]);
 
@@ -32,9 +29,7 @@ export default function ModificarUsuario() {
     };
 
     const handleSubmit = async (event) => {
-
         event.preventDefault();
-
         if (usuario.nombre === "" || usuario.correo === "") {
             setMensaje({ tipo: "error", texto: "Por favor, complete todos los campos." });
         } else {
@@ -72,27 +67,23 @@ export default function ModificarUsuario() {
                             if (!data.success) {
                                 setMensaje({ tipo: "error", texto: data.message });
                             } else {
-
                                 setMensaje({ tipo: "success", texto: data.message });
-
                                 // Delay
                                 setTimeout(() => {
                                     navigate('/admin');
                                 }, 2000);
-
                             }
                         }
                         catch (error) {
                             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                         }
-
                     }
                 }
             }
         }
     };
 
-    const infoUsuario = async () => {
+    const infoUsuario = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/admin/verUsuario", {
                 method: "POST",
@@ -101,25 +92,21 @@ export default function ModificarUsuario() {
             });
 
             const data = await response.json();
-
             if (!data.success) {
                 setMensaje({ tipo: "error", texto: data.message });
-                setExiste(false);
             } else {
                 setUsuario(data.infoUsuario[0]);
                 setUsuarioInicial(data.infoUsuario[0]);
-                setExiste(true);
             }
         }
         catch (error) {
-            setExiste(false);
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, [id, token]);
 
     useEffect(() => {
-        infoUsuario()
-    }, []);
+        infoUsuario();
+    }, [infoUsuario]);
 
     return (
         <div style={{ margin: "15px" }} >

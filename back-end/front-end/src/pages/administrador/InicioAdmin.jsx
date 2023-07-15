@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearSession, clearCookies } from '../../store/authSlice';
-import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
+import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemText, Toolbar } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
-import Footer from "../pie_de_pagina/Footer"
-import "./InicioAdmin.css";
+import Footer from "../pie_de_pagina/Footer";
 import { Outlet, useLocation } from 'react-router-dom';
 import { pathToRegexp } from 'path-to-regexp';
 
@@ -33,9 +32,7 @@ function InicioAdmin() {
   const handleClick = (button) => {
     setActiveButton(button);
     if (button === "usuarios") {
-      // Cambiar
       navigate('/admin')
-      // Cambiar
     } else if (button === "proyectos") {
       navigate('/admin/proyectos')
     }
@@ -43,22 +40,22 @@ function InicioAdmin() {
 
   useEffect(() => {
     const isVerUsuarioPath = (path) => {
-      const pattern = pathToRegexp('/admin/verUsuario/:id');
+      const pattern = pathToRegexp('/admin/verUsuario');
       return pattern.test(path);
     };
 
     const isModificarUsuarioPath = (path) => {
-      const pattern = pathToRegexp('/admin/modificarUsuario/:id');
+      const pattern = pathToRegexp('/admin/modificarUsuario');
       return pattern.test(path);
     };
 
     const isVerProyectoPath = (path) => {
-      const pattern = pathToRegexp('/admin/verProyecto/:id');
+      const pattern = pathToRegexp('/admin/verProyecto');
       return pattern.test(path);
     };
 
     const isModificarProyectoPath = (path) => {
-      const pattern = pathToRegexp('/admin/modificarProyecto/:id');
+      const pattern = pathToRegexp('/admin/modificarProyecto');
       return pattern.test(path);
     };
 

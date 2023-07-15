@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
 import "./Inscribir.css";
 import { tokens } from "../../../theme";
@@ -41,7 +41,7 @@ export const Inscribir = () => {
 
     // Lista de todos los usuarios con tipo usuario normal
     const [listaDirectores, setListaDirectores] = useState([]);
-    const infoDirector = async () => {
+    const infoDirector = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getDirectores", {
                 method: "GET",
@@ -59,11 +59,11 @@ export const Inscribir = () => {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Id del ultimo proyecto en la base de datos
     const [idUltProy, setIdUltProy] = useState("");
-    const getIdUltProy = async () => {
+    const getIdUltProy = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getIdUltProy", {
                 method: "GET",
@@ -81,11 +81,12 @@ export const Inscribir = () => {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Id del ultimo estudiante en la base de datos
+    // eslint-disable-next-line
     const [idUltEst, setIdUltEst] = useState("");
-    const getIdUltEst = async () => {
+    const getIdUltEst = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getIdUltEst", {
                 method: "GET",
@@ -103,11 +104,11 @@ export const Inscribir = () => {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Valor del ultimo numero consecutivo de los codigos de proyecto
     const [consecutivo, setConsecutivo] = useState("");
-    const codigoProy = async () => {
+    const codigoProy = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/codigoProy", {
                 method: "GET",
@@ -127,11 +128,11 @@ export const Inscribir = () => {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Lista de todas las modalidades de la base de datos
     const [listaModalidades, setListaModalidades] = useState([]);
-    const getModalidades = async () => {
+    const getModalidades = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getModalidades", {
                 method: "GET",
@@ -149,15 +150,15 @@ export const Inscribir = () => {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     useEffect(() => {
-        infoDirector()
-        codigoProy()
-        getModalidades()
-        getIdUltProy()
-        getIdUltEst()
-    }, []);
+        infoDirector();
+        codigoProy();
+        getModalidades();
+        getIdUltProy();
+        getIdUltEst();
+    }, [infoDirector, codigoProy, getModalidades, getIdUltProy, getIdUltEst]);
 
     // Guarda el valor de la modalidad seleccionada en el select
     const [idModalidadSeleccionada, setIdModalidadSeleccionada] = useState("");
@@ -199,10 +200,6 @@ export const Inscribir = () => {
         }
     };
 
-    const esperar = (ms) => {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    };
-
     const fechaSistema = () => {
         const today = new Date();
         const year = today.getFullYear();
@@ -214,6 +211,7 @@ export const Inscribir = () => {
     };
 
     const handleSubmit = async (event) => {
+
         event.preventDefault();
         // Información General
         if (idModalidadSeleccionada === "" || idDirectorSeleccionado === "" || nombre === "") {
@@ -223,7 +221,7 @@ export const Inscribir = () => {
             // Verificar integrantes por modalidad
             const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
 
-            // AUX
+            // AUX o COT
             if (idModalidadSeleccionada === "3" || idModalidadSeleccionada === "4") {
                 if (numIntegrantes === 1) {
                     // Verificar veracidad del correo
@@ -255,104 +253,40 @@ export const Inscribir = () => {
 
                             // Insertar un nuevo proyecto
                             try {
-                                const response = await fetch("http://localhost:5000/inscribirPropuesta", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        "id": parseInt(idUltProy) + 1,
-                                        "codigo": codigoProyecto,
-                                        "nombre": nombre,
-                                        "anio": year,
-                                        "periodo": periodo,
-                                        "id_modalidad": modInt,
-                                        "id_etapa": 1,
-                                        "id_estado": 1
-                                    }),
-                                });
+                                let response;
+                                for (let index = 0; index < estudiantes.length; index++) {
+                                    if (estudiantes[index].nombre !== "") {
+                                        response = await fetch("http://localhost:5000/inscribirPropuesta", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                "id": parseInt(idUltProy) + 1,
+                                                "codigo": codigoProyecto,
+                                                "nombre": nombre,
+                                                "anio": year,
+                                                "periodo": periodo,
+                                                "id_modalidad": modInt,
+                                                "id_etapa": 1,
+                                                "id_estado": 1,
+                                                "fecha_asignacion": fechaSistema(),
+                                                "id_usuario": parseInt(idDirectorSeleccionado),
+                                                "nombreEstudiante": estudiantes[index].nombre.toString(),
+                                                "num_identificacion": estudiantes[index].num_identificacion.toString(),
+                                                "correo": estudiantes[index].correo.toString()
+                                            }),
+                                        });
+                                    }
+                                }
 
                                 const data = await response.json();
                                 if (!data.success) {
                                     setMensaje({ tipo: "error", texto: data.message });
                                 } else {
-
-                                    // Insertar usuario-rol
-                                    try {
-                                        const response = await fetch("http://localhost:5000/agregarUsuarioRol", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                "estado": true,
-                                                "fecha_asignacion": fechaSistema(),
-                                                "id_usuario": parseInt(idDirectorSeleccionado),
-                                                "id_rol": 1,
-                                                "id_proyecto": parseInt(idUltProy) + 1
-                                            }),
-                                        });
-
-                                        const data = await response.json();
-                                        if (!data.success) {
-                                            setMensaje({ tipo: "error", texto: data.message });
-                                        } else {
-
-                                            // Insertar al estudiante (aux solo es 1)
-                                            for (let index = 0; index < estudiantes.length; index++) {
-                                                if (estudiantes[index].nombre !== "") {
-
-                                                    try {
-                                                        const aux = parseInt(idUltEst) + 1;
-                                                        const response = await fetch("http://localhost:5000/login/agregarEstudiante", {
-                                                            method: "POST",
-                                                            headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({
-                                                                "id": aux,
-                                                                "nombre": estudiantes[index].nombre.toString(),
-                                                                "num_identificacion": estudiantes[index].num_identificacion.toString(),
-                                                                "correo": estudiantes[index].correo.toString()
-                                                            }),
-                                                        });
-
-                                                        const data = await response.json();
-                                                        if (!data.success) {
-                                                            setMensaje({ tipo: "error", texto: data.message });
-                                                        } else {
-
-                                                            // Insertar relacion estudiante-proyecto
-                                                            try {
-                                                                const aux1 = parseInt(idUltProy) + 1;
-                                                                const response = await fetch("http://localhost:5000/agregarEstudianteProyecto", {
-                                                                    method: "POST",
-                                                                    headers: { "Content-Type": "application/json" },
-                                                                    body: JSON.stringify({
-                                                                        "estado": true,
-                                                                        "id_proyecto": aux1,
-                                                                        "nombre_estudiante": estudiantes[index].nombre
-                                                                    }),
-                                                                });
-
-                                                                const data = await response.json();
-                                                                if (!data.success) {
-                                                                    setMensaje({ tipo: "error", texto: data.message });
-                                                                } else {
-                                                                    setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito" });
-                                                                    // Delay
-                                                                    setTimeout(() => {
-                                                                        navigate('/');
-                                                                    }, 2000);
-                                                                }
-                                                            } catch (error) {
-                                                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                                            }
-
-                                                        }
-                                                    } catch (error) {
-                                                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } catch (error) {
-                                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                    }
+                                    setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito." });
+                                    // Delay
+                                    setTimeout(() => {
+                                        navigate('/');
+                                    }, 2000);
                                 }
                             } catch (error) {
                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
@@ -395,9 +329,17 @@ export const Inscribir = () => {
                             // Modalidad
                             const modInt = parseInt(idModalidadSeleccionada);
 
+                            const estudiantesNoVacios = estudiantes.filter((estudiante) => {
+                                return (
+                                    estudiante.nombre !== "" &&
+                                    estudiante.num_identificacion !== "" &&
+                                    estudiante.correo !== ""
+                                );
+                            });
+
                             // Insertar un nuevo proyecto
                             try {
-                                const response = await fetch("http://localhost:5000/inscribirPropuesta", {
+                                const response = await fetch("http://localhost:5000/inscribirPropuestaVarios", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
@@ -408,7 +350,10 @@ export const Inscribir = () => {
                                         "periodo": periodo,
                                         "id_modalidad": modInt,
                                         "id_etapa": 1,
-                                        "id_estado": 1
+                                        "id_estado": 1,
+                                        "fecha_asignacion": fechaSistema(),
+                                        "id_usuario": parseInt(idDirectorSeleccionado),
+                                        "infoEstudiantes": estudiantesNoVacios
                                     }),
                                 });
 
@@ -416,91 +361,11 @@ export const Inscribir = () => {
                                 if (!data.success) {
                                     setMensaje({ tipo: "error", texto: data.message });
                                 } else {
-                                    // Insertar usuario-rol
-                                    try {
-                                        const response = await fetch("http://localhost:5000/agregarUsuarioRol", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                "estado": true,
-                                                "fecha_asignacion": fechaSistema(),
-                                                "id_usuario": parseInt(idDirectorSeleccionado),
-                                                "id_rol": 1,
-                                                "id_proyecto": parseInt(idUltProy) + 1
-                                            }),
-                                        });
-
-                                        const data = await response.json();
-                                        if (!data.success) {
-                                            setMensaje({ tipo: "error", texto: data.message });
-                                        } else {
-
-                                            // Insertar a los estudiantes
-                                            let idUltEstAUX = parseInt(idUltEst);
-                                            let numEstudiantesRegistrados = 0;
-                                            for (let index = 0; index < estudiantes.length; index++) {
-                                                if (estudiantes[index].nombre !== "") {
-                                                    setMensaje({ tipo: "info", texto: "Procesando inscripción de la propuesta, por favor espere un momento." });
-                                                    await esperar(1000);
-                                                    try {
-                                                        const aux = idUltEstAUX + 1;
-                                                        const response = await fetch("http://localhost:5000/login/agregarEstudiante", {
-                                                            method: "POST",
-                                                            headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({
-                                                                "id": aux,
-                                                                "nombre": estudiantes[index].nombre,
-                                                                "num_identificacion": estudiantes[index].num_identificacion,
-                                                                "correo": estudiantes[index].correo
-                                                            }),
-                                                        });
-
-                                                        const data = await response.json();
-                                                        if (!data.success) {
-                                                            setMensaje({ tipo: "error", texto: data.message });
-                                                        } else {
-
-                                                            // Insertar relacion estudiante-proyecto
-                                                            try {
-                                                                const aux1 = parseInt(idUltProy) + 1;
-                                                                const response = await fetch("http://localhost:5000/agregarEstudianteProyecto", {
-                                                                    method: "POST",
-                                                                    headers: { "Content-Type": "application/json" },
-                                                                    body: JSON.stringify({
-                                                                        "estado": true,
-                                                                        "id_proyecto": aux1,
-                                                                        "nombre_estudiante": estudiantes[index].nombre
-                                                                    }),
-                                                                });
-
-                                                                const data = await response.json();
-                                                                if (!data.success) {
-                                                                    setMensaje({ tipo: "error", texto: data.message });
-                                                                } else {
-                                                                    numEstudiantesRegistrados++;
-                                                                    idUltEstAUX++;
-
-                                                                    if (numEstudiantesRegistrados === numIntegrantes) {
-                                                                        setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito" });
-                                                                        // Delay
-                                                                        setTimeout(() => {
-                                                                            navigate('/');
-                                                                        }, 2000);
-                                                                    }
-                                                                }
-                                                            } catch (error) {
-                                                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                                            }
-                                                        }
-                                                    } catch (error) {
-                                                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } catch (error) {
-                                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                    }
+                                    setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito." });
+                                    // Delay
+                                    setTimeout(() => {
+                                        navigate('/');
+                                    }, 2000);
                                 }
                             } catch (error) {
                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
@@ -686,12 +551,9 @@ export const Inscribir = () => {
                 </div>
 
             </Box>
-
             <Footer />
-
         </div>
     );
-
 };
 
 export default Inscribir;

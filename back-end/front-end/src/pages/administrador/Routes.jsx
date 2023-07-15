@@ -16,12 +16,12 @@ export default function RoutesAdmin() {
         <Routes>
             <Route path="/" element={<InicioAdmin />} >
                 <Route index element={<Usuarios />} />
-                <Route path="verUsuario/:id" element={<VerUsuario />} />
+                <Route path="verUsuario" element={<VerUsuario />} />
                 <Route path="proyectos" element={<Proyectos />} />
-                <Route path="verProyecto/:id" element={<VerProyecto />} />
-                <Route path="modificarProyecto/:id" element={<ModificarProyecto />} />
+                <Route path="verProyecto" element={<VerProyecto />} />
+                <Route path="modificarProyecto" element={<ModificarProyecto />} />
                 <Route path="agregarUsuario" element={<AgregarUsuario />} />
-                <Route path="modificarUsuario/:id" element={<ModificarUsuario />} />
+                <Route path="modificarUsuario" element={<ModificarUsuario />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes></div>

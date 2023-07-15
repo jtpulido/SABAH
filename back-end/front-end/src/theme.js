@@ -9,6 +9,9 @@ export const tokens = () => ({
     },
     secundary: {
         100: "#8db33a"
+    },
+    naranja: {
+        100: "#ec8a01"
     }
 })
 

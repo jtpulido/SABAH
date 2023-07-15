@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
@@ -64,7 +64,8 @@ export default function Proyectos() {
   ];
 
   const verProyecto = (id) => {
-    navigate(`/admin/verProyecto/${id}`)
+    sessionStorage.setItem('admin_id_proyecto', id);
+    navigate(`/admin/verProyecto`)
   }
 
   const theme = useTheme();
@@ -76,7 +77,7 @@ export default function Proyectos() {
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
 
-  const llenarTablaEnCurso = async () => {
+  const llenarTablaEnCurso = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/obtenerEnCurso", {
         method: "GET",
@@ -85,6 +86,8 @@ export default function Proyectos() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
+      } else if (data.message === 'No hay proyectos actualmente') {
+        setRowsEnCurso([]);
       } else {
         setRowsEnCurso(data.proyectos);
       }
@@ -92,9 +95,9 @@ export default function Proyectos() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [token]);
 
-  const llenarTablaCerrados = async () => {
+  const llenarTablaCerrados = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/obtenerTerminados", {
         method: "GET",
@@ -103,6 +106,8 @@ export default function Proyectos() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
+      } else if (data.message === 'No hay proyectos actualmente') {
+        setRowsTerminados([]);
       } else {
         setRowsTerminados(data.proyectos);
       }
@@ -110,15 +115,22 @@ export default function Proyectos() {
     catch (error) {
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     llenarTablaEnCurso()
     llenarTablaCerrados()
-  }, []);
+  }, [llenarTablaEnCurso, llenarTablaCerrados]);
+
+  const CustomNoRowsMessage = (mensaje) => {
+    return (
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+        {mensaje}
+      </div>
+    );
+  }
 
   return (
-
     <div style={{ margin: "15px" }} >
       {error && (
         <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
@@ -139,6 +151,7 @@ export default function Proyectos() {
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",
+            height: rowsEnCurso.length === 0 ? "200px" : "auto",
           },
           "& .MuiDataGrid-columnHeaders": {
             color: colors.primary[100],
@@ -156,6 +169,7 @@ export default function Proyectos() {
           En desarrollo
         </Typography>
         <DataGrid
+          getRowHeight={() => 'auto'}
           rows={rowsEnCurso}
           columns={columns}
           initialState={{
@@ -166,18 +180,37 @@ export default function Proyectos() {
             },
           }}
           pageSizeOptions={[10, 25, 50, 100]}
-          getRowHeight={() => 'auto'}
           slots={{
             toolbar: CustomToolbar,
+            noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
           }}
           disableColumnSelector
         />
+      </Box>
+
+      <Box
+        sx={{
+          "& .MuiDataGrid-root": {
+            border: "none",
+            height: rowsTerminados.length === 0 ? "200px" : "auto",
+          },
+          "& .MuiDataGrid-columnHeaders": {
+            color: colors.primary[100],
+            textAlign: "center",
+            fontSize: 14,
+          },
+          "& .MuiDataGrid-toolbarContainer": {
+            justifyContent: "flex-end",
+            align: "right",
+          },
+        }}
+      >
         <Typography variant="h2" color={colors.primary[100]}
           sx={{ mt: "30px" }}>
           Cerrados
         </Typography>
-
         <DataGrid
+          getRowHeight={() => 'auto'}
           rows={rowsTerminados}
           columns={columns}
           initialState={{
@@ -188,9 +221,9 @@ export default function Proyectos() {
             },
           }}
           pageSizeOptions={[10, 25, 50, 100]}
-          getRowHeight={() => 'auto'}
           slots={{
             toolbar: CustomToolbar,
+            noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
           }}
           disableColumnSelector
         />

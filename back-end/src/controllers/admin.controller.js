@@ -1,3 +1,4 @@
+
 const bcrypt = require('bcrypt');
 const pool = require('../database')
 
@@ -21,7 +22,7 @@ const registro = (req, res) => {
 
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id=1')
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id=1 ORDER BY nombre ASC')
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -35,7 +36,7 @@ const obtenerProyectosDesarrollo = async (req, res) => {
 
 const obtenerProyectosTerminados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id <> 1')
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id <> 1 ORDER BY nombre ASC')
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -120,7 +121,7 @@ const obtenerProyecto = async (req, res) => {
             const info_lector = result_lector.rowCount > 0 ? { "existe_lector": true, "nombre": result_lector.rows[0].nombre } : { "existe_lector": false };
             const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1 AND ur.estado = true", [id])
             const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
-            const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
+            const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true ORDER BY nombre ASC', [id])
 
             if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
                 return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
@@ -138,7 +139,7 @@ const obtenerProyecto = async (req, res) => {
 
 const obtenerUsuarios = async (req, res) => {
     try {
-        const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id_tipo_usuario=2')
+        const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id_tipo_usuario=2 ORDER BY nombre ASC')
         const usuarios = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, usuarios });
@@ -315,103 +316,104 @@ const modificarProyecto = async (req, res) => {
     }
 };
 
-const modificarUsuarioRol = async (req, res) => {
-    const { id, id_usuario } = req.body;
-    try {
-        await pool.query('UPDATE usuario_rol SET estado = false WHERE id_proyecto=$1 AND id_usuario=$2', [id, id_usuario]);
-        res.status(201).json({ success: true, message: 'El director fue modificado exitosamente.' });
+const cambioUsuarioRol = async (req, res) => {
+    const { tipo, id, id_usuario_anterior, id_usuario_nuevo, id_rol } = req.body;
 
-    } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
-
-const modificarLector = async (req, res) => {
-    const { id, nombre_usuario } = req.body;
     try {
-        await pool.query('UPDATE usuario_rol AS ur SET estado = false FROM usuario AS u WHERE ur.id_proyecto=$1 AND ur.id_usuario= u.id AND u.nombre = $2', [id, nombre_usuario]);
+        // Inicio transaccion
+        await pool.query('BEGIN');
+
+        if (tipo === "anterior") {
+            // Modificar usuario-rol
+            await pool.query('UPDATE usuario_rol SET estado=false WHERE id_proyecto=$1 AND id_usuario=$2', [id, id_usuario_anterior]);
+
+            // Agregar usuario-rol
+            await pool.query('INSERT INTO public.usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id]);
+
+        } else if (tipo === "nuevo") {
+            // Agregar usuario-rol
+            await pool.query('INSERT INTO public.usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id]);
+
+        } else if (tipo === "solo") {
+            // Modificar usuario-rol
+            await pool.query('UPDATE usuario_rol SET estado=false WHERE id_proyecto=$1 AND id_usuario=$2', [id, id_usuario_anterior]);
+
+        }
+
+        // Confirmar transaccion
+        await pool.query('COMMIT');
         res.status(201).json({ success: true, message: 'El usuario fue modificado exitosamente.' });
 
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        // Deshacer transaccion
+        await pool.query('ROLLBACK');
+        res.status(500).json({ success: false, message: 'Ha ocurrido un error al eliminar al estudiante. Por favor inténtelo más tarde.' });
     }
 };
 
-const agregarUsuarioRol = async (req, res) => {
-    const { estado, fecha_asignacion, id_usuario, id_rol, id_proyecto } = req.body;
+const estudiantesEliminados = async (req, res) => {
+    const { estudiantesEliminados, id_proyecto } = req.body;
     try {
-        await pool.query('INSERT INTO public.usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES ($1, $2, $3, $4, $5)', [estado, fecha_asignacion, id_usuario, id_rol, id_proyecto]);
-        res.status(201).json({ success: true, message: 'Fue registrado exitosamente.' });
+        // Inicio transaccion
+        await pool.query('BEGIN');
+
+        for (let i = 0; i < estudiantesEliminados.length; i++) {
+            console.log(estudiantesEliminados[i].nombre)
+            // Modificar estudiante-proyecto
+            await pool.query('UPDATE estudiante_proyecto AS ep SET estado=false FROM estudiante AS e WHERE ep.id_proyecto=$1 AND ep.id_estudiante= e.id AND e.nombre = $2', [id_proyecto, estudiantesEliminados[i].nombre]);
+        }
+
+        // Confirmar transaccion
+        await pool.query('COMMIT');
+        res.status(201).json({ success: true, message: 'El/los estudiante(s) ha(n) sido removido(s) del proyecto satisfactoriamente.' });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Ha ocurrido un error en el registro. Por favor inténtelo más tarde.' });
+        // Deshacer transaccion
+        await pool.query('ROLLBACK');
+        res.status(500).json({ success: false, message: 'Ha ocurrido un error al eliminar al estudiante. Por favor inténtelo más tarde.' });
     }
 };
 
-const agregarLector = async (req, res) => {
-    const { estado, fecha_asignacion, id_rol, id_proyecto, nombre_usuario } = req.body;
+const estudiantesNuevo = async (req, res) => {
+    const { nuevosEstudiantes, id_proyecto } = req.body;
     try {
-        await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) SELECT $1, $2, u.id, $3, $4 FROM usuario AS u WHERE u.nombre = $5', [estado, fecha_asignacion, id_rol, id_proyecto, nombre_usuario]);
-        res.status(201).json({ success: true, message: 'Fue registrado exitosamente.' });
+        // Inicio transaccion
+        await pool.query('BEGIN');
+        for (let i = 0; i < nuevosEstudiantes.length; i++) {
+            // Verificar si ya existe el estudiante
+            const result = await pool.query('SELECT * FROM estudiante WHERE num_identificacion=$1 AND LOWER(correo)=LOWER($2)', [nuevosEstudiantes[i].num_identificacion, nuevosEstudiantes[i].correo]);
+
+            if (result.rowCount > 0) {
+
+                // Verificar si el estudiante ya tiene un proyecto activo
+                const resultProyecto = await pool.query('SELECT pr.* FROM estudiante_proyecto pr, estudiante e WHERE pr.id_estudiante = e.id AND e.num_identificacion=$1 AND LOWER(e.correo)=LOWER($2) AND pr.estado=true', [nuevosEstudiantes[i].num_identificacion, nuevosEstudiantes[i].correo]);
+                if (resultProyecto.rowCount > 0) {
+                    await pool.query('ROLLBACK');
+                    return res.status(409).json({ success: false, message: 'El estudiante con número de identificación ' + nuevosEstudiantes[i].num_identificacion + ' ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
+
+                } else {
+                    // Agregar estudiante
+                    await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3)', [nuevosEstudiantes[i].nombre, nuevosEstudiantes[i].num_identificacion, nuevosEstudiantes[i].correo]);
+                    // Agregar estudiante-proyecto
+                    await pool.query('INSERT INTO estudiante_proyecto(estado, id_proyecto, id_estudiante) SELECT true, $1, e.id FROM estudiante AS e WHERE e.nombre = $2', [id_proyecto, nuevosEstudiantes[i].nombre]);
+                }
+
+            } else {
+                // Agregar estudiante
+                await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3)', [nuevosEstudiantes[i].nombre, nuevosEstudiantes[i].num_identificacion, nuevosEstudiantes[i].correo]);
+                // Agregar estudiante-proyecto
+                await pool.query('INSERT INTO estudiante_proyecto(estado, id_proyecto, id_estudiante) SELECT true, $1, e.id FROM estudiante AS e WHERE e.nombre = $2', [id_proyecto, nuevosEstudiantes[i].nombre]);
+            }
+        }
+        // Confirmar transaccion
+        await pool.query('COMMIT');
+        res.status(201).json({ success: true, message: 'Estudiante(s) registrado(s) exitosamente.' });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Ha ocurrido un error en el registro. Por favor inténtelo más tarde.' });
-    }
-};
-
-const eliminarEstudiante = async (req, res) => {
-    const { nombre, num_identificacion, correo } = req.body;
-    try {
-        await pool.query('DELETE FROM estudiante e WHERE e.nombre=$1 AND e.num_identificacion=$2 AND e.correo=$3', [nombre, num_identificacion, correo]);
-        res.status(201).json({ success: true, message: 'El estudiante fue eliminado exitosamente.' });
-    } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
-
-const agregarEstudianteProyecto = async (req, res) => {
-    const { id_proyecto, nombre_estudiante } = req.body;
-    try {
-        await pool.query('INSERT INTO estudiante_proyecto(estado, id_proyecto, id_estudiante) SELECT true, $1, e.id FROM estudiante AS e WHERE e.nombre = $2', [id_proyecto, nombre_estudiante]);
-        res.status(201).json({ success: true, message: 'Fue registrado exitosamente.' });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Ha ocurrido un error en el registro. Por favor inténtelo más tarde.' });
-    }
-};
-
-const modificarEstudianteProyecto = async (req, res) => {
-    const { id_proyecto, nombre_estudiante } = req.body;
-    try {
-        await pool.query('UPDATE estudiante_proyecto AS ep SET estado = false FROM estudiante AS e WHERE ep.id_proyecto=$1 AND ep.id_estudiante= e.id AND e.nombre = $2', [id_proyecto, nombre_estudiante]);
-        res.status(201).json({ success: true, message: 'Fue registrado exitosamente.' });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Ha ocurrido un error en el registro. Por favor inténtelo más tarde.' });
-    }
-};
-
-const agregarEstudiante = async (req, res) => {
-    const { nombre, num_identificacion, correo } = req.body;
-    try {
-        await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3)', [nombre, num_identificacion, correo]);
-        res.status(201).json({ success: true, message: 'El estudiante fue registrado exitosamente.' });
-
-    } catch (error) {
+        // Deshacer transaccion
+        await pool.query('ROLLBACK');
         res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
     }
 };
 
-const prueba = async (req, res) => {
-    const { id_proyecto } = req.body;
-    try {
-        console.log('inicio')
-        await pool.query('DELETE FROM proyecto WHERE id=$1', [id_proyecto]);
-        console.log('hola')
-        res.status(201).json({ success: true, message: 'Prueba exitosa.' });
-    } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-    }
-};
-
-module.exports = { prueba, eliminarEstudiante, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, agregarEstudiante, modificarEstudianteProyecto, agregarEstudianteProyecto, registro, agregarLector, agregarUsuarioRol, modificarLector, modificarUsuarioRol, modificarProyecto, obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario, cambiarEstado }
+module.exports = { estudiantesNuevo, cambioUsuarioRol, estudiantesEliminados, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, registro, modificarProyecto, obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario, cambiarEstado }

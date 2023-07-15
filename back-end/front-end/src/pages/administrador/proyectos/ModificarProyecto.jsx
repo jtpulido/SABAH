@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
-import './VerProyecto.css';
+import React, { useState, useEffect, useCallback } from "react";
 
-import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button, Select } from "@mui/material";
 import { tokens } from "../../../theme";
 
@@ -12,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ModificarProyectos() {
 
-    const { id } = useParams();
+    const id = sessionStorage.getItem('admin_id_proyecto');
     const token = useSelector(selectToken);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -37,9 +35,10 @@ export default function ModificarProyectos() {
     const [lectorModificado, setLectorModificado] = useState([]);
     const [juradosSeleccionados, setJuradosSeleccionados] = useState([]);
     const [estudiantesModificados, setEstudiantesModificados] = useState([]);
+    // eslint-disable-next-line
     const [estadoVisible, setEstadoVisible] = useState(true);
 
-    const infoProyecto = async () => {
+    const infoProyecto = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/admin/verProyecto", {
                 method: "POST",
@@ -71,11 +70,11 @@ export default function ModificarProyectos() {
             setExiste(false)
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, [token, id]);
 
     // Lista de todos los usuarios con tipo usuario normal
     const [listaUsuarios, setListaUsuarios] = useState([]);
-    const infoUsuario = async () => {
+    const infoUsuario = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getDirectores", {
                 method: "GET",
@@ -91,11 +90,11 @@ export default function ModificarProyectos() {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Lista de todas las modalidades de la base de datos
     const [listaModalidades, setListaModalidades] = useState([]);
-    const getModalidades = async () => {
+    const getModalidades = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getModalidades", {
                 method: "GET",
@@ -111,11 +110,11 @@ export default function ModificarProyectos() {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Lista de todos los estados de la base de datos
     const [listaEstados, setListaEstados] = useState([]);
-    const getEstados = async () => {
+    const getEstados = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getEstados", {
                 method: "GET",
@@ -131,11 +130,11 @@ export default function ModificarProyectos() {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     // Lista de todas las etapas de la base de datos
     const [listaEtapas, setListaEtapas] = useState([]);
-    const getEtapas = async () => {
+    const getEtapas = useCallback(async () => {
         try {
             const response = await fetch("http://localhost:5000/getEtapas", {
                 method: "GET",
@@ -151,18 +150,15 @@ export default function ModificarProyectos() {
         } catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
+    }, []);
 
     useEffect(() => {
-        infoProyecto()
-        infoUsuario()
-        getModalidades()
-        getEstados()
-        getEtapas()
-        setProyectoModificado(proyecto)
-        setEstudiantesModificados(estudiantes)
-        setLectorModificado(lector)
-    }, []);
+        infoProyecto();
+        infoUsuario();
+        getModalidades();
+        getEstados();
+        getEtapas();
+    }, [infoProyecto, infoUsuario, getModalidades, getEstados, getEtapas]);
 
     // Cambia solo el id del director
     const handleDirectorSeleccionado = (e) => {
@@ -246,15 +242,6 @@ export default function ModificarProyectos() {
         });
     };
 
-    const fechaSistema = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = (today.getMonth() + 1).toString().padStart(2, '0');
-        const day = today.getDate().toString().padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day}`;
-        return formattedDate;
-    };
-
     const compararEstudiantes = () => {
         let valor = true;
         if (estudiantes.length !== estudiantesModificados.length) {
@@ -280,10 +267,8 @@ export default function ModificarProyectos() {
             if (listaJurado.length !== juradosSeleccionados.length) {
                 return false;
             }
-
             const sortedList1 = listaJurado.sort((a, b) => a.id - b.id);
             const sortedList2 = juradosSeleccionados.sort((a, b) => a.id - b.id);
-
             return sortedList1.every((item, index) => item.id === sortedList2[index].id);
         };
 
@@ -334,47 +319,25 @@ export default function ModificarProyectos() {
         // Director
         if (director.id !== directorInicial.id) {
 
-            // Cambiar el estado a false del anterior director
+            // Cambiar el estado a false del anterior director y agregar el nuevo
             try {
-                const response = await fetch("http://localhost:5000/admin/modificarUsuarioRol", {
-                    method: "PUT",
+                const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
+                    method: "POST",
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({
+                        tipo: "anterior",
                         id: parseInt(id),
-                        id_usuario: parseInt(directorInicial.id)
+                        id_usuario_anterior: parseInt(directorInicial.id),
+                        id_usuario_nuevo: parseInt(director.id),
+                        id_rol: 1
                     })
                 });
                 const data = await response.json();
                 if (!data.success) {
                     setMensaje({ tipo: "error", texto: data.message });
                 } else {
-
-                    // Agregar el nuevo director con fecha de asignacion actual
-                    try {
-                        const response = await fetch("http://localhost:5000/admin/agregarUsuarioRol", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({
-                                estado: true,
-                                fecha_asignacion: fechaSistema(),
-                                id_usuario: parseInt(director.id),
-                                id_rol: 1,
-                                id_proyecto: parseInt(id)
-                            })
-                        });
-
-                        const data = await response.json();
-
-                        if (!data.success) {
-                            setMensaje({ tipo: "error", texto: data.message });
-
-                        } else {
-                            setMensaje({ tipo: "success", texto: "El director ha sido modificado exitosamente." });
-                            await esperar(2800);
-                        }
-                    } catch (error) {
-                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                    }
+                    setMensaje({ tipo: "success", texto: "El director ha sido agregado exitosamente." });
+                    await esperar(2800);
                 }
             } catch (error) {
                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
@@ -387,15 +350,15 @@ export default function ModificarProyectos() {
         if (!existeLector && lector !== lectorModificado) {
 
             try {
-                const response = await fetch("http://localhost:5000/admin/agregarLector", {
+                const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({
-                        estado: true,
-                        fecha_asignacion: fechaSistema(),
-                        id_rol: 2,
-                        id_proyecto: parseInt(id),
-                        nombre_usuario: lectorModificado
+                        tipo: "nuevo",
+                        id: parseInt(id),
+                        id_usuario_anterior: "",
+                        id_usuario_nuevo: lectorModificado,
+                        id_rol: 2
                     })
                 });
 
@@ -415,46 +378,29 @@ export default function ModificarProyectos() {
         } else if (existeLector && lector !== lectorModificado) {
 
             if (lectorModificado !== '') {
+
+                const lectorAnterior = listaUsuarios.find(user => user.nombre === lector);
+
                 try {
-                    const response = await fetch("http://localhost:5000/admin/modificarLector", {
-                        method: "PUT",
+                    const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
+                        method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
+                            tipo: "anterior",
                             id: parseInt(id),
-                            nombre_usuario: lector
+                            id_usuario_anterior: lectorAnterior.id,
+                            id_usuario_nuevo: lectorModificado,
+                            id_rol: 2
                         })
                     });
 
                     const data = await response.json();
                     if (!data.success) {
                         setMensaje({ tipo: "error", texto: data.message });
+
                     } else {
-
-                        // Agregar el nuevo lector
-                        try {
-                            const response = await fetch("http://localhost:5000/admin/agregarLector", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                                body: JSON.stringify({
-                                    estado: true,
-                                    fecha_asignacion: fechaSistema(),
-                                    id_rol: 2,
-                                    id_proyecto: parseInt(id),
-                                    nombre_usuario: lectorModificado
-                                })
-                            });
-
-                            const data = await response.json();
-                            if (!data.success) {
-                                setMensaje({ tipo: "error", texto: data.message });
-
-                            } else {
-                                setMensaje({ tipo: "success", texto: "El lector ha sido agregado exitosamente." });
-                                await esperar(2800);
-                            }
-                        } catch (error) {
-                            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                        }
+                        setMensaje({ tipo: "success", texto: "El lector ha sido modificado exitosamente." });
+                        await esperar(2800);
                     }
                 } catch (error) {
                     setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
@@ -480,11 +426,11 @@ export default function ModificarProyectos() {
                         method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
-                            estado: true,
-                            fecha_asignacion: fechaSistema(),
-                            id_usuario: parseInt(juradosSeleccionados[index].id),
-                            id_rol: 3,
-                            id_proyecto: parseInt(id)
+                            tipo: "nuevo",
+                            id: parseInt(id),
+                            id_usuario_anterior: "",
+                            id_usuario_nuevo: parseInt(juradosSeleccionados[index].id),
+                            id_rol: 3
                         })
                     });
 
@@ -513,12 +459,16 @@ export default function ModificarProyectos() {
             for (let index = 0; index < juradosEliminados.length; index++) {
 
                 try {
-                    const response = await fetch("http://localhost:5000/admin/modificarLector", {
-                        method: "PUT",
+                    const response = await fetch("http://localhost:5000/admin/agregarUsuarioRol", {
+                        method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
+                            tipo: "solo",
                             id: parseInt(id),
-                            nombre_usuario: juradosEliminados[index].nombre
+                            id_usuario_anterior: parseInt(juradosEliminados[index].id),
+                            id_usuario_nuevo: "",
+                            id_rol: 3
+
                         })
                     });
 
@@ -539,15 +489,15 @@ export default function ModificarProyectos() {
             for (let index = 0; index < nuevosJurados.length; index++) {
 
                 try {
-                    const response = await fetch("http://localhost:5000/admin/agregarLector", {
+                    const response = await fetch("http://localhost:5000/admin/agregarUsuarioRol", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
-                            estado: true,
-                            fecha_asignacion: fechaSistema(),
-                            id_rol: 3,
-                            id_proyecto: parseInt(id),
-                            nombre_usuario: nuevosJurados[index].nombre
+                            tipo: "nuevo",
+                            id: parseInt(id),
+                            id_usuario_anterior: "",
+                            id_usuario_nuevo: parseInt(nuevosJurados[index].id),
+                            id_rol: 3
                         })
                     });
 
@@ -586,91 +536,50 @@ export default function ModificarProyectos() {
                         setMensaje({ tipo: "error", texto: "El número de identificación no es válido. Debe contener solo letras y/o dígitos." });
                     } else {
 
+                        // Estudiantes eliminados
                         const estudiantesEliminados = estudiantes.filter(estudiante => !estudiantesModificados.includes(estudiante));
                         const nuevosEstudiantes = estudiantesModificados.filter(estudiante => !estudiantes.includes(estudiante));
 
-                        // Cambiar estado a false a los estudiantes eliminados
-                        for (let index = 0; index < estudiantesEliminados.length; index++) {
-                            const nombreAUX = estudiantesEliminados[index].nombre;
-                            const correoAUX = estudiantesEliminados[index].correo;
-                            const idAUX = estudiantesEliminados[index].num_identificacion;
+                        if (estudiantesEliminados.length > 0) {
                             try {
-                                const response = await fetch("http://localhost:5000/admin/eliminarEstudiante", {
-                                    method: "DELETE",
+                                const response = await fetch("http://localhost:5000/admin/estudiantesEliminados", {
+                                    method: "POST",
                                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                                    body: JSON.stringify({ nombre: nombreAUX, num_identificacion: idAUX, correo: correoAUX })
+                                    body: JSON.stringify({ "estudiantesEliminados": estudiantesEliminados, "id_proyecto": parseInt(id) })
                                 });
 
                                 const data = await response.json();
                                 if (!data.success) {
                                     setMensaje({ tipo: "error", texto: data.message });
+                                    await esperar(2800);
                                 } else {
-                                    try {
-                                        const response = await fetch("http://localhost:5000/admin/modificarEstudianteProyecto", {
-                                            method: "PUT",
-                                            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                                            body: JSON.stringify({
-                                                id_proyecto: parseInt(id),
-                                                nombre_estudiante: estudiantesEliminados[index].nombre
-                                            })
-                                        });
-
-                                        const data = await response.json();
-                                        if (!data.success) {
-                                            setMensaje({ tipo: "error", texto: data.message });
-
-                                        } else {
-                                            setMensaje({ tipo: "success", texto: "El estudiante ha sido eliminado exitosamente." });
-                                            await esperar(2800);
-                                        }
-                                    } catch (error) {
-                                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                    }
+                                    setMensaje({ tipo: "success", texto: data.message });
+                                    await esperar(2800);
                                 }
                             } catch (error) {
                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                             }
                         }
 
-                        // Agregar los nuevos estudiantes
-                        for (let index = 0; index < nuevosEstudiantes.length; index++) {
-
+                        // Nuevos estudiantes
+                        if (nuevosEstudiantes.length > 0) {
                             try {
-                                const response = await fetch("http://localhost:5000/admin/agregarEstudiante", {
+                                const response = await fetch("http://localhost:5000/admin/estudiantesNuevo", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                                     body: JSON.stringify({
-                                        nombre: nuevosEstudiantes[index].nombre,
-                                        num_identificacion: nuevosEstudiantes[index].num_identificacion,
-                                        correo: nuevosEstudiantes[index].correo
+                                        "nuevosEstudiantes": nuevosEstudiantes,
+                                        "id_proyecto": parseInt(id)
                                     })
                                 });
 
                                 const data = await response.json();
                                 if (!data.success) {
                                     setMensaje({ tipo: "error", texto: data.message });
+                                    await esperar(2800);
                                 } else {
-                                    try {
-                                        const response = await fetch("http://localhost:5000/admin/agregarEstudianteProyecto", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                                            body: JSON.stringify({
-                                                id_proyecto: parseInt(id),
-                                                nombre_estudiante: nuevosEstudiantes[index].nombre.toString()
-                                            })
-                                        });
-
-                                        const data = await response.json();
-                                        if (!data.success) {
-                                            setMensaje({ tipo: "error", texto: data.message });
-
-                                        } else {
-                                            setMensaje({ tipo: "success", texto: "El estudiante ha sido agregado exitosamente." });
-                                            await esperar(2800);
-                                        }
-                                    } catch (error) {
-                                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                                    }
+                                    setMensaje({ tipo: "success", texto: data.message });
+                                    await esperar(2800);
                                 }
                             } catch (error) {
                                 setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
@@ -684,32 +593,6 @@ export default function ModificarProyectos() {
         }
 
         navigate('/admin/proyectos');
-    };
-
-    const prueba = async () => {
-
-        try {
-            const response = await fetch("http://localhost:5000/admin/prueba", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({
-                    id_proyecto: 2
-                })
-            });
-
-            const data = await response.json();
-            if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
-
-            } else {
-                setMensaje({ tipo: "success", texto: "Funciona prueba." });
-                await esperar(2800);
-            }
-
-        } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-        }
-
     };
 
     const handleSubmit = async () => {
@@ -989,7 +872,7 @@ export default function ModificarProyectos() {
                         </Grid>
                     </Box>
 
-                    {proyecto.acronimo !== "AUX" && (
+                    {proyecto.acronimo !== "AUX" && proyecto.modalidad !== "Coterminal" && (
                         <> <Box>
 
                             <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "30px", mb: "10px" }}>
@@ -1048,8 +931,6 @@ export default function ModificarProyectos() {
 
                             <Grid container spacing={2}>
                                 {[...Array(1)].map((_, index) => {
-                                    const listaLector = lector[index] || {};
-
                                     return (
                                         <Grid item key={index} xs={12}>
                                             <Grid container spacing={2}>
@@ -1072,7 +953,7 @@ export default function ModificarProyectos() {
                                                             .map((usuario) => (
                                                                 <option
                                                                     key={usuario.id}
-                                                                    value={usuario.nombre}
+                                                                    value={usuario.id}
                                                                     selected={usuario.nombre === lector}
                                                                 >
                                                                     {usuario.nombre}

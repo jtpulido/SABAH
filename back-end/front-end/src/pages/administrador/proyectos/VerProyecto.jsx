@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
-import './VerProyecto.css';
+import React, { useState, useEffect, useCallback } from "react";
 
-import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline } from "@mui/material";
 import { tokens } from "../../../theme";
 
@@ -15,7 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 export default function VerProyectos() {
 
-  const { id } = useParams();
+  const id = sessionStorage.getItem('admin_id_proyecto');
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -32,7 +30,7 @@ export default function VerProyectos() {
 
   const navigate = useNavigate();
 
-  const infoProyecto = async () => {
+  const infoProyecto = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/admin/verProyecto", {
         method: "POST",
@@ -43,30 +41,30 @@ export default function VerProyectos() {
       const data = await response.json();
       if (!data.success) {
         setError(data.message);
-        setExiste(false)
+        setExiste(false);
       } else {
         setProyecto(data.proyecto);
         setEstudiantes(data.estudiantes);
         setDirector(data.director);
-        setExisteLector(data.lector.existe_lector)
+        setExisteLector(data.lector.existe_lector);
         setLector(data.lector.existe_lector ? data.lector.nombre : "");
-        setExisteJurados(data.jurados.existe_jurado)
+        setExisteJurados(data.jurados.existe_jurado);
         setListaJurado(data.jurados.existe_jurado ? data.jurados.jurados : []);
-        setExiste(true)
+        setExiste(true);
       }
     }
     catch (error) {
-      setExiste(false)
+      setExiste(false);
       setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
-  };
+  }, [id, token]);
 
   useEffect(() => {
-    infoProyecto()
-  }, []);
+    infoProyecto();
+  }, [infoProyecto]);
 
   const handleModificarProyecto = () => {
-    navigate(`/admin/modificarProyecto/${id}`)
+    navigate(`/admin/modificarProyecto`)
   };
 
   return (
@@ -217,7 +215,7 @@ export default function VerProyectos() {
               ))}
             </Grid>
 
-            {proyecto.acronimo !== "AUX" && (
+            {proyecto.acronimo !== "AUX" && proyecto.modalidad !== "Coterminal" && (
               <>
                 <Box>
                   <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "30px", mb: "10px" }}>

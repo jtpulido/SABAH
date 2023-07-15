@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useCallback } from "react";
 import { useCookies } from 'react-cookie';
 import Footer from "../pie_de_pagina/Footer"
 import "./Login.css";
@@ -6,16 +6,12 @@ import logo from "../../assets/images/logo.png";
 import { TextField, Alert, Snackbar } from "@mui/material";
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from "react-redux";
-import { selectToken } from "../../store/authSlice";
 import { Recuperar1 } from '../login/ventanas/recuperar contrasena1/Recuperar1';
 
 export const Login = () => {
 
-  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario']);
-
-  const token = useSelector(selectToken);
-
+  // eslint-disable-next-line no-unused-vars
+  const [cookies, setCookie] = useCookies(['token', 'tipo_usuario', 'usuario']);
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState({
@@ -41,40 +37,44 @@ export const Login = () => {
     navigate("/inscribirPropuesta");
   }
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = useCallback(async (event) => {
     event.preventDefault();
-    if(usuario.username !== "" && usuario.password !== ""){
+    if (usuario.username !== "" && usuario.password !== "") {
       try {
         const response = await fetch("http://localhost:5000/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(usuario)
         });
-  
+
         const data = await response.json();
-  
+
         if (!data.success) {
           setError(data.message);
           setInputValues({ username: "", password: "" });
-  
+
         } else {
+          setInputValues({ username: "", password: "" });
           const expires = new Date();
           expires.setTime(expires.getTime() + (2 * 60 * 60 * 1000)); // caduca en dos horas
-  
-          console.log(expires)
+
           setCookie('token', data.token, { path: '/', expires });
           setCookie('tipo_usuario', data.tipo_usuario, { path: '/', expires });
-  
-          const tipo_usuario = data.tipo_usuario
-  
+
+          const tipo_usuario = data.tipo_usuario;
+          const id_usuario = data.id_usuario;
+
           if (tipo_usuario === 'admin') {
             navigate('/admin');
           } else if (tipo_usuario === 'normal') {
-            navigate('/inicio');
+            sessionStorage.setItem('id_usuario', id_usuario);
+            navigate('/user');
           } else if (tipo_usuario === 'comite') {
             navigate('/comite');
+          } else if (tipo_usuario === 'proyecto') {
+            navigate('/proyecto', { state: { id_usuario } });
           }
-  
+
         }
       } catch (error) {
         setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
@@ -83,9 +83,8 @@ export const Login = () => {
     } else {
       setInputValues({ username: "", password: "" });
       setError("Por favor ingrese valores válidos.");
-      
     }
-  };
+  }, [usuario, navigate, setCookie]);
 
   // Modal 1
   const [showModal, setModalOpen] = useState(false);

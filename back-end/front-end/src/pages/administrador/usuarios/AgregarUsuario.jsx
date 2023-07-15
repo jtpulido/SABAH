@@ -30,9 +30,7 @@ export default function AgregarUsuario() {
     };
 
     const handleSubmit = async (event) => {
-
         event.preventDefault();
-
         if (usuario.nombre === "" || usuario.correo === "") {
             setMensaje({ tipo: "error", texto: "Por favor, complete todos los campos." });
         } else {
@@ -53,13 +51,11 @@ export default function AgregarUsuario() {
                         });
 
                         const data = await response.json();
-
                         if (!data.success) {
                             setMensaje({ tipo: "error", texto: data.message });
                         } else {
 
                             try {
-
                                 const response1 = await fetch("http://localhost:5000/admin/sendEmail", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
@@ -71,9 +67,7 @@ export default function AgregarUsuario() {
                                 if (!data1.success) {
                                     setMensaje({ tipo: "error", texto: data1.message });
                                 } else {
-
                                     setMensaje({ tipo: "success", texto: "El usuario fue creado con éxito y le fue enviado un correo de bienvenida." });
-
                                     // Delay
                                     setTimeout(() => {
                                         navigate('/admin');

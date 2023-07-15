@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, Alert, Snackbar, IconButton, Button } from "@mui/material";
+import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
 import { tokens } from "../../../theme";
@@ -29,11 +29,12 @@ function CustomToolbar() {
 }
 
 export default function Usuarios() {
+
     const navigate = useNavigate();
     const columns = [
         {
             field: 'nombre', headerName: 'Nombre Completo', flex: 0.2, minWidth: 100,
-            headerAlign: "center", align: "center" 
+            headerAlign: "center", align: "center"
         },
         { field: 'correo', headerName: 'Correo Electrónico', flex: 0.2, minWidth: 110, headerAlign: "center", align: "center" },
         {
@@ -72,11 +73,17 @@ export default function Usuarios() {
     ];
 
     const verUsuario = (id) => {
-        navigate(`/admin/verUsuario/${id}`)
+        sessionStorage.setItem('admin_id_usuario', id);
+        navigate(`/admin/verUsuario`)
     };
 
     const modificarUsuario = (id) => {
-        navigate(`/admin/modificarUsuario/${id}`)
+        sessionStorage.setItem('admin_id_usuario', id);
+        navigate(`/admin/modificarUsuario`)
+    };
+
+    const handleAgregarUsuario = () => {
+        navigate(`/admin/agregarUsuario`)
     };
 
     const theme = useTheme();
@@ -88,7 +95,29 @@ export default function Usuarios() {
     const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
     const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
 
-    const cambiarEstado = async (valorId, valorEstado) => {
+    const llenarTablaUsuarios = useCallback(async () => {
+        try {
+            const response = await fetch("http://localhost:5000/admin/obtenerUsuarios", {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                setMensaje({ tipo: "error", texto: data.message });
+            } else {
+                setRowsUsuarios(data.usuarios);
+            }
+        }
+        catch (error) {
+            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+        }
+    }, [token]);
+
+    useEffect(() => {
+        llenarTablaUsuarios();
+    }, [llenarTablaUsuarios]);
+
+    const cambiarEstado = useCallback(async (valorId, valorEstado) => {
         try {
             const response = await fetch("http://localhost:5000/admin/cambiarEstado", {
                 method: "PUT",
@@ -108,36 +137,9 @@ export default function Usuarios() {
         catch (error) {
             setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
         }
-    };
-
-    const handleAgregarUsuario = () => {
-        navigate(`/admin/agregarUsuario`)
-    };
-
-    const llenarTablaUsuarios = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/admin/obtenerUsuarios", {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
-            } else {
-                setRowsUsuarios(data.usuarios);
-            }
-        }
-        catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-        }
-    };
-
-    useEffect(() => {
-        llenarTablaUsuarios()
-    }, []);
+    }, [token, llenarTablaUsuarios]);
 
     return (
-
         <div style={{ margin: "15px" }} >
             {mensaje.texto && (
                 <Snackbar

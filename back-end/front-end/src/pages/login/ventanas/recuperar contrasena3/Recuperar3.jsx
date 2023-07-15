@@ -4,11 +4,13 @@ import { Alert, Snackbar } from "@mui/material";
 import { EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
 import { Button, Modal, Input } from 'antd';
 
-export const Recuperar3 = ({ isVisible3, handleClose3 }) => {
+export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
 
     const [isModalVisible, setIsModalVisible] = React.useState(isVisible3);
     const [isPasswordVisible1, setIsPasswordVisible1] = useState(false);
     const [isPasswordVisible2, setIsPasswordVisible2] = useState(false);
+
+    const [isProyecto3, setIsProyecto3] = React.useState(isProyecto2);
 
     const handleClose = () => {
         setIsPasswordVisible1(false);
@@ -31,6 +33,10 @@ export const Recuperar3 = ({ isVisible3, handleClose3 }) => {
         setIsModalVisible(isVisible3);
     }, [isVisible3]);
 
+    React.useEffect(() => {
+        setIsProyecto3(isProyecto2);
+    }, [isProyecto2]);
+
     // Variable del SnackBar
     const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
     const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
@@ -51,7 +57,6 @@ export const Recuperar3 = ({ isVisible3, handleClose3 }) => {
 
     const handleReset = async (event) => {
         event.preventDefault();
-
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/; // Expresión regular para validar la contraseña (mínimo 8 caracteres, al menos una letra y un número)
 
         if (inputValue1 !== "" && inputValue2 !== "") {
@@ -60,27 +65,55 @@ export const Recuperar3 = ({ isVisible3, handleClose3 }) => {
             } else if (!passwordRegex.test(inputValue1)) {
                 setMensaje({ tipo: "error", texto: "La contraseña debe tener al menos 8 caracteres, incluir al menos una letra y un número." });
             } else {
-                try {
-                    const response = await fetch("http://localhost:5000/cambiarContrasena", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ contrasena: inputValue1 })
-                    });
+                // Si es un proyecto
+                if (isProyecto3 === true) {
+                    try {
+                        const response = await fetch("http://localhost:5000/cambiarContrasenaProyecto", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ contrasena: inputValue1 })
+                        });
 
-                    const data = await response.json();
-                    if (!data.success) {
-                        setMensaje({ tipo: "error", texto: data.message });
-                        await esperar(2000);
-                        handleClose();
-                    } else {
-                        setMensaje({ tipo: "success", texto: data.message });
+                        const data = await response.json();
+                        if (!data.success) {
+                            setMensaje({ tipo: "error", texto: data.message });
+                            await esperar(2000);
+                            handleClose();
+                        } else {
+                            setMensaje({ tipo: "success", texto: data.message });
+                            await esperar(2000);
+                            handleClose();
+                        }
+                    } catch (error) {
+                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                         await esperar(2000);
                         handleClose();
                     }
-                } catch (error) {
-                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                    await esperar(2000);
-                    handleClose();
+
+                    // Si es un usuario normal
+                } else {
+                    try {
+                        const response = await fetch("http://localhost:5000/cambiarContrasena", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ contrasena: inputValue1 })
+                        });
+
+                        const data = await response.json();
+                        if (!data.success) {
+                            setMensaje({ tipo: "error", texto: data.message });
+                            await esperar(2000);
+                            handleClose();
+                        } else {
+                            setMensaje({ tipo: "success", texto: data.message });
+                            await esperar(2000);
+                            handleClose();
+                        }
+                    } catch (error) {
+                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                        await esperar(2000);
+                        handleClose();
+                    }
                 }
             }
         } else {
