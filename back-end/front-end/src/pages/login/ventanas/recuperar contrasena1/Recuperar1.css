@@ -1,67 +1,43 @@
-.container {
+.modal_recuperar1 {
     font-family: 'Montserrat', sans-serif;
-    position: fixed;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    backdrop-filter: blur(8px);
-}
-
-.content {
-    opacity: 1;
-    height: 95%;
-    margin: 25%;
-    background-color: white;
-    border-radius: 25px;
-    border: 0.5mm solid;
-    border-color: #576A3D;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-.content>* {
-    flex: 1 1 auto;
-}
-
-.div_boton_cerrar {
-    height: 10px;
-    position: relative;
-    margin-top: 8px;
-    display: inline-flex;
-}
-
-.modal {
-    padding-bottom: 10px;
-    margin-left: 60px;
-    margin-right: 60px;
-    background-color: blackq;
-}
-
-.boton_cerrar {
     color: #576A3D;
-    background-color: white;
-    outline: none;
+}
+
+:where(.css-dev-only-do-not-override-1fviqcj).ant-modal .ant-modal-title {
+    color: #576A3D;
+}
+
+.div {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    align-content: center;
+    text-align: center;
+}
+
+.boton_enviar {
+    align-content: center;
+    text-align: center;
+    line-height: 28px;
+    width: 30%;
+    background-color: #8DB33A;
+    color: white;
     border: none;
+    justify-content: center;
+    margin: auto;
+    display: grid;
+    margin-top: 28px;
+    margin-bottom: 20px;
+    border-radius: 0;
 }
 
-.header {
-    font-size: 28px;
-    align-content: left;
-    color: #576A3D;
+.container_input {
     display: flex;
-    margin-bottom: -15px;
+    justify-content: center;
 }
 
-.modal p {
-    color: #576A3D;
-    cursor: pointer;
-}
-
-.input {
-    margin-top: 10px;
-    line-height: 35px;
-    width: 70%;
+.container_input input {
+    height: 10px;
+    width: 100%;
     background-color: #EFEFF4;
     border-style: ridge;
     border-color: #576A3D;
@@ -70,16 +46,7 @@
     outline: none;
 }
 
-.boton_enviar {
-    align-content: center;
-    text-align: center;
-    line-height: 28px;
-    width: 40%;
-    background-color: #8DB33A;
-    color: white;
-    border: none;
+.text {
     justify-content: center;
-    margin: auto;
-    display: grid;
-    margin-top: 28px;
+    color: #576A3D;
 }
