@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
+import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 export default function ModificarUsuario() {
 
@@ -19,9 +20,10 @@ export default function ModificarUsuario() {
     const [usuarioInicial, setUsuarioInicial] = useState([]);
     const [usuario, setUsuario] = useState([]);
 
-    // Variable del SnackBar
-    const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-    const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -31,15 +33,15 @@ export default function ModificarUsuario() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (usuario.nombre === "" || usuario.correo === "") {
-            setMensaje({ tipo: "error", texto: "Por favor, complete todos los campos." });
+            mostrarMensaje("Por favor, complete todos los campos.", "error");
         } else {
 
             if (!usuario.correo.match(/^\S+@unbosque\.edu\.co$/)) {
-                setMensaje({ tipo: "error", texto: "Por favor, ingresar una dirección de correo electrónico institucional válida." });
+                mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
             } else {
 
                 if (!usuario.nombre.match(/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s']+$/)) {
-                    setMensaje({ tipo: "error", texto: "El nombre ingresado contiene caracteres no permitidos. Por favor, ingrese solo letras (mayúsculas y minúsculas), espacios y algunos caracteres especiales como la letra 'ñ' y los acentos." });
+                    mostrarMensaje("El nombre ingresado contiene caracteres no permitidos. Por favor, ingrese solo letras (mayúsculas y minúsculas), espacios y algunos caracteres especiales como la letra 'ñ' y los acentos.", "error");
                 } else {
 
                     // Verificar que no se hayan realizado modificaciones al usuario
@@ -52,7 +54,7 @@ export default function ModificarUsuario() {
                     const areCorreosIdenticos = correoInicial === correoUsuario;
 
                     if (areUsuariosIdenticos && areCorreosIdenticos) {
-                        setMensaje({ tipo: "error", texto: "No se ha modificado la información del usuario." });
+                        mostrarMensaje("No se ha modificado la información del usuario.", "error");
                     } else {
 
                         try {
@@ -65,9 +67,9 @@ export default function ModificarUsuario() {
                             const data = await response.json();
 
                             if (!data.success) {
-                                setMensaje({ tipo: "error", texto: data.message });
+                                mostrarMensaje(data.message, "error");
                             } else {
-                                setMensaje({ tipo: "success", texto: data.message });
+                                mostrarMensaje(data.message, "success");
                                 // Delay
                                 setTimeout(() => {
                                     navigate('/admin');
@@ -75,7 +77,7 @@ export default function ModificarUsuario() {
                             }
                         }
                         catch (error) {
-                            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                         }
                     }
                 }
@@ -93,14 +95,14 @@ export default function ModificarUsuario() {
 
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setUsuario(data.infoUsuario[0]);
                 setUsuarioInicial(data.infoUsuario[0]);
             }
         }
         catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, [id, token]);
 
@@ -110,18 +112,6 @@ export default function ModificarUsuario() {
 
     return (
         <div style={{ margin: "15px" }} >
-            {mensaje.texto && (
-                <Snackbar
-                    open={true}
-                    autoHideDuration={5000}
-                    onClose={handleCloseMensaje}
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                >
-                    <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                        {mensaje.texto}
-                    </Alert>
-                </Snackbar>
-            )}
 
             <Typography
                 variant="h1"

@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button, Select } from "@mui/material";
+import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button, Select } from "@mui/material";
 import { tokens } from "../../../theme";
-
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 export default function ModificarProyectos() {
 
@@ -17,9 +16,10 @@ export default function ModificarProyectos() {
 
     const navigate = useNavigate();
 
-    // Variable del SnackBar
-    const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-    const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const [existe, setExiste] = useState([]);
     const [proyecto, setProyecto] = useState([]);
@@ -48,8 +48,8 @@ export default function ModificarProyectos() {
 
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
-                setExiste(false)
+                mostrarMensaje(data.message, "error");
+                setExiste(false);
             } else {
                 setProyecto(data.proyecto);
                 setProyectoModificado(data.proyecto);
@@ -67,8 +67,8 @@ export default function ModificarProyectos() {
             }
         }
         catch (error) {
-            setExiste(false)
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            setExiste(false);
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, [token, id]);
 
@@ -83,12 +83,12 @@ export default function ModificarProyectos() {
 
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setListaUsuarios(data.directores);
             }
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -103,12 +103,12 @@ export default function ModificarProyectos() {
 
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setListaModalidades(data.modalidades);
             }
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -123,12 +123,12 @@ export default function ModificarProyectos() {
 
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setListaEstados(data.estados);
             }
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -143,12 +143,12 @@ export default function ModificarProyectos() {
 
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setListaEtapas(data.etapas);
             }
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -302,17 +302,16 @@ export default function ModificarProyectos() {
 
                     const data = await response.json();
                     if (!data.success) {
-                        setMensaje({ tipo: "error", texto: data.message });
+                        mostrarMensaje(data.message, "error");
                     } else {
-                        setMensaje({ tipo: "success", texto: "El proyecto ha sido modificado exitosamente." });
-                        await esperar(2800);
+                        mostrarMensaje("El proyecto ha sido modificado exitosamente.", "success");
                     }
                 }
                 catch (error) {
-                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                 }
             } else {
-                setMensaje({ tipo: "error", texto: "El año ingresado no es válido." });
+                mostrarMensaje("El año ingresado no es válido.", "error");
             }
         }
 
@@ -334,13 +333,12 @@ export default function ModificarProyectos() {
                 });
                 const data = await response.json();
                 if (!data.success) {
-                    setMensaje({ tipo: "error", texto: data.message });
+                    mostrarMensaje(data.message, "error");
                 } else {
-                    setMensaje({ tipo: "success", texto: "El director ha sido agregado exitosamente." });
-                    await esperar(2800);
+                    mostrarMensaje("El director ha sido agregado exitosamente.", "success");
                 }
             } catch (error) {
-                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
             }
         }
 
@@ -364,14 +362,13 @@ export default function ModificarProyectos() {
 
                 const data = await response.json();
                 if (!data.success) {
-                    setMensaje({ tipo: "error", texto: data.message });
+                    mostrarMensaje(data.message, "error");
 
                 } else {
-                    setMensaje({ tipo: "success", texto: "El lector ha sido agregado exitosamente." });
-                    await esperar(2800);
+                    mostrarMensaje("El lector ha sido agregado exitosamente.", "success");
                 }
             } catch (error) {
-                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
             }
 
             // Modificar anterior (estado a false) y crear uno nuevo
@@ -396,17 +393,16 @@ export default function ModificarProyectos() {
 
                     const data = await response.json();
                     if (!data.success) {
-                        setMensaje({ tipo: "error", texto: data.message });
+                        mostrarMensaje(data.message, "error");
 
                     } else {
-                        setMensaje({ tipo: "success", texto: "El lector ha sido modificado exitosamente." });
-                        await esperar(2800);
+                        mostrarMensaje("El lector ha sido modificado exitosamente.", "success");
                     }
                 } catch (error) {
-                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                 }
             } else {
-                setMensaje({ tipo: "error", texto: "Por favor seleccionar un valor válido para el lector." });
+                mostrarMensaje("Por favor seleccionar un valor válido para el lector.", "error");
             }
         }
 
@@ -414,7 +410,7 @@ export default function ModificarProyectos() {
 
         // Añadir jurado(s) ya que hay un cambio
         if (!existeJurados && juradosSeleccionados.length === 2 && (juradosSeleccionados[0].id === juradosSeleccionados[1].id)) {
-            setMensaje({ tipo: "error", texto: "No se puede seleccionar el mismo jurado más de una vez." });
+            mostrarMensaje("No se puede seleccionar el mismo jurado más de una vez.", "error");
 
         } else if (!existeJurados && juradosSeleccionados.length !== 0) {
 
@@ -436,19 +432,18 @@ export default function ModificarProyectos() {
 
                     const data = await response.json();
                     if (!data.success) {
-                        setMensaje({ tipo: "error", texto: data.message });
+                        mostrarMensaje(data.message, "error");
 
                     } else {
-                        setMensaje({ tipo: "success", texto: "El jurado ha sido agregado exitosamente." });
-                        await esperar(2800);
+                        mostrarMensaje("El jurado ha sido agregado exitosamente.", "success");
                     }
                 } catch (error) {
-                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                 }
             }
 
         } else if (juradosSeleccionados.length === 2 && (juradosSeleccionados[0].id === juradosSeleccionados[1].id)) {
-            setMensaje({ tipo: "error", texto: "No se puede seleccionar el mismo jurado más de una vez." });
+            mostrarMensaje("No se puede seleccionar el mismo jurado más de una vez.", "error");
 
         } else if (existeJurados && !compareLists(juradosSeleccionados, listaJurado)) {
 
@@ -474,14 +469,13 @@ export default function ModificarProyectos() {
 
                     const data = await response.json();
                     if (!data.success) {
-                        setMensaje({ tipo: "error", texto: data.message });
+                        mostrarMensaje(data.message, "error");
 
                     } else {
-                        setMensaje({ tipo: "success", texto: "El anterior jurado ha sido eliminado exitosamente." });
-                        await esperar(2800);
+                        mostrarMensaje("El anterior jurado ha sido eliminado exitosamente.", "success");
                     }
                 } catch (error) {
-                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                 }
             }
 
@@ -503,14 +497,13 @@ export default function ModificarProyectos() {
 
                     const data = await response.json();
                     if (!data.success) {
-                        setMensaje({ tipo: "error", texto: data.message });
+                        mostrarMensaje(data.message, "error");
 
                     } else {
-                        setMensaje({ tipo: "success", texto: "El jurado ha sido agregado exitosamente." });
-                        await esperar(2800);
+                        mostrarMensaje("El jurado ha sido agregado exitosamente.", "success");
                     }
                 } catch (error) {
-                    setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                    mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                 }
             }
         }
@@ -526,14 +519,14 @@ export default function ModificarProyectos() {
                 const emailRegex = /^\S+@unbosque\.edu\.co$/;
                 const validEmails = estudiantesModificados.filter((estudiante) => emailRegex.test(estudiante.correo));
                 if (validEmails.length !== estudiantesModificados.length) {
-                    setMensaje({ tipo: "error", texto: "Por favor, ingresar solamente correos electrónicos institucionales válidos." });
+                    mostrarMensaje("Por favor, ingresar solamente correos electrónicos institucionales válidos.", "error");
                 } else {
 
                     // Verificar que el numero de identificacion no tenga caracteres especiales
                     const idRegex = /^[a-zA-Z0-9]+$/;
                     const validIds = estudiantesModificados.filter((estudiante) => idRegex.test(estudiante.num_identificacion));
                     if (validIds.length !== estudiantesModificados.length) {
-                        setMensaje({ tipo: "error", texto: "El número de identificación no es válido. Debe contener solo letras y/o dígitos." });
+                        mostrarMensaje("El número de identificación no es válido. Debe contener solo letras y/o dígitos.", "error");
                     } else {
 
                         // Estudiantes eliminados
@@ -550,14 +543,12 @@ export default function ModificarProyectos() {
 
                                 const data = await response.json();
                                 if (!data.success) {
-                                    setMensaje({ tipo: "error", texto: data.message });
-                                    await esperar(2800);
+                                    mostrarMensaje(data.message, "error");
                                 } else {
-                                    setMensaje({ tipo: "success", texto: data.message });
-                                    await esperar(2800);
+                                    mostrarMensaje(data.message, "success");
                                 }
                             } catch (error) {
-                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                             }
                         }
 
@@ -575,23 +566,22 @@ export default function ModificarProyectos() {
 
                                 const data = await response.json();
                                 if (!data.success) {
-                                    setMensaje({ tipo: "error", texto: data.message });
-                                    await esperar(2800);
+                                    mostrarMensaje(data.message, "error");
                                 } else {
-                                    setMensaje({ tipo: "success", texto: data.message });
-                                    await esperar(2800);
+                                    mostrarMensaje(data.message, "success");
                                 }
                             } catch (error) {
-                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                             }
                         }
                     }
                 }
             } else {
-                setMensaje({ tipo: "error", texto: "Por favor, ingrese toda la información de los estudiantes" });
+                mostrarMensaje("Por favor, ingrese toda la información de los estudiantes", "error");
             }
         }
 
+        await esperar(4000);
         navigate('/admin/proyectos');
     };
 
@@ -624,7 +614,7 @@ export default function ModificarProyectos() {
                 if (estudiantesModificados.length === 1) {
                     cambiosFinales();
                 } else {
-                    setMensaje({ tipo: "error", texto: "La modalidad 'Auxiliar de Investigación' o 'Coterminal' requiere un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." })
+                    mostrarMensaje("La modalidad 'Auxiliar de Investigación' o 'Coterminal' requiere un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
                 }
 
                 // DT o PG
@@ -632,32 +622,20 @@ export default function ModificarProyectos() {
                 if (estudiantesModificados.length >= 2 && estudiantesModificados.length <= 3) {
                     cambiosFinales();
                 } else {
-                    setMensaje({ tipo: "error", texto: "La modalidad 'Desarrollo Tecnológico' y 'Proyecto de Grado' requieren de 2 a 3 integrantes con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." })
+                    mostrarMensaje("La modalidad 'Desarrollo Tecnológico' y 'Proyecto de Grado' requieren de 2 a 3 integrantes con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
                 }
 
             } else {
-                setMensaje({ tipo: "error", texto: "Por favor, complete toda la información del proyecto." });
+                mostrarMensaje("Por favor, complete toda la información del proyecto.", "error");
             }
         } else {
-            setMensaje({ tipo: "error", texto: "No se ha modificado ninguna información del proyecto." });
+            mostrarMensaje("No se ha modificado ninguna información del proyecto.", "error");
         }
 
     };
 
     return (
         <div style={{ margin: "15px" }} >
-            {mensaje.texto && (
-                <Snackbar
-                    open={true}
-                    autoHideDuration={2500}
-                    onClose={handleCloseMensaje}
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                >
-                    <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                        {mensaje.texto}
-                    </Alert>
-                </Snackbar>
-            )}
 
             <div style={{ display: 'flex', marginBottom: "20px" }}>
                 <Typography
@@ -972,7 +950,7 @@ export default function ModificarProyectos() {
                     )}
                 </Box>
             ) : (
-                <Typography variant="h6" color={colors.primary[100]}>{mensaje.texto}</Typography>
+                <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
             )}
 
             <Button sx={{

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
+import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
 import "./Inscribir.css";
 import { tokens } from "../../../theme";
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../../pie_de_pagina/Footer";
+import { useSnackbar } from 'notistack';
 
 export const Inscribir = () => {
 
@@ -35,9 +36,10 @@ export const Inscribir = () => {
 
     const navigate = useNavigate();
 
-    // Variable del SnackBar
-    const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-    const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     // Lista de todos los usuarios con tipo usuario normal
     const [listaDirectores, setListaDirectores] = useState([]);
@@ -51,13 +53,13 @@ export const Inscribir = () => {
             const data = await response.json();
 
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setListaDirectores(data.directores);
             }
 
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -73,13 +75,13 @@ export const Inscribir = () => {
             const data = await response.json();
 
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setIdUltProy(data.num);
             }
 
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -96,13 +98,13 @@ export const Inscribir = () => {
             const data = await response.json();
 
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setIdUltEst(data.num);
             }
 
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -118,7 +120,7 @@ export const Inscribir = () => {
             const data = await response.json();
 
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 const currentConsecutivo = parseInt(data.codigo.split('-')[2], 10);
                 const newConsecutivo = (currentConsecutivo + 1).toString().padStart(2, '0');
@@ -126,7 +128,7 @@ export const Inscribir = () => {
             }
 
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -142,13 +144,13 @@ export const Inscribir = () => {
             const data = await response.json();
 
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setListaModalidades(data.modalidades);
             }
 
         } catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, []);
 
@@ -215,7 +217,7 @@ export const Inscribir = () => {
         event.preventDefault();
         // Información General
         if (idModalidadSeleccionada === "" || idDirectorSeleccionado === "" || nombre === "") {
-            setMensaje({ tipo: "error", texto: "Por favor, complete todos los campos." });
+            mostrarMensaje("Por favor, complete todos los campos.", "error");
 
         } else {
             // Verificar integrantes por modalidad
@@ -228,14 +230,14 @@ export const Inscribir = () => {
                     const emailRegex = /^\S+@unbosque\.edu\.co$/;
                     const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
                     if (validEmails.length !== numIntegrantes) {
-                        setMensaje({ tipo: "error", texto: "Por favor, ingresar una dirección de correo electrónico institucional válida." });
+                        mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
                     } else {
 
                         // Verificar que el numero de identificacion no tenga caracteres especiales
                         const idRegex = /^[a-zA-Z0-9]+$/;
                         const validIds = estudiantes.filter((estudiante) => idRegex.test(estudiante.num_identificacion));
                         if (validIds.length !== numIntegrantes) {
-                            setMensaje({ tipo: "error", texto: "El número de identificación no es válido. Debe contener solo letras y/o dígitos." });
+                            mostrarMensaje("El número de identificación no es válido. Debe contener solo letras y/o dígitos.", "error");
                         } else {
 
                             // Código
@@ -280,22 +282,22 @@ export const Inscribir = () => {
 
                                 const data = await response.json();
                                 if (!data.success) {
-                                    setMensaje({ tipo: "error", texto: data.message });
+                                    mostrarMensaje(data.message, "error");
                                 } else {
-                                    setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito." });
+                                    mostrarMensaje("El proyecto fue creado con éxito.", "success");
                                     // Delay
                                     setTimeout(() => {
                                         navigate('/');
                                     }, 2000);
                                 }
                             } catch (error) {
-                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                                mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                             }
                         }
                     }
 
                 } else {
-                    setMensaje({ tipo: "error", texto: "La modalidad 'Auxiliar de Investigación' y 'Coterminal' requieren un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." });
+                    mostrarMensaje("La modalidad 'Auxiliar de Investigación' y 'Coterminal' requieren un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
                 }
 
             } else {
@@ -306,14 +308,14 @@ export const Inscribir = () => {
                     const emailRegex = /^\S+@unbosque\.edu\.co$/;
                     const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
                     if (validEmails.length !== numIntegrantes) {
-                        setMensaje({ tipo: "error", texto: "Por favor, ingresar una dirección de correo electrónico institucional válida." });
+                        mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
                     } else {
 
                         // Verificar que el numero de identificacion no tenga caracteres especiales
                         const idRegex = /^[a-zA-Z0-9]+$/;
                         const validIds = estudiantes.filter((estudiante) => idRegex.test(estudiante.num_identificacion));
                         if (validIds.length !== numIntegrantes) {
-                            setMensaje({ tipo: "error", texto: "El número de identificación no es válido. Debe contener solo letras y/o dígitos." });
+                            mostrarMensaje("El número de identificación no es válido. Debe contener solo letras y/o dígitos.", "error");
                         } else {
 
                             // Código
@@ -359,21 +361,21 @@ export const Inscribir = () => {
 
                                 const data = await response.json();
                                 if (!data.success) {
-                                    setMensaje({ tipo: "error", texto: data.message });
+                                    mostrarMensaje(data.message, "error");
                                 } else {
-                                    setMensaje({ tipo: "success", texto: "El proyecto fue creado con éxito." });
+                                    mostrarMensaje("El proyecto fue creado con éxito.", "success");
                                     // Delay
                                     setTimeout(() => {
                                         navigate('/');
                                     }, 2000);
                                 }
                             } catch (error) {
-                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                                mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                             }
                         }
                     }
                 } else {
-                    setMensaje({ tipo: "error", texto: "La modalidad 'Desarrollo Tecnológico' y 'Proyecto de Grado' requieren de 2 a 3 integrantes con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar." });
+                    mostrarMensaje("La modalidad 'Desarrollo Tecnológico' y 'Proyecto de Grado' requieren de 2 a 3 integrantes con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
                 }
             }
         }
@@ -388,18 +390,6 @@ export const Inscribir = () => {
             <CssBaseline />
 
             <Box sx={{ height: '100%', overflow: 'auto', paddingTop: 5, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
-                {mensaje.texto && (
-                    <Snackbar
-                        open={true}
-                        autoHideDuration={5000}
-                        onClose={handleCloseMensaje}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    >
-                        <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                            {mensaje.texto}
-                        </Alert>
-                    </Snackbar>
-                )}
 
                 <Typography
                     variant="h6"

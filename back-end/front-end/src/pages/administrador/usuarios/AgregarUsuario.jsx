@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
+import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 export default function AgregarUsuario() {
 
@@ -15,9 +16,10 @@ export default function AgregarUsuario() {
 
     const navigate = useNavigate();
 
-    // Variable del SnackBar
-    const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-    const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const [usuario, setUsuario] = useState({
         nombre: "",
@@ -32,15 +34,15 @@ export default function AgregarUsuario() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (usuario.nombre === "" || usuario.correo === "") {
-            setMensaje({ tipo: "error", texto: "Por favor, complete todos los campos." });
+            mostrarMensaje("Por favor, complete todos los campos.", "error");
         } else {
 
             if (!usuario.correo.match(/^\S+@unbosque\.edu\.co$/)) {
-                setMensaje({ tipo: "error", texto: "Por favor, ingresar una dirección de correo electrónico institucional válida." });
+                mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
             } else {
 
                 if (!usuario.nombre.match(/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s']+$/)) {
-                    setMensaje({ tipo: "error", texto: "El nombre ingresado contiene caracteres no permitidos. Por favor, ingrese solo letras (mayúsculas y minúsculas), espacios y algunos caracteres especiales como la letra 'ñ' y los acentos." });
+                    mostrarMensaje("El nombre ingresado contiene caracteres no permitidos. Por favor, ingrese solo letras (mayúsculas y minúsculas), espacios y algunos caracteres especiales como la letra 'ñ' y los acentos.", "error");
                 } else {
 
                     try {
@@ -52,7 +54,7 @@ export default function AgregarUsuario() {
 
                         const data = await response.json();
                         if (!data.success) {
-                            setMensaje({ tipo: "error", texto: data.message });
+                            mostrarMensaje(data.message, "error");
                         } else {
 
                             try {
@@ -65,9 +67,9 @@ export default function AgregarUsuario() {
                                 const data1 = await response1.json();
 
                                 if (!data1.success) {
-                                    setMensaje({ tipo: "error", texto: data1.message });
+                                    mostrarMensaje(data1.message, "error");
                                 } else {
-                                    setMensaje({ tipo: "success", texto: "El usuario fue creado con éxito y le fue enviado un correo de bienvenida." });
+                                    mostrarMensaje("El usuario fue creado con éxito y le fue enviado un correo de bienvenida.", "success");
                                     // Delay
                                     setTimeout(() => {
                                         navigate('/admin');
@@ -75,12 +77,12 @@ export default function AgregarUsuario() {
 
                                 }
                             } catch (error) {
-                                setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                             }
                         }
                     }
                     catch (error) {
-                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                        mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                     }
                 }
             }
@@ -89,18 +91,6 @@ export default function AgregarUsuario() {
 
     return (
         <div style={{ margin: "15px" }} >
-            {mensaje.texto && (
-                <Snackbar
-                    open={true}
-                    autoHideDuration={5000}
-                    onClose={handleCloseMensaje}
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                >
-                    <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                        {mensaje.texto}
-                    </Alert>
-                </Snackbar>
-            )}
 
             <Typography
                 variant="h1"
