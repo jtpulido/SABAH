@@ -62,7 +62,24 @@ export default function Rubricas() {
         openVerRubrica()
     }
 
-    const eliminarRubrica = async (id) => { }
+    const eliminarRubrica = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/comite/rubrica/${id}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error");
+            } else {
+                mostrarMensaje(data.message, "success");
+                obtenerRubricas()
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+        }
+    }
+
     const obtenerRubricas = async () => {
         try {
             const response = await fetch('http://localhost:5000/comite/obtenerRubricasAspectos', {
@@ -129,8 +146,8 @@ export default function Rubricas() {
                 open={openCrear}
                 onClose={cerrarCrearRubrica}
             />
-            <VerModificarRubrica 
-            open={openVer}
+            <VerModificarRubrica
+                open={openVer}
                 onClose={cerrarVerRubrica}
                 rubrica={rubrica}
             />
