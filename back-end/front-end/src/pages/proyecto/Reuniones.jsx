@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline, TextField, Grid } from '@mui/material';
-import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
+import { Typography, useTheme} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { Link } from 'react-router-dom';
-
+import { useSnackbar } from 'notistack';
 
 function CustomToolbar() {
   return (
@@ -74,8 +74,6 @@ export default function Reuniones() {
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
   const [canceladas, setCanceladas] = useState([]);
@@ -87,7 +85,6 @@ export default function Reuniones() {
   const [nombre, setNombre] = useState("");
   const [enlace, setEnlace] = useState("");
   const [rol, setRol] = useState("");
-  const [idReunion, setIdReunion] = useState("");
   const [reunionSeleccionada, setReunionSeleccionada] = useState(null);
 
 
@@ -131,7 +128,7 @@ export default function Reuniones() {
       const data = await response.json();
       
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message,'error');
       } else {
         const formattedReunion = data.reunion.map(row => ({
           ...row,
@@ -141,8 +138,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      alert(error)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
     }
     
   };
@@ -172,9 +168,9 @@ export default function Reuniones() {
 
     // Verifica si la solicitud fue exitosa
     if (response.ok) {
-      alert("La reunion se edito exitosamente.");
+      mostrarMensaje("La reunion se edito exitosamente.",'success');
     } else {
-      alert("Ocurrió un error.");
+      mostrarMensaje("Ocurrió un error.",'error');
     }
     handleCloseModal1()
   }
@@ -206,13 +202,13 @@ export default function Reuniones() {
   
       // Verifica si la solicitud fue exitosa
       if (response.ok) {
-        alert("La reunion se genero exitosamente.");
+        mostrarMensaje("La reunion se genero exitosamente.",'success');
       } else {
-        alert("Ocurrió un error.");
+        mostrarMensaje("Ocurrió un error.",'error');
       }
       handleCloseModal()
     } catch (error) {
-      console.error("Ocurrió un error al realizar la solicitud al backend:", error);
+      mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
   };
   const generarColumnas = (extraColumns) => {
@@ -250,7 +246,7 @@ export default function Reuniones() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message,'error');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -261,7 +257,7 @@ export default function Reuniones() {
     }
     catch (error) {
       
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
   const llenarTablaCompletas = async () => {
@@ -275,7 +271,7 @@ export default function Reuniones() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, 'error');
       } else {
         const formattedCompletadas = data.completas.map(row => ({
           ...row,
@@ -285,8 +281,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      alert(error);
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
     }
   }; 
   const llenarTablaCanceladas = async () => {
@@ -300,7 +295,7 @@ export default function Reuniones() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, 'error');
       } else {
         const formattedCanceladas = data.canceladas.map(row => ({
           ...row,
@@ -310,8 +305,7 @@ export default function Reuniones() {
       }
     }
     catch (error) {
-      alert(error)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
     }
   };
   useEffect(() => {
@@ -319,7 +313,6 @@ export default function Reuniones() {
     llenarTablaCompletas();
     llenarTablaCanceladas();
     if (reunionSeleccionada && reunionSeleccionada.length > 0) {
-      alert("reunion seleccionada", reunionSeleccionada);
       setNombre(reunionSeleccionada[0].nombre);
       setFecha(reunionSeleccionada[0].fecha);
       setEnlace(reunionSeleccionada[0].enlace);
@@ -361,17 +354,17 @@ const columnsPendientes = generarColumnas([
                   
                     .then(response => {
                       if (response.ok) {
-                        alert('La reunión se canceló correctamente');
+                        mostrarMensaje('La reunión se canceló correctamente','success');
                         // Lógica adicional si es necesario
                       } else {
                         
-                        alert('Ocurrió un error al cancelar la reunión',error);
+                        mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
                         // Lógica adicional si es necesario
                       }
                     })
                     .catch(error => {
-                      alert('Ocurrió un error al cancelar la reunión');
-                      console.error(error);
+                      mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
+                     
                     });
                 }
               }}>
@@ -392,7 +385,7 @@ const columnsCompletas = generarColumnas([
     headerAlign: "center",
     align: "center",
     renderCell: ({ row }) => {
-const id = row && row.id; // Verificar si row existe y tiene una propiedad id      alert("aisodkx,",columnaId)
+const id = row && row.id; // Verificar si row existe y tiene una propiedad id      
       const ruta = `/proyecto/ActaReunion/${id}`; // Agregar el ID a la ruta
 
       return (
@@ -407,32 +400,11 @@ const id = row && row.id; // Verificar si row existe y tiene una propiedad id   
     },
   },
 ]);
+const { enqueueSnackbar } = useSnackbar();
 
-/** 
-const columnsCompletas = generarColumnas([
-  {
-    field: "Acción",
-    headerName: "Acción",
-    flex: 0.01,
-    minWidth: 150,
-    headerAlign: "center",
-    align: "center",
-    renderCell: ({ row }) => {
-      const columnaId = row.id; // Obtener el ID de la columna
-
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Tooltip title="">
-            <IconButton color="secondary" component={Link} to={{ pathname: '/proyecto/ActaReunion', state: { id: columnaId } }}>
-              <DescriptionIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      );
-    },
-  },
-]);
-*/
+  const mostrarMensaje = (mensaje, variante) => {
+      enqueueSnackbar(mensaje, { variant: variante });
+    };
 const columnsCanceladas = generarColumnas([
   {
     field: "Acción",
@@ -469,13 +441,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
 
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
+      
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>

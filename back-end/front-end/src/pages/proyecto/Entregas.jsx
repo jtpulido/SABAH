@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import {  IconButton, Tooltip } from "@mui/material";
-import { Typography, useTheme, Alert, Snackbar, Box, TextField } from "@mui/material";
+import { Typography, useTheme, Box, TextField } from "@mui/material";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import "./Entregas.css";
 import { useSelector } from "react-redux";
@@ -13,6 +13,7 @@ import InsertLinkIcon from '@mui/icons-material/InsertLink';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import UploadIcon from '@mui/icons-material/Upload';
+import { useSnackbar } from 'notistack';
 
 function CustomToolbar() {
   return (
@@ -22,13 +23,15 @@ function CustomToolbar() {
     </GridToolbarContainer>
   );
 }
+
 function CustomDataGrid({ rows, columns }) {
   const [height, setHeight] = useState('300px');
-
+  
   useEffect(() => {
     setHeight(rows.length > 0 ? 'auto' : '300px');
   }, [rows]);
   
+ 
   return (
     <Box sx={{ height }}>
       <DataGrid
@@ -74,7 +77,11 @@ export default function Entregas() {
   const [showModal, setShowModal] = useState(false);
   const [showModal1, setShowModal1] = useState(false);
   const [link, setLink] = useState('');
+  const { enqueueSnackbar } = useSnackbar();
 
+  const mostrarMensaje = (mensaje, variante) => {
+      enqueueSnackbar(mensaje, { variant: variante });
+    };
   const handleOpenModal = () => {
     setShowModal(true);
   };
@@ -137,15 +144,14 @@ export default function Entregas() {
   
       // Verifica si la solicitud fue exitosa
       if (response.ok) {
-        alert("La solicitud se genero exitosamente.");
+        mostrarMensaje("La solicitud se genero exitosamente.","success");
       } else {
-        alert("Ocurrió un error.");
+        mostrarMensaje("Ocurrió un error.","error");
       }
       handleCloseModal()
     } catch (error) {
-      alert("Ocurrió un error al realizar la solicitud al backend:", error);
+      mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
-    alert("Guardando el valor:", link);
     handleCloseModal();
   };
     const handleSaveProyecto = async () => {
@@ -171,15 +177,14 @@ export default function Entregas() {
     
         // Verifica si la solicitud fue exitosa
         if (response.ok) {
-          alert("La solicitud se genero exitosamente.");
+          mostrarMensaje("La solicitud se genero exitosamente.","success");
         } else {
-         alert("Ocurrió un error.");
+         mostrarMensaje("Ocurrió un error.","error");
         }
         handleCloseModal()
       } catch (error) {
-       alert("Ocurrió un error al realizar la solicitud al backend:", error);
+       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
       }
-    alert("Guardando el valor:", link);
     handleCloseModal();
   };
 
@@ -249,8 +254,8 @@ export default function Entregas() {
       }
     }
     catch (error) {
-      alert(error)
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error')
+      
     }
   };
   const llenarTablaCompletadas = async () => {
@@ -344,14 +349,7 @@ export default function Entregas() {
 
   return (
     <div style={{ margin: "15px" }}> 
-
-    {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}  
+ 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
         <Typography variant="h1" color={colors.secundary[100]}> ENTREGAS </Typography>
        </div>

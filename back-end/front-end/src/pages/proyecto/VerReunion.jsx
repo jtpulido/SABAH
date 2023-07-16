@@ -1,38 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
-import { Box, CssBaseline, TextField, Grid } from '@mui/material';
-import { Typography, useTheme, Alert, Snackbar} from "@mui/material";
-import { ListSubheader } from '@mui/material/ListSubheader';
-import { ListItemText } from '@mui/material/ListItemText';
-import { ListItemIcon } from '@mui/material/ListItemIcon';
-import { MenuList } from '@mui/material/MenuList';
-import { ThemeProvider } from '@mui/material/styles';
-import { Toolbar } from '@mui/material';
+import { TextField, Grid } from '@mui/material';
+import { Typography, useTheme} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { useCookies } from 'react-cookie';
-import { useNavigate } from 'react-router-dom';
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import CreateIcon from '@mui/icons-material/Create';
-import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import DescriptionIcon from '@mui/icons-material/Description';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs from 'dayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { Dialog, DialogContent, DialogActions } from "@mui/material";
 import { useLocation } from "react-router-dom";
+import { useSnackbar } from 'notistack';
 
 export default function VerReunion() {
   const location = useLocation();
   const token = useSelector(selectToken);
-  const [error, setError] = useState(null);
-
   const theme = useTheme();
   const [nombre, setNombre] = useState("");
   const [fecha, setFecha] = useState("");
@@ -40,7 +26,10 @@ export default function VerReunion() {
   const [enlace, setEnlace] = useState("");
   const [idReunion, setIdReunion] = useState("");
   const colors = tokens(theme.palette.mode);
-  
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
 
 
   useEffect(() => {
@@ -56,12 +45,6 @@ export default function VerReunion() {
     setHora(decodedHora);
     setEnlace(decodedEnlace);
     setIdReunion(decodedIdReunion);
-
-    console.log("Nombre:", decodedNombre);
-    console.log("Fecha:", decodedFecha);
-    console.log("Hora:", decodedHora);
-    console.log("Enlace:", decodedEnlace);
-    console.log("idReunion:", decodedIdReunion);
 
   }, [location.search]);
 
@@ -87,17 +70,16 @@ export default function VerReunion() {
                   
                     .then(response => {
                       if (response.ok) {
-                        alert('La reunión se canceló correctamente');
+                        alert('La reunión se canceló correctamente','success');
                         // Lógica adicional si es necesario
                       } else {
                         
-                        alert('Ocurrió un error al cancelar la reunión',error);
+                        alert('Ocurrió un error al cancelar la reunión','error');
                         // Lógica adicional si es necesario
                       }
                     })
                     .catch(error => {
-                      alert('Ocurrió un error al cancelar la reunión');
-                      console.error(error);
+                      mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
                     });
                 }
               }}>
