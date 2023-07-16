@@ -19,6 +19,7 @@ import { AddCircleOutline, Delete, Source } from '@mui/icons-material';
 import CustomDataGrid from "../../layouts/DataGrid";
 
 import CrearRubrica from "./Ventanas/CrearRubrica";
+import VerModificarRubrica from "./Ventanas/VerModificarRubrica";
 
 export default function Rubricas() {
     const { enqueueSnackbar } = useSnackbar();
@@ -29,22 +30,38 @@ export default function Rubricas() {
     const colors = tokens(theme.palette.mode);
 
     const [rubricas, setRubricas] = useState([]);
+    const [rubrica, setRubrica] = useState({});
 
-    const [open, setOpen] = useState(false);
+    const [openCrear, setOpenCrear] = useState(false);
+    const [openVer, setOpenVer] = useState(false);
 
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
     const openCrearRubrica = () => {
-        setOpen(true);
+        setOpenCrear(true);
     };
 
     const cerrarCrearRubrica = () => {
-        setOpen(false);
+        setOpenCrear(false);
         obtenerRubricas()
     }
-    const modificarRubrica = async (rubrica) => { }
+
+    const openVerRubrica = () => {
+        setOpenVer(true);
+    };
+
+    const cerrarVerRubrica = () => {
+        setOpenVer(false);
+        setRubrica({})
+        obtenerRubricas()
+    }
+    const modificarRubrica = async (rubrica) => {
+        setRubrica(rubrica)
+        openVerRubrica()
+    }
+
     const eliminarRubrica = async (id) => { }
     const obtenerRubricas = async () => {
         try {
@@ -96,8 +113,7 @@ export default function Rubricas() {
 
 
     return (
-        <div style={{ margin: "15px" }}>
-
+        <div>
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
@@ -110,11 +126,15 @@ export default function Rubricas() {
             </AppBar>
 
             <CrearRubrica
-                open={open}
+                open={openCrear}
                 onClose={cerrarCrearRubrica}
             />
+            <VerModificarRubrica 
+            open={openVer}
+                onClose={cerrarVerRubrica}
+                rubrica={rubrica}
+            />
             <CustomDataGrid rows={rubricas} columns={columnas} mensaje="No hay aspectos." />
-
         </div>
     );
 }

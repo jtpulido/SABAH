@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { tokens } from '../../../../theme';
 import { useSelector } from 'react-redux';
@@ -9,7 +9,6 @@ import {
     CircularProgress,
     Box,
     TextField,
-    CssBaseline,
     Button,
     DialogTitle,
     Dialog,
@@ -24,14 +23,23 @@ import {
     TableCell,
     Select,
     MenuItem,
-    FormControl} from '@mui/material';
-
+    FormControl,
+    Slide,
+    IconButton,
+    Tooltip
+} from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { SaveOutlined } from '@mui/icons-material';
+import { Delete, Edit, SaveOutlined } from '@mui/icons-material';
+import CustomDataGrid from '../../../layouts/DataGrid';
 
-function CrearRubrica(props) {
-    const { onClose, open } = props;
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+
+function VerModificarRubrica(props) {
+
     const { enqueueSnackbar } = useSnackbar();
+    const { onClose, rubrica = {}, open, ...other } = props;
 
     const token = useSelector(selectToken);
 
@@ -39,23 +47,39 @@ function CrearRubrica(props) {
     const colors = tokens(theme.palette.mode);
 
     const [loading, setLoading] = useState(true);
+    const [id, setId] = useState(rubrica.id);
 
     const [rubricaNombre, setRubricaNombre] = useState('');
     const [rubricaDescripcion, setRubricaDescripcion] = useState('');
     const [selectedAspectos, setSelectedAspectos] = useState([]);
-    const [aspectoPuntajes, setAspectoPuntajes] = useState({});
+    const [aspectoPuntajes, setAspectoPuntajes] = useState([]);
     const [puntajesWarning, setPuntajesWarning] = useState(false);
     const [aspectos, setAspectos] = useState([]);
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
-    const handleEntering = () => {
+    const handleEntering = async () => {
+        setRubricaNombre(rubrica.rubrica_nombre)
+        setRubricaDescripcion(rubrica.rubrica_descripcion)
+        setSelectedAspectos(rubrica.aspectos)
+        if (rubrica.aspectos) {
+            const aspectoPuntajes = rubrica.aspectos.reduce((acc, aspecto) => {
+                return { ...acc, [aspecto.id]: aspecto.aspecto_puntaje };
+            }, {});
+            setAspectoPuntajes(aspectoPuntajes);
+        }
         obtenerAspectos()
         setLoading(false);
     };
     const handleCancel = () => {
         onClose();
+        setRubricaNombre("")
+        setRubricaDescripcion("")
+        setSelectedAspectos([])
+        setAspectoPuntajes([])
+        setAspectos([])
         setLoading(true);
     };
 
@@ -80,41 +104,16 @@ function CrearRubrica(props) {
             mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
         }
     };
-    const handleSubmit = async () => {
-        const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
-        if (puntajesSum === 100) {
-            try {
-                const rubricaData = {
-                    nombre: rubricaNombre,
-                    descripcion: rubricaDescripcion,
-                    aspectos: selectedAspectos.map((aspecto) => ({
-                        ...aspecto,
-                        puntaje: aspectoPuntajes[aspecto.id] || 0,
-                    })),
-                };
-
-                const response = await fetch('http://localhost:5000/comite/crearRubrica', {
-                    method: 'POST',
-                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(rubricaData),
-                });
-                const data = await response.json();
-                if (data.success) {
-                    setRubricaNombre('');
-                    setRubricaDescripcion('');
-                    setSelectedAspectos([]);
-                    setAspectoPuntajes({});
-                    mostrarMensaje(data.mensaje, "success");
-                } else {
-                    mostrarMensaje(data.message, "error");
-                }
-            } catch (error) {
-                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-            }
-        } else {
-            mostrarMensaje("La suma de los aspectos debe ser 100", "error");
-        }
-    };
+    const modificarRubrica = async (event) => {
+        event.preventDefault();
+        setRubricaNombre("")
+        setRubricaDescripcion("")
+        setSelectedAspectos([])
+        setAspectoPuntajes({})
+        setAspectos([])
+        setLoading(true);
+        console.log(rubrica)
+    }
     const handleAspectoSelect = (event) => {
         const aspectoId = event.target.value;
         const selectedAspecto = aspectos.find((aspecto) => aspecto.id === aspectoId);
@@ -155,15 +154,44 @@ function CrearRubrica(props) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setRubricaDescripcion(isOnlyWhitespace ? "" : value);
     };
-   
+    const columnas = [
+        { field: 'id', headerName: 'Identificador', flex: 0.1, minWidth: 200, align: "center" },
+        { field: 'aspecto_nombre', headerName: 'Nombre', flex: 0.8, minWidth: 100, align: "center" },
+        { field: 'aspecto_puntaje', headerName: 'Puntaje', flex: 0.8, minWidth: 100, align: "center" },
+
+        {
+            field: "accion",
+            headerName: "",
+            flex: 0.1,
+            minWidth: 50,
+            renderCell: ({ aspecto }) => {
+                return (
+                    <Box width="100%" ml="10px" display="flex" justifyContent="center">
+                        <Tooltip title="Eliminar Aspecto">
+                            <IconButton color="secondary" onClick={() => handleAspectoRemove(aspecto.id)}>
+                                <Delete />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                );
+            },
+        }
+    ]
+    const [editMode, setEditMode] = useState(false);
+    const habilitarEdicion = () => {
+        setEditMode(!editMode);
+    };
     return (
-        <Dialog open={open} fullWidth maxWidth="md"  TransitionProps={{ onEntering: handleEntering }} >
-            <CssBaseline />
+
+        <Dialog fullWidth maxWidth="md" TransitionComponent={Transition} open={open} {...other} TransitionProps={{ onEntering: handleEntering }}>
 
             <DialogTitle variant="h1" color={colors.primary[100]}>
-                CREAR RUBRICA
+                VER/MODIFICAR RUBRICA
+                <IconButton onClick={habilitarEdicion}>
+                    <Edit />
+                </IconButton>
             </DialogTitle>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={modificarRubrica}>
                 <DialogContent dividers>
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
@@ -181,6 +209,7 @@ function CrearRubrica(props) {
                                 helperText={'Ingresa el nombre de la rubrica.'}
                                 required
                                 fullWidth
+                                disabled={!editMode}
                             />
                             <Typography variant="h6" color={colors.primary[100]}>
                                 Descripción
@@ -194,12 +223,13 @@ function CrearRubrica(props) {
                                 helperText={'Ingresa la descripción de la rubrica.'}
                                 required
                                 fullWidth
+                                disabled={!editMode}
                             />
 
-                            <FormControl fullWidth margin="normal">
-                            <Typography variant="h6" color={colors.primary[100]}>
-                                Seleccionar aspectos
-                            </Typography>
+                            <FormControl fullWidth margin="normal" required>
+                                <Typography variant="h6" color={colors.primary[100]}>
+                                    Seleccionar aspectos
+                                </Typography>
                                 <Select
                                     value=""
                                     onChange={handleAspectoSelect}
@@ -217,6 +247,7 @@ function CrearRubrica(props) {
                                             ))}
                                         </Box>
                                     )}
+                                    disabled={!editMode}
                                 >
                                     {aspectos.map((aspecto) => (
                                         <MenuItem key={aspecto.id} value={aspecto.id}>
@@ -240,7 +271,7 @@ function CrearRubrica(props) {
                                     <TableBody>
                                         {selectedAspectos.map((aspecto) => (
                                             <TableRow key={aspecto.id}>
-                                                <TableCell>{aspecto.nombre}</TableCell>
+                                                <TableCell>{aspecto.aspecto_nombre}</TableCell>
                                                 <TableCell>
                                                     <TextField
                                                         type="number"
@@ -251,6 +282,7 @@ function CrearRubrica(props) {
                                                             max: 100,
                                                         }}
                                                         required
+                                                        disabled={!editMode}
                                                     />
                                                 </TableCell>
                                                 <TableCell>
@@ -258,7 +290,8 @@ function CrearRubrica(props) {
                                                         variant="outlined"
                                                         color="secondary"
                                                         onClick={() => handleAspectoRemove(aspecto.id)}
-                                                    >
+                                                        disabled={!editMode}
+                                                   >
                                                         Eliminar
                                                     </Button>
                                                 </TableCell>
@@ -282,12 +315,13 @@ function CrearRubrica(props) {
                 </DialogActions>
             </form>
         </Dialog>
+
     );
 }
-
-CrearRubrica.propTypes = {
+VerModificarRubrica.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    rubrica: PropTypes.object.isRequired,
 };
 
-export default CrearRubrica;
+export default VerModificarRubrica;

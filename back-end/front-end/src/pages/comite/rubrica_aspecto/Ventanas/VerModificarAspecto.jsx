@@ -14,11 +14,12 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    IconButton
+    IconButton,
+    Typography
 } from '@mui/material';
 
 import { useSnackbar } from 'notistack';
-import { Edit, EditAttributes } from '@mui/icons-material';
+import { Edit, SaveOutlined } from '@mui/icons-material';
 
 function VerModificarAspecto(props) {
     const { onClose, open, aspecto } = props;
@@ -37,8 +38,8 @@ function VerModificarAspecto(props) {
     };
 
     const handleEntering = () => {
-        setLoading(false);
         setNombre(aspecto.nombre)
+        setLoading(false);
     };
     const handleCancel = () => {
         onClose();
@@ -72,10 +73,10 @@ function VerModificarAspecto(props) {
         }
     };
     return (
-        <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
+        <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
             <CssBaseline />
             <DialogTitle variant="h1" color={colors.primary[100]}>
-                VER/MODIFICAR RUBRICA
+                VER/MODIFICAR ASPECTO
                 <IconButton onClick={habilitarEdicion}>
                     <Edit />
                 </IconButton>
@@ -88,9 +89,11 @@ function VerModificarAspecto(props) {
                         </Box>
                     ) : (
                         <>
-
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Nombre del aspecto
+                            </Typography>
+                         
                             <TextField
-                                label="Nombre del aspecto"
                                 value={nombre}
                                 required
                                 onChange={(e) => handleNombreASChange(e.target.value)}
@@ -105,8 +108,8 @@ function VerModificarAspecto(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button variant="contained" type='submit' disabled={!editMode}>
-                        Guardar Cambios
+                    <Button type="submit" variant="contained"  disabled={!editMode} startIcon={<SaveOutlined />} >
+                        Guardar
                     </Button>
                 </DialogActions>
             </form>

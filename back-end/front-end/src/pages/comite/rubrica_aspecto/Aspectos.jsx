@@ -33,8 +33,6 @@ export default function Aspectos() {
     const [aspectos, setAspectos] = useState([]);
     const [aspecto, setAspecto] = useState({});
 
-
-
     const obtenerAspectos = async () => {
         try {
             const response = await fetch("http://localhost:5000/comite/aspecto", {
@@ -74,19 +72,12 @@ export default function Aspectos() {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     };
-    const crearAspecto = async () => {
-        abrirCrearAspecto()
-    }
-    const verModificarAspecto = async (aspecto) => {
-        setAspecto(aspecto)
-        abrirModificarAspecto()
 
-    }
     const columnas = [
         { field: 'id', headerName: 'Identificador', flex: 0.1, minWidth: 200, align: "center" },
         { field: 'nombre', headerName: 'Nombre', flex: 0.8, minWidth: 100, align: "center" },
         {
-            field: "calificar",
+            field: "accion",
             headerName: "",
             flex: 0.1,
             minWidth: 50,
@@ -121,12 +112,14 @@ export default function Aspectos() {
     }
     const [abrirModificar, setAbrirModificar] = useState(false);
 
-    const abrirModificarAspecto = () => {
-        setAbrirModificar(true);
-    };
+    const verModificarAspecto = async (aspecto) => {
+        setAspecto(aspecto)
+        setAbrirModificar(true)
 
+    }
     const cerrarModificarAspecto = () => {
         setAbrirModificar(false);
+        setAspecto({})
         obtenerAspectos()
     }
 
@@ -135,7 +128,7 @@ export default function Aspectos() {
     }, []);
 
     return (
-        <div style={{ margin: "15px" }}>
+        <div >
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>

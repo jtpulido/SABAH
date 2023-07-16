@@ -1,4 +1,5 @@
 const pool = require('../database')
+const moment = require('moment');
 const message = 'Lo siento, ha ocurrido un error en el la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.'
 
 const crearAspecto = async (req, res) => {
@@ -27,11 +28,11 @@ const crearAspecto = async (req, res) => {
 const modificarAspecto = async (req, res) => {
     try {
         const { aspectoId } = req.params;
-        const {  nombre } = req.body;
+        const { nombre } = req.body;
 
         const query = 'UPDATE aspecto SET nombre = $1 WHERE id = $2';
         const values = [nombre, aspectoId];
-        await pool.query(query, values, (error,result) => {
+        await pool.query(query, values, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
             }
@@ -40,7 +41,8 @@ const modificarAspecto = async (req, res) => {
 
             } else {
                 return res.status(203).json({ success: true, message: 'No se ha modificado ningun aspecto.' })
-            } });
+            }
+        });
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
@@ -140,11 +142,10 @@ const obtenerRubricasConAspectos = async (req, res) => {
       `;
 
         const result = await pool.query(query);
-
         const groupedRows = new Map();
         result.rows.forEach((row) => {
-            if (!groupedRows.has(row.id_rubrica)) {
-                groupedRows.set(row.id_rubrica, {
+            if (!groupedRows.has(row.id)) {
+                groupedRows.set(row.id, {
                     id: row.id,
                     rubrica_nombre: row.rubrica_nombre,
                     rubrica_descripcion: row.rubrica_descripcion,
@@ -152,8 +153,8 @@ const obtenerRubricasConAspectos = async (req, res) => {
                 });
             }
             if (row.id_aspecto) {
-                groupedRows.get(row.id_rubrica).aspectos.push({
-                    id_aspecto: row.id_aspecto,
+                groupedRows.get(row.id).aspectos.push({
+                    id: row.id_aspecto,
                     aspecto_nombre: row.aspecto_nombre,
                     aspecto_puntaje: row.aspecto_puntaje,
                 });
@@ -175,8 +176,13 @@ const crearEspacio = async (req, res) => {
     try {
         const { nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
 
+        const fechaAperturaFormatted = moment(fecha_apertura, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
+        const fechaCierreFormatted = moment(fecha_cierre, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
+        
+
         const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
-        const values = [nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica];
+        const values = [nombre, descripcion, fechaAperturaFormatted, fechaCierreFormatted, id_rol, id_modalidad, id_etapa, id_rubrica];
+
         await pool.query(query, values, (error) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al crear el espacio. Por favor, intente de nuevo más tarde.' });

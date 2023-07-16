@@ -13,10 +13,12 @@ import {
     DialogTitle,
     Dialog,
     DialogActions,
-    DialogContent
+    DialogContent,
+    Typography
 } from '@mui/material';
 
 import { useSnackbar } from 'notistack';
+import { SaveOutlined } from '@mui/icons-material';
 
 function CrearAspecto(props) {
     const { onClose, open } = props;
@@ -65,7 +67,7 @@ function CrearAspecto(props) {
         }
     };
     return (
-        <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
+        <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
             <CssBaseline />
 
             <DialogTitle variant="h1" color={colors.primary[100]}>
@@ -79,23 +81,24 @@ function CrearAspecto(props) {
                         </Box>
                     ) : (
                         <>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Nombre del aspecto
+                            </Typography>
                             <TextField
-                                label="Nombre del aspecto"
                                 value={nombre}
-                                required
                                 onChange={(e) => handleNombreASChange(e.target.value)}
                                 fullWidth
-                                margin="normal"
                                 error={!nombre}
                                 helperText={'Ingresa el nombre del aspecto'}
+                                required
                             />
                         </>
                     )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button variant="contained" type='submit'>
-                        Crear Aspecto
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                        Guardar
                     </Button>
                 </DialogActions>
             </form>
