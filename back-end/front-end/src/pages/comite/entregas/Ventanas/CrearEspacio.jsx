@@ -261,7 +261,7 @@ function CrearEspacio(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained"  startIcon={<SaveOutlined />} >
                         Guardar
                     </Button>
                 </DialogActions>

@@ -7,16 +7,20 @@ import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { ExpandMore } from '@mui/icons-material';
-import { Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails, useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent } from "@mui/material";
+import {
+    Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails,
+    useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent
+} from "@mui/material";
 
 import CustomDataGrid from "../../layouts/DataGrid";
- import { useSnackbar } from 'notistack';
+import { useSnackbar } from 'notistack';
+
 function VerSolicitud(props) {
 
     const { onClose, id_solicitud, open } = props;
 
     const { enqueueSnackbar } = useSnackbar();
-  
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
@@ -102,7 +106,7 @@ function VerSolicitud(props) {
 
             setIsFormValid(false)
             if (response.status === 200) {
-                mostrarMensaje("Se ha guardado su respuesta!","success")
+                mostrarMensaje("Se ha guardado su respuesta!", "success")
                 obtenerInfoSolicitud(id_solicitud)
                 obtenerAprobacionesSolicitud(id_solicitud)
             } else if (response.status === 502) {
@@ -121,10 +125,10 @@ function VerSolicitud(props) {
     };
 
     const columns = [
-        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80,  align: "center" },
-        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80,  align: "center" },
-        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100,  align: "center" },
-        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150,  align: "center" }
+        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80, align: "center" },
+        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80, align: "center" },
+        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, align: "center" },
+        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, align: "center" }
     ];
     const handleApprovalChange = (event) => {
         setApproval(event.target.value);
@@ -142,7 +146,7 @@ function VerSolicitud(props) {
 
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md' onClose={handleCancel}>
-           
+
             <CssBaseline />
 
             <DialogTitle variant="h1" color={colors.primary[100]}>VER SOLICITUD</DialogTitle>

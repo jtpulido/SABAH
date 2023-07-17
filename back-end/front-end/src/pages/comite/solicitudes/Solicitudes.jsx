@@ -52,10 +52,10 @@ export default function Proyectos() {
           );
         },
       },
-      { field: 'creado_por', headerName: 'Creado por', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
-      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150,  align: "center" },
-      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.15, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.2, minWidth: 100,  align: "center" },
+      { field: 'creado_por', headerName: 'Creado por', flex: 0.1,   valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
+      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150 },
+      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.1,  valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.1, minWidth: 100 },
       {
         field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,  
         valueGetter: (params) =>
@@ -68,17 +68,17 @@ export default function Proyectos() {
   };
 
   const columnsPendientes = generarColumnas([{
-    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,   renderCell: (params) => {
+    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1, renderCell: (params) => {
       return params.value || "N/A";
     },
   }]);
   const columnsAprobadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,  align: "center" },
-    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.15, minWidth: 150,  align: "center" }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1},
+    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.1 }
   ]);
   const columnsRechazadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,  align: "center" },
-    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.15, minWidth: 150,  align: "center" }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1},
+    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1}
   ]);
 
   const verProyecto = (id) => {

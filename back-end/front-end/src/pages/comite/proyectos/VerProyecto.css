@@ -1,3 +1,6 @@
 .MuiInputBase-input {
     text-align: center;
 }
+button.MuiButtonBase-root:not(.MuiIconButton-root) {
+    min-width: 150px;
+}

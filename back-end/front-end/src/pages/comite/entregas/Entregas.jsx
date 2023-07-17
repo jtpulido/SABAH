@@ -65,7 +65,7 @@ export default function Entregas() {
 
   const generarColumnas = (extraColumns) => {
     const columns = [
-      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.4, minWidth: 200, align: "center" },
+      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.3, minWidth: 200, align: "center" },
       { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.1, minWidth: 100, align: "center" },    
       { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 150, align: "center" },
       { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100, align: "center" }
@@ -74,12 +74,12 @@ export default function Entregas() {
   };
 
   const columnaPendientes = generarColumnas([ { field: 'fecha_apertura', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-  { field: 'fecha_cierre', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') }
+  { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') }
  ]);
   const columnaPorCalificar = generarColumnas([
-    { field: 'fecha_apertura', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },   
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },   
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
       field: "calificar",
       headerName: "",
@@ -99,7 +99,7 @@ export default function Entregas() {
     }
   ]);
   const columnaCalificadas = generarColumnas([
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
     { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100, align: "center" }
 

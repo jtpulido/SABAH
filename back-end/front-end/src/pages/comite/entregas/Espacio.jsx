@@ -235,7 +235,7 @@ export default function Espacios() {
                         ESPACIOS DE ENTREGAS
                     </Typography>
                     <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirDialog}>
-                        Agregar espacio
+                        Crear espacio
                     </Button>
                 </Toolbar>
             </AppBar>
