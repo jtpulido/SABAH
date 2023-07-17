@@ -61,6 +61,7 @@ function VerModificarRubrica(props) {
     };
 
     const handleEntering = async () => {
+        console.log(rubrica);
         setRubricaNombre(rubrica.rubrica_nombre)
         setRubricaDescripcion(rubrica.rubrica_descripcion)
         setSelectedAspectos(rubrica.aspectos)
@@ -156,6 +157,7 @@ function VerModificarRubrica(props) {
     };
    
     const [editMode, setEditMode] = useState(false);
+
     const habilitarEdicion = async() => {
         try {
             const response = await fetch("http://localhost:5000/usoRubrica/aspecto", {

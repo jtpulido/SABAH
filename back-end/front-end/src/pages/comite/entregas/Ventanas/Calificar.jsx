@@ -35,6 +35,7 @@ function CalificarEntrega(props) {
     const [puntaje, setPuntaje] = useState({});
     const [comentario, setComentario] = useState({});
     const [aspectos, setAspectos] = useState([]);
+    const [docEntregado, setDocEntregado] = useState(null);
 
     const handleEntering = () => {
         infoDocEntrega(entrega.id);

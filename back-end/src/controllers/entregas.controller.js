@@ -156,8 +156,29 @@ const eliminarRubrica = async (req, res) => {
                     }
                     return res.status(200).json({ success: true, message: 'Rubrica eliminada correctamente.' });
                 });
-            }else{
-                return res.status(502).json({ success: false, message: "No se puede eliminar una rubrica que esta siendo utilizada en un espacio." });  
+            } else {
+                return res.status(502).json({ success: false, message: "No se puede eliminar una rubrica que esta siendo utilizada en un espacio." });
+            }
+        })
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+const validarModificarRubrica = async (req, res) => {
+    try {
+        const rubrica_id = req.params.rubrica_id;
+        const values = [rubrica_id];
+
+        await pool.query('SELECT COUNT(*) FROM espacio_entrega WHERE id_rubrica = $1', values, async (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message });
+            }
+            if (parseInt(result.rows[0].count) === 0) {
+
+                return res.status(200).json({ success: true, message: 'Rubrica eliminada correctamente.' });
+
+            } else {
+                return res.status(502).json({ success: false, message: "No se puede eliminar una rubrica que esta siendo utilizada en un espacio." });
             }
         })
     } catch (error) {
