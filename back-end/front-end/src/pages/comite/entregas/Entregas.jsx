@@ -53,8 +53,15 @@ export default function Entregas() {
     setEntrega(row)
     setOpenCalificar(true);
   };
-
+  const cerrarDialogCalificado = () => {
+    setEntrega({})
+    llenarTabla("pendientes", setRowsPendientes);
+    llenarTabla("realizadas/calificadas", setRowsCalificadas);
+    llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
+    setOpenCalificar(false);
+  }
   const cerrarDialogCalificar = () => {
+    setEntrega({})
     setOpenCalificar(false);
   }
   useEffect(() => {
@@ -116,6 +123,7 @@ export default function Entregas() {
       <CalificarEntrega
         open={openCalificar}
         onClose={cerrarDialogCalificar}
+        onSubmit={cerrarDialogCalificado}
         entrega={entrega}
       />
       <Box sx={{ m: 2 }}>

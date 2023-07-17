@@ -88,7 +88,7 @@ export default function Proyectos() {
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/solicitudes/${endpoint}`, {
-        method: "POST",
+        method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -121,12 +121,18 @@ export default function Proyectos() {
   const cerrarDialog = () => {
     setOpen(false);
   }
+  const recargarAprobacion = () => {
+    llenarTabla("pendienteaprobacion", setRowsEnCurso);
+    llenarTabla("rechazadas", setRowsRechazadas);
+    llenarTabla("aprobadas", setRowsAprobadas);
+  }
   return (
     <div style={{ margin: "15px" }} >
 
       <VerSolicitud
         open={open}
         onClose={cerrarDialog}
+        onSubmit={recargarAprobacion}
         id_solicitud={idSolicitud}
       />
       <Typography

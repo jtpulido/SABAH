@@ -83,7 +83,7 @@ export default function Directores() {
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/directoresproyectos/${endpoint}`, {
-        method: "POST",
+        method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();

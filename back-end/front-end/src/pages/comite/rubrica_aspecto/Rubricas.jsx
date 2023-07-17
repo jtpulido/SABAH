@@ -22,6 +22,7 @@ import CrearRubrica from "./Ventanas/CrearRubrica";
 import VerModificarRubrica from "./Ventanas/VerModificarRubrica";
 
 export default function Rubricas() {
+    
     const { enqueueSnackbar } = useSnackbar();
 
 
@@ -32,34 +33,36 @@ export default function Rubricas() {
     const [rubricas, setRubricas] = useState([]);
     const [rubrica, setRubrica] = useState({});
 
-    const [openCrear, setOpenCrear] = useState(false);
-    const [openVer, setOpenVer] = useState(false);
+    const [abrirCrear, setAbrirCrear] = useState(false);
+    const [abrirVer, setAbrirVer] = useState(false);
 
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
-    const openCrearRubrica = () => {
-        setOpenCrear(true);
+    const abrirCrearRubrica = () => {
+        setAbrirCrear(true);
     };
-
     const cerrarCrearRubrica = () => {
-        setOpenCrear(false);
-        obtenerRubricas()
+        setAbrirCrear(false);
     }
-
-    const openVerRubrica = () => {
-        setOpenVer(true);
+    const cerrarRubricaCreada = () => {
+        setAbrirCrear(false);
+        obtenerRubricas()
     };
 
-    const cerrarVerRubrica = () => {
-        setOpenVer(false);
+    const cerrarVerModificarRubrica = () => {
+        setAbrirVer(false);
+        setRubrica({})
+    }
+    const cerrarRubricaModificada = () => {
+        setAbrirVer(false);
         setRubrica({})
         obtenerRubricas()
     }
-    const modificarRubrica = async (rubrica) => {
+    const abrirVerModificarRubrica = async (rubrica) => {
         setRubrica(rubrica)
-        openVerRubrica()
+        setAbrirVer(true);
     }
 
     const eliminarRubrica = async (id) => {
@@ -108,7 +111,7 @@ export default function Rubricas() {
                 return (
                     <Box width="100%" ml="10px" display="flex" justifyContent="center">
                         <Tooltip title="Ver aspecto">
-                            <IconButton color="secondary" onClick={() => modificarRubrica(row)}>
+                            <IconButton color="secondary" onClick={() => abrirVerModificarRubrica(row)}>
                                 <Source />
                             </IconButton>
 
@@ -136,22 +139,24 @@ export default function Rubricas() {
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
                         RUBRICAS
                     </Typography>
-                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={openCrearRubrica}>
+                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearRubrica}>
                         Crear Rubrica
                     </Button>
                 </Toolbar>
             </AppBar>
 
             <CrearRubrica
-                open={openCrear}
+                open={abrirCrear}
                 onClose={cerrarCrearRubrica}
+                onSubmit={cerrarRubricaCreada}
             />
             <VerModificarRubrica
-                open={openVer}
-                onClose={cerrarVerRubrica}
+                open={abrirVer}
                 rubrica={rubrica}
+                onClose={cerrarVerModificarRubrica}
+                onSubmit={cerrarRubricaModificada}
             />
-            <CustomDataGrid rows={rubricas} columns={columnas} mensaje="No hay aspectos." />
+            <CustomDataGrid rows={rubricas} columns={columnas} mensaje="No hay rubricas creadas." />
         </div>
     );
 }

@@ -108,8 +108,11 @@ export default function Aspectos() {
 
     const cerrarCrearAspecto = () => {
         setAbrirCrear(false);
-        obtenerAspectos()
     }
+    const cerrarAspectoAgregado = () => {
+        obtenerAspectos()
+        setAbrirCrear(false);
+      };
     const [abrirModificar, setAbrirModificar] = useState(false);
 
     const verModificarAspecto = async (aspecto) => {
@@ -120,8 +123,12 @@ export default function Aspectos() {
     const cerrarModificarAspecto = () => {
         setAbrirModificar(false);
         setAspecto({})
-        obtenerAspectos()
     }
+    const cerrarAspectoModificado = () => {
+        setAspecto({})
+        obtenerAspectos()
+        setAbrirModificar(false);
+      };
 
     useEffect(() => {
         obtenerAspectos();
@@ -142,10 +149,12 @@ export default function Aspectos() {
             <CrearAspecto
                 open={abrirCrear}
                 onClose={cerrarCrearAspecto}
+                onSubmit={cerrarAspectoAgregado}
             />
             <VerModificarAspecto
                 open={abrirModificar}
                 onClose={cerrarModificarAspecto}
+                onSubmit={cerrarAspectoModificado}
                 aspecto={aspecto}
             />
             <CustomDataGrid rows={aspectos} columns={columnas} mensaje="No hay aspectos." />

@@ -131,6 +131,63 @@ const crearRubrica = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Error al crear la rubrica' });
     }
 };
+const eliminarRubrica = async (req, res) => {
+    try {
+        const rubrica_id = req.params.rubrica_id;
+        const values = [rubrica_id];
+
+        await pool.query('SELECT COUNT(*) FROM espacio_entrega WHERE id_rubrica = $1', values, async (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message });
+            }
+            if (parseInt(result.rows[0].count) === 0) {
+                const query = 'DELETE FROM rubrica WHERE id = $1 RETURNING *';
+                await pool.query(query, values, (error, result) => {
+                    if (error) {
+                        console.log(error);
+                        if (error.code == '23503') {
+
+                            return res.status(502).json({ success: false, message: "No se puede eliminar una rubrica que esta siendo utilizada." });
+                        }
+                        return res.status(502).json({ success: false, message });
+                    }
+                    if (result.rows.length === 0) {
+                        return res.status(203).json({ success: false, message: 'No se pudo encontrar la rubrica a eliminar.' });
+                    }
+                    return res.status(200).json({ success: true, message: 'Rubrica eliminada correctamente.' });
+                });
+            }else{
+                return res.status(502).json({ success: false, message: "No se puede eliminar una rubrica que esta siendo utilizada en un espacio." });  
+            }
+        })
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+const modificarRubrica = async (req, res) => {
+    try {
+        const rubrica_id = req.params.rubrica_id;
+        const { nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
+
+        const query = `UPDATE espacio_entrega
+        SET nombre = $1, descripcion = $2, fecha_apertura = $3, fecha_cierre = $4, id_rol = $5, id_modalidad = $6, id_etapa = $7, id_rubrica = $8
+        WHERE id = $9
+        RETURNING *`
+        const values = [nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica, rubrica_id];
+
+        await pool.query(query, values, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No se pudo encontrar el espacio de entrega' });
+            }
+            return res.status(200).json({ success: true, message: 'Rubrica modificada correctamente' });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
 
 const obtenerRubricasConAspectos = async (req, res) => {
     try {
@@ -178,7 +235,7 @@ const crearEspacio = async (req, res) => {
 
         const fechaAperturaFormatted = moment(fecha_apertura, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
         const fechaCierreFormatted = moment(fecha_cierre, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
-        
+
 
         const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura, fecha_cierre, id_rol, id_modalidad, id_etapa, id_rubrica) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
         const values = [nombre, descripcion, fechaAperturaFormatted, fechaCierreFormatted, id_rol, id_modalidad, id_etapa, id_rubrica];
@@ -634,7 +691,7 @@ const guardarCalificacion = async (req, res) => {
 
 module.exports = {
     crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
-    crearRubrica, obtenerRubricasConAspectos,
+    crearRubrica, obtenerRubricasConAspectos, eliminarRubrica, modificarRubrica,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientesProyecto, verEntregasRealizadasProyecto,

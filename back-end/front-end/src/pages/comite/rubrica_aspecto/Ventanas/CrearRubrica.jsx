@@ -24,13 +24,14 @@ import {
     TableCell,
     Select,
     MenuItem,
-    FormControl} from '@mui/material';
+    FormControl
+} from '@mui/material';
 
 import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearRubrica(props) {
-    const { onClose, open } = props;
+    const { onClose, onSubmit,open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
@@ -44,7 +45,6 @@ function CrearRubrica(props) {
     const [rubricaDescripcion, setRubricaDescripcion] = useState('');
     const [selectedAspectos, setSelectedAspectos] = useState([]);
     const [aspectoPuntajes, setAspectoPuntajes] = useState({});
-    const [puntajesWarning, setPuntajesWarning] = useState(false);
     const [aspectos, setAspectos] = useState([]);
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -80,7 +80,9 @@ function CrearRubrica(props) {
             mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
         }
     };
-    const handleSubmit = async () => {
+
+    const crearRubrica = async (event) => {
+        event.preventDefault();
         const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
         if (puntajesSum === 100) {
             try {
@@ -104,7 +106,9 @@ function CrearRubrica(props) {
                     setRubricaDescripcion('');
                     setSelectedAspectos([]);
                     setAspectoPuntajes({});
-                    mostrarMensaje(data.mensaje, "success");
+                    setAspectos([])
+                    onSubmit()
+                    mostrarMensaje(data.message, "success");
                 } else {
                     mostrarMensaje(data.message, "error");
                 }
@@ -134,16 +138,7 @@ function CrearRubrica(props) {
 
     const handleAspectoPuntajeChange = (aspectoId, newPuntaje) => {
         const parsedPuntaje = parseInt(newPuntaje);
-
         setAspectoPuntajes({ ...aspectoPuntajes, [aspectoId]: parsedPuntaje });
-
-        const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
-
-        if (puntajesSum === 100) {
-            setPuntajesWarning(false);
-        } else {
-            setPuntajesWarning(true);
-        }
     };
 
     const handleNombreRubChange = (value) => {
@@ -155,15 +150,14 @@ function CrearRubrica(props) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setRubricaDescripcion(isOnlyWhitespace ? "" : value);
     };
-   
-    return (
-        <Dialog open={open} fullWidth maxWidth="md"  TransitionProps={{ onEntering: handleEntering }} >
-            <CssBaseline />
 
+    return (
+        <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel}>
+            <CssBaseline />
             <DialogTitle variant="h1" color={colors.primary[100]}>
                 CREAR RUBRICA
             </DialogTitle>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={crearRubrica}>
                 <DialogContent dividers>
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
@@ -197,9 +191,9 @@ function CrearRubrica(props) {
                             />
 
                             <FormControl fullWidth margin="normal">
-                            <Typography variant="h6" color={colors.primary[100]}>
-                                Seleccionar aspectos
-                            </Typography>
+                                <Typography variant="h6" color={colors.primary[100]}>
+                                    Seleccionar aspectos
+                                </Typography>
                                 <Select
                                     value=""
                                     onChange={handleAspectoSelect}
@@ -247,10 +241,16 @@ function CrearRubrica(props) {
                                                         value={aspectoPuntajes[aspecto.id] || 0}
                                                         onChange={(e) => handleAspectoPuntajeChange(aspecto.id, e.target.value)}
                                                         inputProps={{
-                                                            min: 0,
+                                                            min: 1,
                                                             max: 100,
                                                         }}
                                                         required
+                                                        error={!aspectoPuntajes[aspecto.id] ||
+                                                            aspectoPuntajes[aspecto.id] > 100 ||
+                                                            aspectoPuntajes[aspecto.id] < 1
+                                                        }
+                                                        helperText={"El puntaje debe estar entre 1 y 100"}
+
                                                     />
                                                 </TableCell>
                                                 <TableCell>
@@ -267,10 +267,6 @@ function CrearRubrica(props) {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                            {puntajesWarning ? (<div>La suma de los puntajes debe ser igual a 100</div>
-                            ) : (
-                                <div />
-                            )}
                         </>
                     )}
                 </DialogContent>
@@ -288,6 +284,7 @@ function CrearRubrica(props) {
 CrearRubrica.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
 };
 
 export default CrearRubrica;

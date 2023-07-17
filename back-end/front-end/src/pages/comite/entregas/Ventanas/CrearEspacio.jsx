@@ -4,7 +4,7 @@ import { tokens } from "../../../../theme";
 import PropTypes from 'prop-types';
 import { useTheme, TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
-
+import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -19,7 +19,7 @@ function CrearEspacio(props) {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    const { onClose, roles: rolesvalueProp = [], modalidades: modalidadesvalueProp = [], etapas: etapasvalueProp = [], rubricas: rubricasvalueProp = [], open, ...other } = props;
+    const { onClose,onSubmit, roles: rolesvalueProp = [], modalidades: modalidadesvalueProp = [], etapas: etapasvalueProp = [], rubricas: rubricasvalueProp = [], open, ...other } = props;
 
     const [roles, setRoles] = useState(rolesvalueProp);
     const [modalidades, setModalidades] = useState(modalidadesvalueProp);
@@ -35,6 +35,12 @@ function CrearEspacio(props) {
     const [idEtapa, setIdEtapa] = useState("");
     const [idRubrica, setIdRubrica] = useState("");
 
+    const { enqueueSnackbar } = useSnackbar();
+
+    const mostrarMensaje = (mensaje, variante) => {
+      enqueueSnackbar(mensaje, { variant: variante });
+    };
+  
     const handleNombreChange = (event) => {
         const value = event.target.value;
         const isOnlyWhitespace = /^\s*$/.test(value);
@@ -63,9 +69,6 @@ function CrearEspacio(props) {
         setIdRubrica(event.target.value);
     };
 
-    const [error, setError] = useState(null);
-    const menError = () => setError(null);
-
     const guardarEspacio = (event) => {
         event.preventDefault();
         const today = dayjs();
@@ -73,12 +76,12 @@ function CrearEspacio(props) {
         const fechaCierreDate = dayjs(fechaCierre);
 
         if (fechaAperturaDate.isBefore(today, 'day')) {
-            setError("La fecha de apertura debe ser mayor o igual a la fecha actual.");
+            mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.","error");
             return;
         }
 
         if (fechaCierreDate.isBefore(fechaAperturaDate, 'day')) {
-            setError("La fecha de cierre debe ser mayor a la fecha de apertura.");
+            mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.","error");
             return;
         }
         const espacioData = {
@@ -91,7 +94,7 @@ function CrearEspacio(props) {
             id_etapa: idEtapa,
             id_rubrica: idRubrica,
         };
-        onClose(espacioData);
+        onSubmit(espacioData);
         setNombre("");
         setDescripcion("");
         setFechaApertura(dayjs());
@@ -100,7 +103,6 @@ function CrearEspacio(props) {
         setIdModalidad("");
         setIdEtapa("");
         setIdRubrica("");
-        setError("")
     };
 
     useEffect(() => {
@@ -123,11 +125,10 @@ function CrearEspacio(props) {
         setIdModalidad("");
         setIdEtapa("");
         setIdRubrica("");
-        setError("")
     };
     return (
 
-        <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other}>
+        <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel}>
             <form onSubmit={guardarEspacio}>
                 <DialogTitle variant="h1" color={colors.primary[100]}>
                     CREAR ESPACIO
@@ -272,6 +273,7 @@ function CrearEspacio(props) {
 }
 CrearEspacio.propTypes = {
     onClose: PropTypes.func.isRequired,
+    onSubmit: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     roles: PropTypes.array.isRequired,
     modalidades: PropTypes.array.isRequired,

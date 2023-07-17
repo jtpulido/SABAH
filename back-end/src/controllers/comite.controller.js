@@ -38,7 +38,7 @@ const obtenerProyectosTerminados = async (req, res) => {
 };
 
 const obtenerProyecto = async (req, res) => {
-    const { id } = req.body;
+    const id = req.params.proyecto_id;
     try {
         const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
@@ -279,7 +279,8 @@ const obtenerSolicitudesRechazadasComite = async (req, res) => {
 };
 const verSolicitud = async (req, res) => {
     try {
-        const { id } = req.body;
+
+        const id = req.params.solicitud_id;
         await pool.query(
             "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.justificacion, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto, u.nombre AS nombre_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN usuario_rol ur ON s.id_director = ur.id JOIN usuario u ON ur.id_usuario = u.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id  WHERE s.id = $1",
             [id], async (error, result) => {
@@ -297,7 +298,7 @@ const verSolicitud = async (req, res) => {
 };
 const verAprobacionesSolicitud = async (req, res) => {
     try {
-        const { id } = req.body;
+        const id = req.params.solicitud_id;
         await pool.query(
             "SELECT ROW_NUMBER() OVER (ORDER BY id_solicitud) AS id, id_solicitud, aprobador, aprobado,fecha, comentario_aprobacion FROM (SELECT s.id AS id_solicitud, 'Director' AS aprobador, CASE WHEN ad.aprobado = true THEN 'Sí' WHEN ad.aprobado = false THEN 'No' ELSE '' END AS aprobado,TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha, ad.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud WHERE s.id = $1 AND EXISTS (SELECT 1 FROM aprobado_solicitud_director WHERE id_solicitud = s.id) UNION SELECT s.id AS id_solicitud, 'Comite' AS aprobador, CASE WHEN ac.aprobado = true THEN 'Sí' WHEN ac.aprobado = false THEN 'No' ELSE '' END AS aprobado, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha, ac.comentario AS comentario_aprobacion FROM solicitud s LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.id = $1 AND EXISTS ( SELECT 1 FROM aprobado_solicitud_comite WHERE id_solicitud = s.id )) AS subquery",
             [id], async (error, result) => {

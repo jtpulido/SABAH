@@ -17,7 +17,7 @@ import { useSnackbar } from 'notistack';
 
 function VerSolicitud(props) {
 
-    const { onClose, id_solicitud, open } = props;
+    const { onClose, id_solicitud,onSubmit, open } = props;
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -56,10 +56,9 @@ function VerSolicitud(props) {
 
     const obtenerInfoSolicitud = async (id) => {
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/verSolicitud", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id })
+            const response = await fetch(`http://localhost:5000/comite/solicitudes/verSolicitud/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (response.status === 200) {
@@ -76,10 +75,9 @@ function VerSolicitud(props) {
     };
     const obtenerAprobacionesSolicitud = async (id) => {
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/verAprobaciones", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id })
+            const response = await fetch(`http://localhost:5000/comite/solicitudes/verAprobaciones/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (response.status === 200) {
@@ -109,6 +107,7 @@ function VerSolicitud(props) {
                 mostrarMensaje("Se ha guardado su respuesta!", "success")
                 obtenerInfoSolicitud(id_solicitud)
                 obtenerAprobacionesSolicitud(id_solicitud)
+                onSubmit()
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203 || response.status === 400) {
@@ -179,7 +178,7 @@ function VerSolicitud(props) {
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Nombre del director
                                 </Typography>
-                                <TextField multiline value={solicitud.nombre_director || ''} fullWidth />
+                                <TextField multiline value={solicitud.nombre_director || ''} fullWidth/>
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
@@ -277,7 +276,8 @@ function VerSolicitud(props) {
 }
 VerSolicitud.propTypes = {
     onClose: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired
+    open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
 };
 
 export default VerSolicitud;

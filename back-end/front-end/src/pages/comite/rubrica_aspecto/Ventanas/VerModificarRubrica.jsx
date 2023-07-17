@@ -154,32 +154,27 @@ function VerModificarRubrica(props) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setRubricaDescripcion(isOnlyWhitespace ? "" : value);
     };
-    const columnas = [
-        { field: 'id', headerName: 'Identificador', flex: 0.1, minWidth: 200, align: "center" },
-        { field: 'aspecto_nombre', headerName: 'Nombre', flex: 0.8, minWidth: 100, align: "center" },
-        { field: 'aspecto_puntaje', headerName: 'Puntaje', flex: 0.8, minWidth: 100, align: "center" },
-
-        {
-            field: "accion",
-            headerName: "",
-            flex: 0.1,
-            minWidth: 50,
-            renderCell: ({ aspecto }) => {
-                return (
-                    <Box width="100%" ml="10px" display="flex" justifyContent="center">
-                        <Tooltip title="Eliminar Aspecto">
-                            <IconButton color="secondary" onClick={() => handleAspectoRemove(aspecto.id)}>
-                                <Delete />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                );
-            },
-        }
-    ]
+   
     const [editMode, setEditMode] = useState(false);
-    const habilitarEdicion = () => {
-        setEditMode(!editMode);
+    const habilitarEdicion = async() => {
+        try {
+            const response = await fetch("http://localhost:5000/usoRubrica/aspecto", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setEditMode(!editMode);
+            } else {
+                mostrarMensaje(data.message, "warning");
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
+        }
+       
     };
     return (
 

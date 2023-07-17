@@ -15,7 +15,7 @@ import {
 
 import { useSnackbar } from 'notistack';
 
-function Entrega({ open, onClose, onSubmit, entrega }) {
+function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -51,6 +51,7 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                 const data = await response.json();
                 if (response.ok) {
                     mostrarMensaje(data.message, "success")
+                    onSubmit()
                 } else {
                     mostrarMensaje(data.message, "error")
                 }
@@ -58,8 +59,6 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                 mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
             }
         }
-
-        onSubmit()
     };
 
     const formatFecha = (fecha) => {
@@ -133,11 +132,11 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
         </Dialog>
     );
 };
-Entrega.propTypes = {
+RealizarEntrega.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     onSubmit: PropTypes.func.isRequired,
     entrega: PropTypes.object.isRequired,
 };
 
-export default Entrega;
+export default RealizarEntrega;

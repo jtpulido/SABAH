@@ -92,7 +92,7 @@ export default function Espacios() {
                 mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setRubricas(data.rubricas);
-               
+
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -212,7 +212,10 @@ export default function Espacios() {
         setOpen(true);
     };
 
-    const cerrarDialog = (espacioData) => {
+    const cerrarDialog = () => {
+        setOpen(false);
+    }
+    const cerrarEspacioCreado = (espacioData) => {
         setOpen(false);
         if (espacioData) {
             crearEspacio(espacioData)
@@ -241,7 +244,9 @@ export default function Espacios() {
             </AppBar>
             <CrearEspacio
                 open={open}
-                onClose={cerrarDialog} roles={roles} modalidades={modalidades} etapas={etapas} rubricas={rubricas}
+                onSubmit={cerrarEspacioCreado}
+                onClose={cerrarDialog}
+                roles={roles} modalidades={modalidades} etapas={etapas} rubricas={rubricas}
             />
             <Box sx={{ m: 2 }}>
                 <CustomDataGrid rows={espacios} columns={columns} mensaje="No hay espacios creados" />
