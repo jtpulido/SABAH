@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, Typography, useTheme, Tooltip, IconButton } from '@mui/material';
-import { Source, PostAdd } from '@mui/icons-material';
+import { Box, Typography, useTheme, Tooltip, IconButton, Toolbar, AppBar } from '@mui/material';
+import { Source } from '@mui/icons-material';
 
 import CustomDataGrid from "../../layouts/DataGrid";
 import { tokens } from "../../../theme";
@@ -106,16 +106,19 @@ export default function Entregas() {
   ]);
   return (
     <div>
-
-      <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
-        ENTREGAS
-      </Typography>
+        <AppBar position="static" color="transparent" variant="contained" >
+                <Toolbar >
+                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
+                        ESPACIOS DE ENTREGAS
+                    </Typography>
+                </Toolbar>
+            </AppBar>
       <CalificarEntrega
         open={openCalificar}
         onClose={cerrarDialogCalificar}
         entrega={entrega}
       />
-      <Box >
+      <Box sx={{ m: 2 }}>
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>

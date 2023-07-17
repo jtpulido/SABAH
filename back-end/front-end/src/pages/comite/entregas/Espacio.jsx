@@ -92,6 +92,7 @@ export default function Espacios() {
                 mostrarMensaje(data.message, "warning")
             } else if (response.status === 200) {
                 setRubricas(data.rubricas);
+               
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -192,8 +193,8 @@ export default function Espacios() {
             },
             { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, align: "center" },
             { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150, align: "center" },
-            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
             { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
             { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100, align: "center" },
             { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, align: "center" },
@@ -243,11 +244,6 @@ export default function Espacios() {
                 onClose={cerrarDialog} roles={roles} modalidades={modalidades} etapas={etapas} rubricas={rubricas}
             />
             <Box sx={{ m: 2 }}>
-
-                <Typography variant="h2" color={colors.primary[100]} sx={{ mb: "30px" }}>
-                    Espacios creados
-                </Typography>
-
                 <CustomDataGrid rows={espacios} columns={columns} mensaje="No hay espacios creados" />
             </Box>
         </div>

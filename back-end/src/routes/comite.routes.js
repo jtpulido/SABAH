@@ -27,6 +27,21 @@ const {
     agregarAprobacion
 } = require('../controllers/comite.controller')
 
+const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
+    crearRubrica, obtenerRubricasConAspectos,
+    crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
+    obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
+    verEntregasPendientesProyecto,
+    verEntregasRealizadasProyecto,
+    verEntregasPendientes,
+    verEntregasRealizadasCalificadas,
+    verEntregasRealizadasSinCalificar,
+    verInfoDocEntregado,
+    verAspectosEspacio,
+    guardarCalificacion
+} = require('../controllers/entregas.controller')
+
+const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -61,5 +76,43 @@ router.post('/comite/solicitudes/rechazadas', passport.authenticate('jwt', { ses
 router.post('/comite/solicitudes/verSolicitud', passport.authenticate('jwt', { session: false }), verSolicitud);
 router.post('/comite/solicitudes/verAprobaciones', passport.authenticate('jwt', { session: false }), verAprobacionesSolicitud);
 router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
+
+
+
+// Rutas para aspectos
+router.post('/comite/aspecto', passport.authenticate('jwt', { session: false }), crearAspecto);
+router.delete('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), eliminarAspecto);
+router.put('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), modificarAspecto);
+router.get('/comite/aspecto', passport.authenticate('jwt', { session: false }), obtenerAspectos);
+router.get('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), obtenerAspectoPorId);
+router.post('/comite/crearRubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
+router.get('/comite/obtenerRubricasAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
+
+// Rutas para espacios
+router.post('/comite/espacio', passport.authenticate('jwt', { session: false }), crearEspacio);
+router.delete('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), eliminarEspacio);
+router.put('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), modificarEspacio);
+router.get('/comite/espacio', passport.authenticate('jwt', { session: false }), obtenerEspacio);
+router.get('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), obtenerEspacioPorId);
+
+router.get('/comite/etapas', passport.authenticate('jwt', { session: false }), obtenerEtapas);
+router.get('/comite/modalidades', passport.authenticate('jwt', { session: false }), obtenerModalidades);
+router.get('/comite/roles', passport.authenticate('jwt', { session: false }), obtenerRoles);
+router.get('/comite/rubricas', passport.authenticate('jwt', { session: false }), obtenerRubricas);
+
+//Entregas proyecto
+router.get('/comite/entrega/pendientes/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasPendientesProyecto);
+router.get('/comite/entrega/realizadas/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasRealizadasProyecto);
+
+//Entregas general
+router.get('/comite/entregas/pendientes', passport.authenticate('jwt', { session: false }), verEntregasPendientes);
+router.get('/comite/entregas/realizadas/calificadas', passport.authenticate('jwt', { session: false }), verEntregasRealizadasCalificadas);
+router.get('/comite/entregas/realizadas/porCalificar', passport.authenticate('jwt', { session: false }), verEntregasRealizadasSinCalificar);
+router.get('/comite/documento/:id_doc_entrega', passport.authenticate('jwt', { session: false }), verInfoDocEntregado);
+router.get('/comite/documento/aspectos/:id_esp_entrega', passport.authenticate('jwt', { session: false }), verAspectosEspacio);
+
+//calificación
+router.post('/comite/documento/guardarCalificacion', passport.authenticate('jwt', { session: false }), guardarCalificacion);
+
 
 module.exports = router;
