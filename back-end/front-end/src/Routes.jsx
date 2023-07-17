@@ -21,6 +21,7 @@ export default function AppRoutes() {
                     <Route path="/admin/*" element={<ProtectedRoute roles={["admin"]} element={<RoutesAdmin />} />} />
                     <Route path="/proyecto/*" element={<ProtectedRoute roles={["proyecto"]} element={<RoutesProyect />} />} />
                     <Route path="/user/*" element={<ProtectedRoute roles={["normal"]} element={<RoutesUsers />} />} />
+                    <Route path="/comite/*" element={<ProtectedRoute roles={["comite"]} element={<RoutesCmt />} />} />                
                     <Route path="*" element={<NotFoundPage />} />
                     <Route path="/unauthorized" element={<UnauthorizedPage />} />
                     <Route path="/inscribirPropuesta/" element={<Inscribir />} />
