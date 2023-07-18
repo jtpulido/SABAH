@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import "./Recuperar3.css";
-import { Alert, Snackbar } from "@mui/material";
 import { EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
 import { Button, Modal, Input } from 'antd';
+import { useSnackbar } from 'notistack';
 
 export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
 
@@ -37,9 +37,10 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
         setIsProyecto3(isProyecto2);
     }, [isProyecto2]);
 
-    // Variable del SnackBar
-    const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-    const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -50,20 +51,16 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
             setInputValue2(value);
         }
     };
-
-    const esperar = (ms) => {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    };
-
+    
     const handleReset = async (event) => {
         event.preventDefault();
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/; // Expresión regular para validar la contraseña (mínimo 8 caracteres, al menos una letra y un número)
 
         if (inputValue1 !== "" && inputValue2 !== "") {
             if (inputValue1 !== inputValue2) {
-                setMensaje({ tipo: "error", texto: "Las contraseñas no coinciden. Por favor, inténtelo de nuevo." });
+                mostrarMensaje("Las contraseñas no coinciden. Por favor, inténtelo de nuevo.", "error");
             } else if (!passwordRegex.test(inputValue1)) {
-                setMensaje({ tipo: "error", texto: "La contraseña debe tener al menos 8 caracteres, incluir al menos una letra y un número." });
+                mostrarMensaje("La contraseña debe tener al menos 8 caracteres, incluir al menos una letra y un número.", "error");
             } else {
                 // Si es un proyecto
                 if (isProyecto3 === true) {
@@ -76,17 +73,14 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
 
                         const data = await response.json();
                         if (!data.success) {
-                            setMensaje({ tipo: "error", texto: data.message });
-                            await esperar(2000);
+                            mostrarMensaje(data.message, "error");
                             handleClose();
                         } else {
-                            setMensaje({ tipo: "success", texto: data.message });
-                            await esperar(2000);
+                            mostrarMensaje(data.message, "success");
                             handleClose();
                         }
                     } catch (error) {
-                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                        await esperar(2000);
+                        mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                         handleClose();
                     }
 
@@ -101,23 +95,20 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
 
                         const data = await response.json();
                         if (!data.success) {
-                            setMensaje({ tipo: "error", texto: data.message });
-                            await esperar(2000);
+                            mostrarMensaje(data.message, "error");
                             handleClose();
                         } else {
-                            setMensaje({ tipo: "success", texto: data.message });
-                            await esperar(2000);
+                            mostrarMensaje(data.message, "success");
                             handleClose();
                         }
                     } catch (error) {
-                        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                        await esperar(2000);
+                        mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                         handleClose();
                     }
                 }
             }
         } else {
-            setMensaje({ tipo: "error", texto: "Por favor ingrese los valores requeridos." });
+            mostrarMensaje("Por favor ingrese los valores requeridos.", "error");
         }
     };
 
@@ -131,18 +122,6 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
                 footer={null}
                 className='modal_recuperar3'
             >
-                {mensaje.texto && (
-                    <Snackbar
-                        open={true}
-                        autoHideDuration={5000}
-                        onClose={handleCloseMensaje}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    >
-                        <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                            {mensaje.texto}
-                        </Alert>
-                    </Snackbar>
-                )}
                 <div className="div">
                     <p className='text'>Ingrese su nueva contraseña</p>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
+import { Box, Typography, useTheme, IconButton } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
 import { tokens } from "../../../theme";
@@ -18,6 +18,8 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import DoDisturbIcon from '@mui/icons-material/DoDisturb';
+
+import { useSnackbar } from 'notistack';
 
 function CustomToolbar() {
     return (
@@ -91,9 +93,10 @@ export default function Usuarios() {
     const token = useSelector(selectToken);
     const [rowsUsuarios, setRowsUsuarios] = useState([]);
 
-    // Variable del SnackBar
-    const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-    const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const llenarTablaUsuarios = useCallback(async () => {
         try {
@@ -103,13 +106,13 @@ export default function Usuarios() {
             });
             const data = await response.json();
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
                 setRowsUsuarios(data.usuarios);
             }
         }
         catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, [token]);
 
@@ -128,31 +131,19 @@ export default function Usuarios() {
             const data = await response.json();
 
             if (!data.success) {
-                setMensaje({ tipo: "error", texto: data.message });
+                mostrarMensaje(data.message, "error");
             } else {
-                setMensaje({ tipo: "success", texto: data.message });
+                mostrarMensaje(data.message, "success");
                 llenarTablaUsuarios();
             }
         }
         catch (error) {
-            setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     }, [token, llenarTablaUsuarios]);
 
     return (
         <div style={{ margin: "15px" }} >
-            {mensaje.texto && (
-                <Snackbar
-                    open={true}
-                    autoHideDuration={5000}
-                    onClose={handleCloseMensaje}
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                >
-                    <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-                        {mensaje.texto}
-                    </Alert>
-                </Snackbar>
-            )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: "25px" }}>
                 <Typography

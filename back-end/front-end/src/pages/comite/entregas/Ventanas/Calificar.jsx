@@ -18,6 +18,7 @@ import {
     DialogContent,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import { SaveOutlined } from '@mui/icons-material';
 
 function CalificarEntrega(props) {
     const { onClose, entrega, open } = props;
@@ -120,7 +121,7 @@ function CalificarEntrega(props) {
                 calificacion_aspecto: aspectos.map((aspecto) => ({
                     id_rubrica_aspecto: aspecto.id_rubrica_aspecto,
                     puntaje: puntaje[aspecto.id_aspecto] || 0,
-                    comentario: comentario[aspecto.id_aspecto].trim() || '', 
+                    comentario: comentario[aspecto.id_aspecto].trim() || '',
                 })),
             };
 
@@ -167,55 +168,55 @@ function CalificarEntrega(props) {
                         </Box>
                     ) : (
                         <>
-                                {aspectos.map((aspecto) => (
-                                    <React.Fragment key={aspecto.id_aspecto}>
-                                        <Stack spacing={1} marginBottom={2}>
-                                            <Typography variant="h4" color={colors.secundary[100]}>
-                                                {aspecto.aspecto_nombre}
-                                            </Typography>
+                            {aspectos.map((aspecto) => (
+                                <React.Fragment key={aspecto.id_aspecto}>
+                                    <Stack spacing={1} marginBottom={2}>
+                                        <Typography variant="h4" color={colors.secundary[100]}>
+                                            {aspecto.aspecto_nombre}
+                                        </Typography>
 
-                                            <TextField
-                                                label="Puntaje"
-                                                type="number"
-                                                value={puntaje[aspecto.id_aspecto] || ''}
-                                                onChange={(e) => handlePuntajeChange(aspecto.id_aspecto, e.target.value)}
-                                                inputProps={{
-                                                    min: 0,
-                                                    max: aspecto.aspecto_puntaje,
-                                                }}
-                                                required
-                                                error={
-                                                    !puntaje[aspecto.id_aspecto] ||
-                                                    puntaje[aspecto.id_aspecto] > aspecto.aspecto_puntaje ||
-                                                    puntaje[aspecto.id_aspecto] < 0
-                                                }
-                                                helperText={`Valor debe estar entre 0 y ${aspecto.aspecto_puntaje}`}
-                                                fullWidth
-                                            />
+                                        <TextField
+                                            label="Puntaje"
+                                            type="number"
+                                            value={puntaje[aspecto.id_aspecto] || ''}
+                                            onChange={(e) => handlePuntajeChange(aspecto.id_aspecto, e.target.value)}
+                                            inputProps={{
+                                                min: 0,
+                                                max: aspecto.aspecto_puntaje,
+                                            }}
+                                            required
+                                            error={
+                                                !puntaje[aspecto.id_aspecto] ||
+                                                puntaje[aspecto.id_aspecto] > aspecto.aspecto_puntaje ||
+                                                puntaje[aspecto.id_aspecto] < 0
+                                            }
+                                            helperText={`Valor debe estar entre 0 y ${aspecto.aspecto_puntaje}`}
+                                            fullWidth
+                                        />
 
-                                            <TextField
-                                                label="Comentario"
-                                                value={comentario[aspecto.id_aspecto] || ''}
-                                                onChange={(e) => handleComentarioChange(aspecto.id_aspecto, e.target.value)}
-                                                rows={2}
-                                                minRows={4}
-                                                required
-                                                fullWidth
-                                                multiline
-                                                error={!comentario[aspecto.id_aspecto]}
-                                                helperText={!comentario[aspecto.id_aspecto] && 'Por favor, ingresa un comentario'}
+                                        <TextField
+                                            label="Comentario"
+                                            value={comentario[aspecto.id_aspecto] || ''}
+                                            onChange={(e) => handleComentarioChange(aspecto.id_aspecto, e.target.value)}
+                                            rows={2}
+                                            minRows={4}
+                                            required
+                                            fullWidth
+                                            multiline
+                                            error={!comentario[aspecto.id_aspecto]}
+                                            helperText={!comentario[aspecto.id_aspecto] && 'Por favor, ingresa un comentario'}
 
-                                            />
-                                        </Stack>
-                                    </React.Fragment>
-                                ))}
+                                        />
+                                    </Stack>
+                                </React.Fragment>
+                            ))}
                         </>
                     )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button variant="contained" type='submit'>
-                        Guardar calificación
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                        Guardar
                     </Button>
                 </DialogActions>
             </form>

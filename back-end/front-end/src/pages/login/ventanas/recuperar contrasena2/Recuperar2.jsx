@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
-import { TextField, Alert, Snackbar } from "@mui/material";
+import { TextField } from "@mui/material";
 import "./Recuperar2.css";
-import { Recuperar3 } from "../recuperar contrasena3/Recuperar3"
+import { Recuperar3 } from "../recuperar contrasena3/Recuperar3";
+import { useSnackbar } from 'notistack';
 
 export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
 
@@ -33,8 +34,9 @@ export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
     handleClose2();
   };
 
-  const esperar = (ms) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
   };
 
   React.useEffect(() => {
@@ -44,10 +46,6 @@ export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
   React.useEffect(() => {
     setIsProyecto2(isProyecto);
   }, [isProyecto]);
-
-  // Variable del SnackBar
-  const [mensaje, setMensaje] = useState({ tipo: "", texto: "" });
-  const handleCloseMensaje = () => setMensaje({ tipo: "", texto: "" });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -62,12 +60,11 @@ export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
         const data = await response.json();
         if (!data.success) {
           setCodigoIngresado("");
-          setMensaje({ tipo: "error", texto: data.message });
+          mostrarMensaje(data.message, "error");
 
           // Si el codigo es el mismo
         } else {
-          setMensaje({ tipo: "success", texto: data.message });
-          await esperar(2000);
+          mostrarMensaje(data.message, "success");
           handleClose();
           setCodigoIngresado("");
           handleOpen3();
@@ -75,13 +72,13 @@ export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
 
       } catch (error) {
         setCodigoIngresado("");
-        setMensaje({ tipo: "error", texto: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+        mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
       }
 
       // Si el valor es null
     } else {
       setCodigoIngresado("");
-      setMensaje({ tipo: "error", texto: "Por favor ingrese un valor válido." });
+      mostrarMensaje("Por favor ingrese un valor válido.", "error");
     }
   };
 
@@ -95,20 +92,6 @@ export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
         footer={null}
         className='modal_recuperar2'
       >
-
-        {mensaje.texto && (
-          <Snackbar
-            open={true}
-            autoHideDuration={5000}
-            onClose={handleCloseMensaje}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          >
-            <Alert severity={mensaje.tipo} onClose={handleCloseMensaje}>
-              {mensaje.texto}
-            </Alert>
-          </Snackbar>
-        )}
-
         <div className="div">
           <p className='text'>Ingrese el código enviado a su correo</p>
         </div>

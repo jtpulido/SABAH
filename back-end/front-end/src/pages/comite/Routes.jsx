@@ -10,8 +10,8 @@ import Lectores from "./lectores/Lectores";
 import Solicitudes from "./solicitudes/Solicitudes";
 import Entregas from "./entregas/Entregas";
 import Directores from "./directores/Directores";
-import Rubricas from "./entregas/Rubricas";
-import Aspectos from "./entregas/Aspectos";
+import Rubricas from "./rubrica_aspecto/Rubricas";
+import Aspectos from "./rubrica_aspecto/Aspectos";
 import Espacios from "./entregas/Espacio";
 
 export default function RoutesCmt() {

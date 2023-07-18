@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline } from "@mui/material";
+import { Typography, useTheme, Box, TextField, Grid, CssBaseline } from "@mui/material";
 import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
+import { useSnackbar } from 'notistack';
 
 export default function VerProyectos() {
 
@@ -12,8 +13,6 @@ export default function VerProyectos() {
     const token = useSelector(selectToken);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-    const [error, setError] = useState(null);
-    const handleClose = () => setError(null);
     const [existe, setExiste] = useState([]);
     const [proyecto, setProyecto] = useState([]);
     const [estudiantes, setEstudiantes] = useState([]);
@@ -22,6 +21,11 @@ export default function VerProyectos() {
     const [existeLector, setExisteLector] = useState([]);
     const [existeJurados, setExisteJurados] = useState([]);
     const [listaJurado, setListaJurado] = useState([]);
+
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = useCallback((mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    }, [enqueueSnackbar]);
 
     const infoProyecto = useCallback(async () => {
         try {
@@ -33,7 +37,7 @@ export default function VerProyectos() {
 
             const data = await response.json();
             if (!data.success) {
-                setError(data.message);
+                mostrarMensaje(data.message, "error");
                 setExiste(false);
             } else {
                 setProyecto(data.proyecto);
@@ -47,10 +51,10 @@ export default function VerProyectos() {
             }
         }
         catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
             setExiste(false);
-            setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
         }
-    }, [id, token]);
+    }, [id, token, mostrarMensaje]);
 
     useEffect(() => {
         infoProyecto()
@@ -58,13 +62,6 @@ export default function VerProyectos() {
 
     return (
         <div style={{ margin: "15px" }} >
-            {error && (
-                <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-                    <Alert severity="error" onClose={handleClose}>
-                        {error}
-                    </Alert>
-                </Snackbar>
-            )}
 
             <div style={{ display: 'flex', marginBottom: "20px" }}>
                 <Typography
@@ -231,7 +228,7 @@ export default function VerProyectos() {
 
                 </Box>
             ) : (
-                <Typography variant="h6" color={colors.primary[100]}>{error}</Typography>
+                <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
             )}
         </div>
     );

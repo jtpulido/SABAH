@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, IconButton, useTheme, Alert, Snackbar, Box, TextField, Grid, CssBaseline, Checkbox, FormControlLabel } from "@mui/material";
+import { Typography, IconButton, useTheme, Box, TextField, Grid, CssBaseline, Checkbox, FormControlLabel } from "@mui/material";
 import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
@@ -33,9 +34,12 @@ export default function VerUsuario() {
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
   const [existe, setExiste] = useState([]);
+
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
 
   const [usuario, setUsuario] = useState({
     nombre: '',
@@ -104,7 +108,7 @@ export default function VerUsuario() {
 
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error");
         setExiste(false);
       } else {
         setUsuario(data.infoUsuario[0]);
@@ -113,7 +117,7 @@ export default function VerUsuario() {
     }
     catch (error) {
       setExiste(false);
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -133,7 +137,7 @@ export default function VerUsuario() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -153,7 +157,7 @@ export default function VerUsuario() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -173,7 +177,7 @@ export default function VerUsuario() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -186,7 +190,7 @@ export default function VerUsuario() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message)
+        mostrarMensaje(data.message, "error");
       } else if (data.message === 'No hay proyectos actualmente') {
         setRowsDirector([]);
       } else {
@@ -194,7 +198,7 @@ export default function VerUsuario() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -207,7 +211,7 @@ export default function VerUsuario() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message)
+        mostrarMensaje(data.message, "error");
       } else if (data.message === 'No hay proyectos actualmente') {
         setRowsLector([]);
       } else {
@@ -215,7 +219,7 @@ export default function VerUsuario() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -228,7 +232,7 @@ export default function VerUsuario() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message)
+        mostrarMensaje(data.message, "error");
       } else if (data.message === 'No hay proyectos actualmente') {
         setRowsJurado([]);
       } else {
@@ -236,7 +240,7 @@ export default function VerUsuario() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [id, token]);
 
@@ -264,13 +268,6 @@ export default function VerUsuario() {
 
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
 
       <div style={{ display: 'flex', marginBottom: "20px" }}>
         <Typography
@@ -454,7 +451,7 @@ export default function VerUsuario() {
 
         </Box>
       ) : (
-        <Typography variant="h6" color={colors.primary[100]}>{error}</Typography>
+        <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
       )}
     </div>
   );

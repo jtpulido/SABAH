@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 
 import { tokens } from "../../../../theme";
 import PropTypes from 'prop-types';
-import { useTheme, TextField, Button, Box, Select, MenuItem, Alert, Dialog, AppBar, Toolbar, Typography, Slide, IconButton } from "@mui/material";
-
-import CloseIcon from '@mui/icons-material/Close';
+import { useTheme, TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
+
+import dayjs from 'dayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -25,8 +28,8 @@ function CrearEspacio(props) {
 
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
-    const [fechaApertura, setFechaApertura] = useState("");
-    const [fechaCierre, setFechaCierre] = useState("");
+    const [fechaApertura, setFechaApertura] = useState(dayjs());
+    const [fechaCierre, setFechaCierre] = useState(dayjs());
     const [idRol, setIdRol] = useState("");
     const [idModalidad, setIdModalidad] = useState("");
     const [idEtapa, setIdEtapa] = useState("");
@@ -42,15 +45,6 @@ function CrearEspacio(props) {
         const value = event.target.value;
         const isOnlyWhitespace = /^\s*$/.test(value);
         setDescripcion(isOnlyWhitespace ? "" : value);
-    };
-
-
-    const handleFechaAperturaChange = (event) => {
-        setFechaApertura(event.target.value);
-    };
-
-    const handleFechaCierreChange = (event) => {
-        setFechaCierre(event.target.value);
     };
 
     const handleIdRolChange = (event) => {
@@ -74,25 +68,24 @@ function CrearEspacio(props) {
 
     const guardarEspacio = (event) => {
         event.preventDefault();
+        const today = dayjs();
+        const fechaAperturaDate = dayjs(fechaApertura);
+        const fechaCierreDate = dayjs(fechaCierre);
 
-        const today = new Date();
-        const fechaAperturaDate = new Date(fechaApertura);
-        const fechaCierreDate = new Date(fechaCierre);
-
-        if (fechaAperturaDate < today) {
-
-            setError("La fecha de apertura debe ser mayor a la fecha actual.");
+        if (fechaAperturaDate.isBefore(today, 'day')) {
+            setError("La fecha de apertura debe ser mayor o igual a la fecha actual.");
             return;
         }
-        if (fechaCierreDate < fechaAperturaDate) {
-            setError("La fecha de cierre debe ser mayor a la fecha de apertura.")
+
+        if (fechaCierreDate.isBefore(fechaAperturaDate, 'day')) {
+            setError("La fecha de cierre debe ser mayor a la fecha de apertura.");
             return;
         }
         const espacioData = {
             nombre,
             descripcion,
-            fecha_apertura: fechaApertura,
-            fecha_cierre: fechaCierre,
+            fecha_apertura: fechaApertura.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre: fechaCierre.format("DD/MM/YYYY hh:mm A"),
             id_rol: idRol,
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
@@ -101,8 +94,8 @@ function CrearEspacio(props) {
         onClose(espacioData);
         setNombre("");
         setDescripcion("");
-        setFechaApertura("");
-        setFechaCierre("");
+        setFechaApertura(dayjs());
+        setFechaCierre(dayjs());
         setIdRol("");
         setIdModalidad("");
         setIdEtapa("");
@@ -120,12 +113,12 @@ function CrearEspacio(props) {
     }, [rolesvalueProp, modalidadesvalueProp, rubricasvalueProp, etapasvalueProp, open]);
 
 
-    const handleClose = () => {
+    const handleCancel = () => {
         onClose();
         setNombre("");
         setDescripcion("");
-        setFechaApertura("");
-        setFechaCierre("");
+        setFechaApertura(dayjs());
+        setFechaCierre(dayjs());
         setIdRol("");
         setIdModalidad("");
         setIdEtapa("");
@@ -134,111 +127,144 @@ function CrearEspacio(props) {
     };
     return (
 
-        <Dialog fullScreen TransitionComponent={Transition} open={open} {...other}>
+        <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other}>
             <form onSubmit={guardarEspacio}>
-                <AppBar sx={{ position: 'relative' }}>
-                    <Toolbar>
-                        <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close" >
-                            <CloseIcon />
-                        </IconButton>
-                        <Typography sx={{ ml: 2, flex: 1 }} variant="h2" component="div">
-                            Espacio de entrega
-                        </Typography>
-                        <Button type="submit" color="inherit" variant="h2" startIcon={<SaveOutlined />} >
-                            Guardar
-                        </Button>
-                    </Toolbar>
-                </AppBar>
+                <DialogTitle variant="h1" color={colors.primary[100]}>
+                    CREAR ESPACIO
+                </DialogTitle>
 
-                <Box display="flex" flexDirection="column" gap={1} sx={{ m: 5 }}>
-
-                    <Typography variant="h2" color={colors.primary[100]} sx={{ mb: "30px" }}>
-                        Crear un nuevo espacio
-                    </Typography>
-                    <TextField
-                        label="Nombre"
-                        value={nombre}
-                        onChange={handleNombreChange}
-                        required
-                        fullWidth
-                    />
-                    <TextField
-                        label="Descripción"
-                        value={descripcion}
-                        onChange={handleDescripcionChange}
-                        multiline
-                        rows={4}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Fecha de apertura"
-                        type="date"
-                        value={fechaApertura}
-                        onChange={handleFechaAperturaChange}
-                        required
-                    />
-                    <TextField
-                        label="Fecha de cierre"
-                        type="date"
-                        value={fechaCierre}
-                        onChange={handleFechaCierreChange}
-                        required
-                    />
-                    <Select
-                        label="Rol"
-                        value={idRol}
-                        onChange={handleIdRolChange}
-                        required
-                    >
-                        {roles.map((rol) => (
-                            <MenuItem key={rol.id} value={rol.id}>
-                                {rol.nombre}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                    <Select
-                        label="Modalidad"
-                        value={idModalidad}
-                        onChange={handleIdModalidadChange}
-                        required
-                    >
-                        {modalidades.map((modalidad) => (
-                            <MenuItem key={modalidad.id} value={modalidad.id}>
-                                {modalidad.nombre}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                    <Select
-                        label="Etapa"
-                        value={idEtapa}
-                        onChange={handleIdEtapaChange}
-                        required
-                    >
-                        {etapas.map((etapa) => (
-                            <MenuItem key={etapa.id} value={etapa.id}>
-                                {etapa.nombre}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                    <Select
-                        label="Rúbrica"
-                        value={idRubrica}
-                        onChange={handleIdRubricaChange}
-                        required
-                    >
-                        {rubricas.map((rubrica) => (
-                            <MenuItem key={rubrica.id} value={rubrica.id}>
-                                {rubrica.nombre}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                    {error && (
-                        <Alert severity="error" onClose={menError}>
-                            {error}
-                        </Alert>
-                    )}
-
-                </Box>
+                <DialogContent dividers >
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Nombre
+                            </Typography>
+                            <TextField
+                                value={nombre}
+                                onChange={handleNombreChange}
+                                required
+                                fullWidth
+                                error={!nombre}
+                                helperText={'Ingresa el nombre del espacio'} />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Descripción
+                            </Typography>
+                            <TextField
+                                value={descripcion}
+                                onChange={handleDescripcionChange}
+                                multiline
+                                rows={2}
+                                required
+                                fullWidth
+                                error={!descripcion}
+                                helperText={'Ingresa la descripción del espacio'}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Fecha de apertura
+                            </Typography>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                    value={fechaApertura}
+                                    onChange={(newValue) => setFechaApertura(newValue)}
+                                    required
+                                    format="DD/MM/YYYY hh:mm A"
+                                    fullWidth
+                                />
+                            </LocalizationProvider>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Fecha de cierre
+                            </Typography>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                    value={fechaCierre}
+                                    onChange={(newValue) => setFechaCierre(newValue)}
+                                    required
+                                    format="DD/MM/YYYY hh:mm A"
+                                    fullWidth
+                                />
+                            </LocalizationProvider>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Rol Calificador
+                            </Typography>
+                            <Select
+                                value={idRol}
+                                onChange={handleIdRolChange}
+                                required
+                                fullWidth
+                            >
+                                {roles.map((rol) => (
+                                    <MenuItem key={rol.id} value={rol.id}>
+                                        {rol.nombre}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Modalidad
+                            </Typography>
+                            <Select
+                                value={idModalidad}
+                                onChange={handleIdModalidadChange}
+                                required
+                                fullWidth
+                            >   {modalidades.map((modalidad) => (
+                                <MenuItem key={modalidad.id} value={modalidad.id}>
+                                    {modalidad.nombre}
+                                </MenuItem>
+                            ))}
+                            </Select>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Etapa
+                            </Typography>
+                            <Select
+                                value={idEtapa}
+                                onChange={handleIdEtapaChange}
+                                required
+                                fullWidth
+                            >
+                                {etapas.map((etapa) => (
+                                    <MenuItem key={etapa.id} value={etapa.id}>
+                                        {etapa.nombre}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color={colors.primary[100]}>
+                                Rubrica
+                            </Typography>
+                            <Select
+                                value={idRubrica}
+                                onChange={handleIdRubricaChange}
+                                required
+                                fullWidth
+                            >
+                                {rubricas.map((rubrica) => (
+                                    <MenuItem key={rubrica.id} value={rubrica.id}>
+                                        {rubrica.nombre}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel}>Cerrar</Button>
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                        Guardar
+                    </Button>
+                </DialogActions>
             </form>
         </Dialog>
 

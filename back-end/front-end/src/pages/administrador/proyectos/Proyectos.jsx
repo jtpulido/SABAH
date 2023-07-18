@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, Alert, Snackbar, IconButton } from "@mui/material";
+import { Box, Typography, useTheme, IconButton } from "@mui/material";
 import Tooltip from '@mui/material/Tooltip';
 
 import { Visibility } from '@mui/icons-material';
@@ -15,6 +15,7 @@ import {
   GridToolbarFilterButton,
   GridToolbarExport
 } from '@mui/x-data-grid';
+import { useSnackbar } from 'notistack';
 
 function CustomToolbar() {
   return (
@@ -74,8 +75,10 @@ export default function Proyectos() {
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);
 
-  const [error, setError] = useState(null);
-  const handleClose = () => setError(null);
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
 
   const llenarTablaEnCurso = useCallback(async () => {
     try {
@@ -85,7 +88,7 @@ export default function Proyectos() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error");
       } else if (data.message === 'No hay proyectos actualmente') {
         setRowsEnCurso([]);
       } else {
@@ -93,7 +96,7 @@ export default function Proyectos() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [token]);
 
@@ -105,7 +108,7 @@ export default function Proyectos() {
       });
       const data = await response.json();
       if (!data.success) {
-        setError(data.message);
+        mostrarMensaje(data.message, "error");
       } else if (data.message === 'No hay proyectos actualmente') {
         setRowsTerminados([]);
       } else {
@@ -113,7 +116,7 @@ export default function Proyectos() {
       }
     }
     catch (error) {
-      setError("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
   }, [token]);
 
@@ -132,13 +135,6 @@ export default function Proyectos() {
 
   return (
     <div style={{ margin: "15px" }} >
-      {error && (
-        <Snackbar open={true} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert severity="error" onClose={handleClose}>
-            {error}
-          </Alert>
-        </Snackbar>
-      )}
       <Typography
         variant="h1"
         color={colors.secundary[100]}

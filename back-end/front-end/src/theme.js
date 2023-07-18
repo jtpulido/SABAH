@@ -26,6 +26,8 @@ export const themeSettings = (mode) => {
             },
             secondary: {
                 main: colors.secundary[100]
+            }, naranja: {
+                main: colors.naranja[100]
             }
         },
         typography: {
