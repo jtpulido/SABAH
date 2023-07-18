@@ -58,24 +58,20 @@ export default function VerReunion() {
            <IconButton color="secondary" style={{ marginLeft: '10px' }}
               onClick={() => {
                 if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
-                  // Llamar al método cancelarReunion en el puerto 5000
                  
                   fetch('http://localhost:5000/proyecto/cancelarReunion', {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ id: idReunion })
-                    // Opcional: si necesitas enviar datos adicionales
-                    // body: JSON.stringify({ reunionId: row.id }),
+                   
                   })
                   
                     .then(response => {
                       if (response.ok) {
                         alert('La reunión se canceló correctamente','success');
-                        // Lógica adicional si es necesario
                       } else {
                         
                         alert('Ocurrió un error al cancelar la reunión','error');
-                        // Lógica adicional si es necesario
                       }
                     })
                     .catch(error => {
@@ -96,7 +92,7 @@ export default function VerReunion() {
                       label="Fecha"
                       value={fecha}
                       onChange={(newValue) => setFecha(newValue)}
-                      renderInput={(props) => <input {...props} />} // Optional: Use this line if you're not using MUI TextField component
+                      renderInput={(props) => <input {...props} />} 
                     />
                   </LocalizationProvider>
                 </Grid>

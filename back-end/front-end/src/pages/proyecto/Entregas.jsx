@@ -116,15 +116,12 @@ export default function Entregas() {
 
     try {
       await axios.post('/api/upload', formData);
-      // Lógica adicional después de la carga exitosa
     } catch (error) {
-      // Manejo de errores
     }
   };
 
   const handleSave = async () => {
     try {
-      // Crea un objeto con los datos que deseas enviar al backend
       const data = {
         link: link,
         tipol: 'A'  ,
@@ -142,7 +139,6 @@ export default function Entregas() {
 
       });
   
-      // Verifica si la solicitud fue exitosa
       if (response.ok) {
         mostrarMensaje("La solicitud se genero exitosamente.","success");
       } else {
@@ -157,14 +153,12 @@ export default function Entregas() {
     const handleSaveProyecto = async () => {
 
       try {
-        // Crea un objeto con los datos que deseas enviar al backend
         const data = {
           link: link,
           tipol: 'D'  ,
           id: id
         };
     
-        // Realiza la solicitud POST al backend
         const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
           method: "POST",
           headers: {
@@ -174,8 +168,6 @@ export default function Entregas() {
           headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
   
         });
-    
-        // Verifica si la solicitud fue exitosa
         if (response.ok) {
           mostrarMensaje("La solicitud se genero exitosamente.","success");
         } else {
@@ -475,8 +467,8 @@ export default function Entregas() {
             align: "right"
           },
           "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
+            paddingLeft: "0px", 
+            paddingRight: "0px" 
           }
         }}
       > <Typography variant="h2" color={colors.primary[100]}
@@ -501,8 +493,8 @@ export default function Entregas() {
             align: "right"
           },
           "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
+            paddingLeft: "0px", 
+            paddingRight: "0px"
           }
         }}
       > <Typography variant="h2" color={colors.primary[100]}
