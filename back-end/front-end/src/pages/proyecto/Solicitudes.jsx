@@ -175,14 +175,12 @@ export default function Solicitudes() {
   }; 
   const handleSave = async () => {
     try {
-      // Crea un objeto con los datos que deseas enviar al backend
       const data = {
         fecha: fecha,
         justificacion: justificacion  ,
         nombre: nombre
       };
   
-      // Realiza la solicitud POST al backend
       const response = await fetch("http://localhost:5000/proyecto/guardarSolicitud", {
         method: "POST",
         headers: {
@@ -193,7 +191,6 @@ export default function Solicitudes() {
 
       });
   
-      // Verifica si la solicitud fue exitosa
       if (response.ok) {
         mostrarMensaje("La solicitud se genero exitosamente.", 'success');
       } else {
@@ -333,8 +330,8 @@ const rowsWithIdsc = completadas.map((row) => ({
             align: "right"
           },
           "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
+            paddingLeft: "0px", 
+            paddingRight: "0px"
           }
         }}
       > <Typography variant="h2" color={colors.primary[100]}
@@ -359,8 +356,8 @@ const rowsWithIdsc = completadas.map((row) => ({
             align: "right"
           },
           "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
+            paddingLeft: "0px",
+            paddingRight: "0px"
           }
         }}
       > <Typography variant="h2" color={colors.primary[100]}
