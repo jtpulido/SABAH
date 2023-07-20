@@ -21,7 +21,7 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearAspecto(props) {
-    const { onClose, open } = props;
+    const { onClose,onSubmit, open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
@@ -59,7 +59,7 @@ function CrearAspecto(props) {
                 mostrarMensaje(data.message, "error");
             } else {
                 setNombre("");
-                handleCancel()
+                onSubmit()
                 mostrarMensaje(data.message, "success")
             }
         } catch (error) {
@@ -97,7 +97,9 @@ function CrearAspecto(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -109,6 +111,7 @@ function CrearAspecto(props) {
 CrearAspecto.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
 };
 
 export default CrearAspecto;

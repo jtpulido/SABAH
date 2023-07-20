@@ -4,9 +4,9 @@ const path = require('path');
 const pool = require('../database')
 
 const guardarDocumentoYEntrega = async (req, res, file) => {
-  
-  const  entrega  = JSON.parse(req.body.entrega);
-  
+
+  const entrega = JSON.parse(req.body.entrega);
+
   try {
     await pool.query('BEGIN');
     const uuid = uuidv4();
@@ -31,14 +31,17 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
       VALUES ($1, $2, $3)
     `;
     const entregaValues = [documentoId, entrega.id_proyecto, entrega.id];
-   
-    await pool.query(entregaQuery, entregaValues);
+
+    await pool.query(entregaQuery, entregaValues)
 
     await pool.query('COMMIT');
 
     return res.status(200).json({ success: true, message: 'Documento y entrega guardados exitosamente.' });
   } catch (error) {
     await pool.query('ROLLBACK');
+    if (error.code === '23505') {
+      return res.status(203).json({ success: true, message: "Ya existe una entrega para este proyecto" });
+    }
     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al guardar el documento y la entrega.' });
   }
 };

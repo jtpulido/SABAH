@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, Alert, Snackbar, IconButton, Tooltip } from "@mui/material";
+import { Box, Typography, useTheme, IconButton, Tooltip } from "@mui/material";
 import { Source, Person, Edit } from '@mui/icons-material';
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
@@ -127,7 +127,7 @@ export default function Jurados() {
   const llenarTabla = async (endpoint, setRows) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/juradosproyectos/${endpoint}`, {
-        method: "POST",
+        method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();

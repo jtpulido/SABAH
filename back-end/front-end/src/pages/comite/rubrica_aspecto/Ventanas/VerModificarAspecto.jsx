@@ -22,7 +22,7 @@ import { useSnackbar } from 'notistack';
 import { Edit, SaveOutlined } from '@mui/icons-material';
 
 function VerModificarAspecto(props) {
-    const { onClose, open, aspecto } = props;
+    const { onClose, onSubmit, open, aspecto } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
@@ -65,7 +65,7 @@ function VerModificarAspecto(props) {
                 mostrarMensaje(data.message, "error");
             } else {
                 setNombre("");
-                handleCancel()
+                onSubmit()
                 mostrarMensaje(data.message, "success")
             }
         } catch (error) {
@@ -77,12 +77,17 @@ function VerModificarAspecto(props) {
             <CssBaseline />
             <DialogTitle variant="h1" color={colors.primary[100]}>
                 VER/MODIFICAR ASPECTO
+
                 <IconButton onClick={habilitarEdicion}>
                     <Edit />
                 </IconButton>
             </DialogTitle>
             <form onSubmit={modificarAspecto}>
                 <DialogContent dividers>
+                    <Typography variant="h6">
+                    Al modificar un aspecto, cambiará en todas las rúbricas que lo esten utilizando.
+                    </Typography>
+
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
                             <CircularProgress />
@@ -92,7 +97,7 @@ function VerModificarAspecto(props) {
                             <Typography variant="h6" color={colors.primary[100]}>
                                 Nombre del aspecto
                             </Typography>
-                         
+
                             <TextField
                                 value={nombre}
                                 required
@@ -108,7 +113,9 @@ function VerModificarAspecto(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained"  disabled={!editMode} startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" disabled={!editMode} startIcon={<SaveOutlined />} sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -120,6 +127,7 @@ function VerModificarAspecto(props) {
 VerModificarAspecto.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired,
     aspecto: PropTypes.object.isRequired
 };
 

@@ -14,8 +14,9 @@ import {
 
 
 import { useSnackbar } from 'notistack';
+import { SaveOutlined } from '@mui/icons-material';
 
-function Entrega({ open, onClose, onSubmit, entrega }) {
+function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -49,17 +50,18 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                     body: formData
                 });
                 const data = await response.json();
-                if (response.ok) {
+                if (!data.success) {
+                    mostrarMensaje(data.message, "error");
+                } else if (response.status === 203) {
+                    mostrarMensaje(data.message, "warning");
+                } else if (response.status === 200) {
+                    onSubmit()
                     mostrarMensaje(data.message, "success")
-                } else {
-                    mostrarMensaje(data.message, "error")
                 }
             } catch (error) {
                 mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
             }
         }
-
-        onSubmit()
     };
 
     const formatFecha = (fecha) => {
@@ -125,19 +127,21 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancelar</Button>
-                    <Button type="submit" variant="contained" color="primary">
-                        Entregar
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                        width: 150,
+                    }}>
+                        Guardar
                     </Button>
                 </DialogActions>
             </form>
         </Dialog>
     );
 };
-Entrega.propTypes = {
+RealizarEntrega.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     onSubmit: PropTypes.func.isRequired,
     entrega: PropTypes.object.isRequired,
 };
 
-export default Entrega;
+export default RealizarEntrega;

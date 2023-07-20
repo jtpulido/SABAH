@@ -21,7 +21,7 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CalificarEntrega(props) {
-    const { onClose, entrega, open } = props;
+    const { onClose,onSubmit, entrega, open } = props;
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -133,6 +133,11 @@ function CalificarEntrega(props) {
             const data = await response.json();
             if (response.status === 200) {
                 mostrarMensaje(data.message, 'success');
+                setPuntaje({});
+                setComentario({});
+                setAspectos([]);
+                setLoading(true);
+                onSubmit()
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
             } else if (response.status === 203 || response.status === 400) {
@@ -215,7 +220,9 @@ function CalificarEntrega(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>

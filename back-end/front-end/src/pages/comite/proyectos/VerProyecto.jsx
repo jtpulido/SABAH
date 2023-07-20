@@ -9,9 +9,9 @@ import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
 
 import CustomDataGrid from "../../layouts/DataGrid";
-import Entrega from './Ventana/Entrega';
+import RealizarEntrega from './Ventana/RealizarEntrega';
 
-import CambiarCodigo from './CambiarCodigo';
+import CambiarCodigo from './Ventana/CambiarCodigo';
 import { PostAdd } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
@@ -96,10 +96,9 @@ export default function VerProyectos() {
 
   const infoProyecto = async () => {
     try {
-      const response = await fetch("http://localhost:5000/comite/verProyecto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id })
+      const response = await fetch(`http://localhost:5000/comite/verProyecto/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
 
       const data = await response.json();
@@ -150,29 +149,31 @@ export default function VerProyectos() {
 
   const [open, setOpen] = useState(false);
 
-  const abrirDialog = () => {
+  const abrirDialogCambiarCodigo = () => {
     setOpen(true);
   };
 
-  const cerrarDialog = (newValue) => {
+  const cerrarDialogCambiarCodigo = (newValue) => {
     setOpen(false);
     if (newValue) {
       modificarCodigo(newValue)
     };
   }
-  const handleOpenDialog = (row) => {
+  const abrirDialogAgregarEntrega = (row) => {
     setSelectedRow(row);
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => {
+  const cerrarDialogAgregarEntrega = () => {
     setOpenDialog(false);
   };
 
-  const handleSubmitDocumento = () => {
-    setOpenDialog(false);
+  const cerrarEntregaAgregada = () => {
+    setRowsPendientes([])
+    setRowsRealizadas([])
     llenarTabla("pendientes", id, setRowsPendientes);
     llenarTabla("realizadas", id, setRowsRealizadas);
+    setOpenDialog(false);
   };
 
 
@@ -180,8 +181,8 @@ export default function VerProyectos() {
     const columns = [
       { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150,  align: "center" },
       { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150,  align: "center" },
-      { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-      { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+      { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100,  align: "center" }
     ];
     return [...columns, ...extraColumns];
@@ -198,7 +199,7 @@ export default function VerProyectos() {
         return (
           <Box width="100%" ml="10px" display="flex" justifyContent="center">
             <Tooltip title="Añadir entrega">
-              <IconButton color="secondary" onClick={() => handleOpenDialog(row)}>
+              <IconButton color="secondary" onClick={() => abrirDialogAgregarEntrega(row)}>
                 <PostAdd />
               </IconButton>
             </Tooltip>
@@ -208,7 +209,8 @@ export default function VerProyectos() {
     },
   ]);
 
-  const columnas = generarColumnas([]);
+  const columnas = generarColumnas([ { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+]);
 
   return (
     <div style={{ margin: "15px" }} >
@@ -239,13 +241,15 @@ export default function VerProyectos() {
               Asignar Código
             </Button>
           ) : (
-            <Button variant="outlined" disableElevation onClick={abrirDialog}>
+            <Button variant="outlined" disableElevation onClick={abrirDialogCambiarCodigo} sx={{
+              width: 200,
+          }}>
               Modificar código
             </Button>
           )}
           <CambiarCodigo
             open={open}
-            onClose={cerrarDialog}
+            onClose={cerrarDialogCambiarCodigo}
             proyectoCodigo={proyecto.codigo || ''}
           />
           <Box >
@@ -380,18 +384,19 @@ export default function VerProyectos() {
       ) : (
         <Typography variant="h6" color={colors.primary[100]}>Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
       )}
+      
+      <Box mt={4}>
       <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
         ENTREGAS
       </Typography>
-      <Box >
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>
         <CustomDataGrid rows={rowsPendientes} columns={columnasPendientes} mensaje="No hay entregas pendientes" />
-        <Entrega
+        <RealizarEntrega
           open={openDialog}
-          onClose={handleCloseDialog}
-          onSubmit={handleSubmitDocumento}
+          onClose={cerrarDialogAgregarEntrega}
+          onSubmit={cerrarEntregaAgregada}
           entrega={selectedRow || {}}
         />
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>

@@ -97,7 +97,7 @@ export default function Lectores() {
   const llenarTabla = async (url, setData) => {
     try {
       const response = await fetch(url, {
-        method: "POST",
+        method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
