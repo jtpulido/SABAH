@@ -141,7 +141,9 @@ export default function Aspectos() {
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ASPECTOS
                     </Typography>
-                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearAspecto}>
+                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearAspecto} sx={{
+                        width: 150,
+                    }}>
                         Crear Aspecto
                     </Button>
                 </Toolbar>

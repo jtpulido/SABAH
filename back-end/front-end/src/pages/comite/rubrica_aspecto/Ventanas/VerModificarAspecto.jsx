@@ -77,12 +77,17 @@ function VerModificarAspecto(props) {
             <CssBaseline />
             <DialogTitle variant="h1" color={colors.primary[100]}>
                 VER/MODIFICAR ASPECTO
+
                 <IconButton onClick={habilitarEdicion}>
                     <Edit />
                 </IconButton>
             </DialogTitle>
             <form onSubmit={modificarAspecto}>
                 <DialogContent dividers>
+                    <Typography variant="h6">
+                    Al modificar un aspecto, cambiará en todas las rúbricas que lo esten utilizando.
+                    </Typography>
+
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
                             <CircularProgress />
@@ -108,7 +113,9 @@ function VerModificarAspecto(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" disabled={!editMode} startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" disabled={!editMode} startIcon={<SaveOutlined />} sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>

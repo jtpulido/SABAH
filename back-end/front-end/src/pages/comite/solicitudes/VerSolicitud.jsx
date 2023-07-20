@@ -17,7 +17,7 @@ import { useSnackbar } from 'notistack';
 
 function VerSolicitud(props) {
 
-    const { onClose, id_solicitud,onSubmit, open } = props;
+    const { onClose, id_solicitud, onSubmit, open } = props;
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -178,7 +178,7 @@ function VerSolicitud(props) {
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Nombre del director
                                 </Typography>
-                                <TextField multiline value={solicitud.nombre_director || ''} fullWidth/>
+                                <TextField multiline value={solicitud.nombre_director || ''} fullWidth />
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
@@ -238,7 +238,9 @@ function VerSolicitud(props) {
                                                     Comentarios
                                                 </Typography>
                                                 <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
-                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} >
+                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} sx={{
+                                                    width: 150,
+                                                }}>
                                                     Guardar
                                                 </Button>
                                             </Stack>

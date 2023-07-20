@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { tokens } from "../../../../theme";
 import { Typography, useTheme, CssBaseline, DialogTitle, Dialog, Button, TextField, DialogActions, Divider, DialogContent } from "@mui/material";
+import { SaveOutlined } from '@mui/icons-material';
 
 function CambiarCodigo(props) {
 
@@ -129,9 +130,13 @@ function CambiarCodigo(props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleCancel}>
-                    Cancelar
+                    Cerrar
                 </Button>
-                <Button onClick={handleOk} disabled={!valido}>Guardar</Button>
+                <Button onClick={handleOk} disabled={!valido} variant="contained" startIcon={<SaveOutlined />} sx={{
+                    width: 150,
+                }}>
+                    Guardar
+                </Button>
             </DialogActions>
 
         </Dialog>

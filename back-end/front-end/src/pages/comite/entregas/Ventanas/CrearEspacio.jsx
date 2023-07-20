@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import { tokens } from "../../../../theme";
+import { useSelector } from "react-redux";
+import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
 import { useTheme, TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
@@ -18,13 +20,9 @@ function CrearEspacio(props) {
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
+    const token = useSelector(selectToken);
 
-    const { onClose,onSubmit, roles: rolesvalueProp = [], modalidades: modalidadesvalueProp = [], etapas: etapasvalueProp = [], rubricas: rubricasvalueProp = [], open, ...other } = props;
-
-    const [roles, setRoles] = useState(rolesvalueProp);
-    const [modalidades, setModalidades] = useState(modalidadesvalueProp);
-    const [etapas, setEtapas] = useState(etapasvalueProp);
-    const [rubricas, setRubricas] = useState(rubricasvalueProp);
+    const { onClose, onSubmit, open, ...other } = props;
 
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
@@ -35,12 +33,90 @@ function CrearEspacio(props) {
     const [idEtapa, setIdEtapa] = useState("");
     const [idRubrica, setIdRubrica] = useState("");
 
+    const [roles, setRoles] = useState([]);
+    const [modalidades, setModalidades] = useState([]);
+    const [etapas, setEtapas] = useState([]);
+    const [rubricas, setRubricas] = useState([]);
+
+    const obtenerRoles = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/comite/roles", {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning")
+            } else if (response.status === 200) {
+                setRoles(data.roles);
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+    };
+    const obtenerModalidades = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/comite/modalidades", {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning")
+            } else if (response.status === 200) {
+                setModalidades(data.modalidades);
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+    };
+    const obtenerEtapas = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/comite/etapas", {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning")
+            } else if (response.status === 200) {
+                setEtapas(data.etapas);
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+    };
+    const obtenerRubricas = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/comite/rubricas", {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning")
+            } else if (response.status === 200) {
+                setRubricas(data.rubricas);
+
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+    };
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
-      enqueueSnackbar(mensaje, { variant: variante });
+        enqueueSnackbar(mensaje, { variant: variante });
     };
-  
+
     const handleNombreChange = (event) => {
         const value = event.target.value;
         const isOnlyWhitespace = /^\s*$/.test(value);
@@ -69,19 +145,19 @@ function CrearEspacio(props) {
         setIdRubrica(event.target.value);
     };
 
-    const guardarEspacio = (event) => {
+    const guardarEspacio = async (event) => {
         event.preventDefault();
         const today = dayjs();
         const fechaAperturaDate = dayjs(fechaApertura);
         const fechaCierreDate = dayjs(fechaCierre);
 
         if (fechaAperturaDate.isBefore(today, 'day')) {
-            mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.","error");
+            mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
             return;
         }
 
         if (fechaCierreDate.isBefore(fechaAperturaDate, 'day')) {
-            mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.","error");
+            mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
             return;
         }
         const espacioData = {
@@ -94,26 +170,38 @@ function CrearEspacio(props) {
             id_etapa: idEtapa,
             id_rubrica: idRubrica,
         };
-        onSubmit(espacioData);
-        setNombre("");
-        setDescripcion("");
-        setFechaApertura(dayjs());
-        setFechaCierre(dayjs());
-        setIdRol("");
-        setIdModalidad("");
-        setIdEtapa("");
-        setIdRubrica("");
+        try {
+            const response = await fetch("http://localhost:5000/comite/espacio", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(espacioData)
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error")
+            } else {
+                onSubmit();
+                setNombre("");
+                setDescripcion("");
+                setFechaApertura(dayjs());
+                setFechaCierre(dayjs());
+                setIdRol("");
+                setIdModalidad("");
+                setIdEtapa("");
+                setIdRubrica("");
+
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
     };
 
-    useEffect(() => {
-        if (!open) {
-            setRoles(rolesvalueProp)
-            setModalidades(modalidadesvalueProp)
-            setRubricas(rubricasvalueProp)
-            setEtapas(etapasvalueProp)
-        }
-    }, [rolesvalueProp, modalidadesvalueProp, rubricasvalueProp, etapasvalueProp, open]);
-
+    const handleEntering = async () => {
+        obtenerRoles();
+        obtenerModalidades();
+        obtenerRubricas()
+        obtenerEtapas();
+    }
 
     const handleCancel = () => {
         onClose();
@@ -126,9 +214,10 @@ function CrearEspacio(props) {
         setIdEtapa("");
         setIdRubrica("");
     };
+
     return (
 
-        <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel}>
+        <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <form onSubmit={guardarEspacio}>
                 <DialogTitle variant="h1" color={colors.primary[100]}>
                     CREAR ESPACIO
@@ -262,7 +351,9 @@ function CrearEspacio(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained"  startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -274,11 +365,7 @@ function CrearEspacio(props) {
 CrearEspacio.propTypes = {
     onClose: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired,
-    roles: PropTypes.array.isRequired,
-    modalidades: PropTypes.array.isRequired,
-    etapas: PropTypes.array.isRequired,
-    rubricas: PropTypes.array.isRequired,
+    open: PropTypes.bool.isRequired
 };
 
 export default CrearEspacio;

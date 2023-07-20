@@ -80,7 +80,7 @@ export default function Entregas() {
     return [...columns, ...extraColumns];
   };
 
-  const columnaPendientes = generarColumnas([ { field: 'fecha_apertura', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+  const columnaPendientes = generarColumnas([ { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
   { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') }
  ]);
   const columnaPorCalificar = generarColumnas([

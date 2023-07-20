@@ -97,7 +97,9 @@ function CrearAspecto(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>

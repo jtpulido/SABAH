@@ -3,11 +3,13 @@ import React, { useState, useEffect } from "react";
 import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
+
 import { useTheme, Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
 import { Delete, Source, AddCircleOutline } from '@mui/icons-material';
 import CrearEspacio from "./Ventanas/CrearEspacio";
 import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
+import VerModificarEspacio from "./Ventanas/VerModificarEspacio";
 
 export default function Espacios() {
     const { enqueueSnackbar } = useSnackbar();
@@ -18,86 +20,9 @@ export default function Espacios() {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
-
-    const [roles, setRoles] = useState([]);
-    const [modalidades, setModalidades] = useState([]);
-    const [etapas, setEtapas] = useState([]);
-    const [rubricas, setRubricas] = useState([]);
-
     const [espacios, setEspacios] = useState([]);
-    const obtenerRoles = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/roles", {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
-            } else if (response.status === 200) {
-                setRoles(data.roles);
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
-    const obtenerModalidades = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/modalidades", {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
-            } else if (response.status === 200) {
-                setModalidades(data.modalidades);
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
-    const obtenerEtapas = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/etapas", {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
-            } else if (response.status === 200) {
-                setEtapas(data.etapas);
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
-    const obtenerRubricas = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/rubricas", {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
-            } else if (response.status === 200) {
-                setRubricas(data.rubricas);
+    const [espacio, setEspacio] = useState({});
 
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
     const obtenerEspacios = async () => {
         try {
             const response = await fetch("http://localhost:5000/comite/espacio", {
@@ -125,28 +50,15 @@ export default function Espacios() {
             const data = await response.json();
             if (!data.success) {
                 mostrarMensaje(data.message, "error")
+            }else{
+                setEspacio(data.espacio)
+                abrirDialogVerEspacio()
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
-    const crearEspacio = async (espacioData) => {
-        try {
-            const response = await fetch("http://localhost:5000/comite/espacio", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(espacioData)
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
-                obtenerEspacios();
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    };
+
     const eliminarEspacio = async (espacio_id) => {
         try {
             const response = await fetch(`http://localhost:5000/comite/espacio/${espacio_id}`, {
@@ -215,17 +127,25 @@ export default function Espacios() {
     const cerrarDialog = () => {
         setOpen(false);
     }
-    const cerrarEspacioCreado = (espacioData) => {
+    const cerrarEspacioCreado = () => {
+        obtenerEspacios();
         setOpen(false);
-        if (espacioData) {
-            crearEspacio(espacioData)
-        };
+
+    }
+    const [abrirVerEspacio, setAbrirVerEspacio] = useState(false);
+    const abrirDialogVerEspacio = () => {
+        setAbrirVerEspacio(true);
+    };
+
+    const cerrarVerEspacio = () => {
+        setAbrirVerEspacio(false);
+    }
+    const cerrarEspacioModificado = () => {
+        obtenerEspacios();
+        setAbrirVerEspacio(false);
+
     }
     useEffect(() => {
-        obtenerRoles();
-        obtenerModalidades();
-        obtenerRubricas()
-        obtenerEtapas();
         obtenerEspacios();
     }, []);
 
@@ -237,7 +157,9 @@ export default function Espacios() {
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ESPACIOS DE ENTREGAS
                     </Typography>
-                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirDialog}>
+                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirDialog} sx={{
+                        width: 150,
+                    }}>
                         Crear espacio
                     </Button>
                 </Toolbar>
@@ -245,9 +167,12 @@ export default function Espacios() {
             <CrearEspacio
                 open={open}
                 onSubmit={cerrarEspacioCreado}
-                onClose={cerrarDialog}
-                roles={roles} modalidades={modalidades} etapas={etapas} rubricas={rubricas}
-            />
+                onClose={cerrarDialog} />
+            <VerModificarEspacio
+                open={abrirVerEspacio}
+                onSubmit={cerrarEspacioModificado}
+                onClose={cerrarVerEspacio} 
+                espacio= {espacio}/>
             <Box sx={{ m: 2 }}>
                 <CustomDataGrid rows={espacios} columns={columns} mensaje="No hay espacios creados" />
             </Box>

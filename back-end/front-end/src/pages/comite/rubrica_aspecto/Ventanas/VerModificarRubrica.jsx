@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { tokens } from '../../../../theme';
 import { useSelector } from 'react-redux';
@@ -24,22 +24,15 @@ import {
     Select,
     MenuItem,
     FormControl,
-    Slide,
-    IconButton,
-    Tooltip
-} from '@mui/material';
+    IconButton} from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { Delete, Edit, SaveOutlined } from '@mui/icons-material';
-import CustomDataGrid from '../../../layouts/DataGrid';
+import { Edit, SaveOutlined } from '@mui/icons-material';
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
 
 function VerModificarRubrica(props) {
 
     const { enqueueSnackbar } = useSnackbar();
-    const { onClose, rubrica = {}, open, ...other } = props;
+    const { onClose, onSubmit, rubrica = {}, open, ...other } = props;
 
     const token = useSelector(selectToken);
 
@@ -47,8 +40,6 @@ function VerModificarRubrica(props) {
     const colors = tokens(theme.palette.mode);
 
     const [loading, setLoading] = useState(true);
-    const [id, setId] = useState(rubrica.id);
-
     const [rubricaNombre, setRubricaNombre] = useState('');
     const [rubricaDescripcion, setRubricaDescripcion] = useState('');
     const [selectedAspectos, setSelectedAspectos] = useState([]);
@@ -61,15 +52,18 @@ function VerModificarRubrica(props) {
     };
 
     const handleEntering = async () => {
-        console.log(rubrica);
         setRubricaNombre(rubrica.rubrica_nombre)
         setRubricaDescripcion(rubrica.rubrica_descripcion)
-        setSelectedAspectos(rubrica.aspectos)
         if (rubrica.aspectos) {
             const aspectoPuntajes = rubrica.aspectos.reduce((acc, aspecto) => {
                 return { ...acc, [aspecto.id]: aspecto.aspecto_puntaje };
             }, {});
+            const nuevoArreglo = rubrica.aspectos.map(({ id, aspecto_nombre }) => ({
+                id,
+                nombre: aspecto_nombre
+            }));
             setAspectoPuntajes(aspectoPuntajes);
+            setSelectedAspectos(nuevoArreglo)
         }
         obtenerAspectos()
         setLoading(false);
@@ -82,6 +76,7 @@ function VerModificarRubrica(props) {
         setAspectoPuntajes([])
         setAspectos([])
         setLoading(true);
+        setEditMode(false)
     };
 
     const obtenerAspectos = async () => {
@@ -107,14 +102,45 @@ function VerModificarRubrica(props) {
     };
     const modificarRubrica = async (event) => {
         event.preventDefault();
-        setRubricaNombre("")
-        setRubricaDescripcion("")
-        setSelectedAspectos([])
-        setAspectoPuntajes({})
-        setAspectos([])
-        setLoading(true);
-        console.log(rubrica)
-    }
+        const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
+        if (puntajesSum === 100) {
+            try {
+                const rubricaData = {
+                    nombre: rubricaNombre,
+                    descripcion: rubricaDescripcion,
+                    aspectos: selectedAspectos.map((aspecto) => ({
+                        ...aspecto,
+                        puntaje: aspectoPuntajes[aspecto.id] || 0,
+                    })),
+                };
+
+                const response = await fetch(`http://localhost:5000/comite/rubrica/${rubrica.id}`, {
+                    method: 'PUT',
+                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(rubricaData),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setRubricaNombre("")
+                    setRubricaDescripcion("")
+                    setSelectedAspectos([])
+                    setAspectoPuntajes({})
+                    setAspectos([])
+                    setLoading(true);
+                    setEditMode(false)
+                    onSubmit()
+                    mostrarMensaje(data.message, "success");
+                } else {
+                    mostrarMensaje(data.message, "error");
+                }
+            } catch (error) {
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+            }
+        } else {
+            mostrarMensaje("La suma de los aspectos debe ser 100", "error");
+        }
+    };
+
     const handleAspectoSelect = (event) => {
         const aspectoId = event.target.value;
         const selectedAspecto = aspectos.find((aspecto) => aspecto.id === aspectoId);
@@ -155,12 +181,12 @@ function VerModificarRubrica(props) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setRubricaDescripcion(isOnlyWhitespace ? "" : value);
     };
-   
+
     const [editMode, setEditMode] = useState(false);
 
-    const habilitarEdicion = async() => {
+    const habilitarEdicion = async () => {
         try {
-            const response = await fetch("http://localhost:5000/usoRubrica/aspecto", {
+            const response = await fetch(`http://localhost:5000/comite/usoRubrica/${rubrica.id}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -176,11 +202,11 @@ function VerModificarRubrica(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
         }
-       
+
     };
     return (
 
-        <Dialog fullWidth maxWidth="md" TransitionComponent={Transition} open={open} {...other} TransitionProps={{ onEntering: handleEntering }}>
+        <Dialog fullWidth maxWidth="md"  open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
 
             <DialogTitle variant="h1" color={colors.primary[100]}>
                 VER/MODIFICAR RUBRICA
@@ -190,6 +216,9 @@ function VerModificarRubrica(props) {
             </DialogTitle>
             <form onSubmit={modificarRubrica}>
                 <DialogContent dividers>
+                <Typography variant="h6">
+                Al modificar una rúbrica, cambiará en todos los espacios de entrega donde se esté usando.
+                    </Typography>
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
                             <CircularProgress />
@@ -223,12 +252,13 @@ function VerModificarRubrica(props) {
                                 disabled={!editMode}
                             />
 
-                            <FormControl fullWidth margin="normal" required>
+                            <FormControl fullWidth margin="normal">
                                 <Typography variant="h6" color={colors.primary[100]}>
                                     Seleccionar aspectos
                                 </Typography>
                                 <Select
                                     value=""
+                                    disabled={!editMode}
                                     onChange={handleAspectoSelect}
                                     renderValue={() => (
                                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -244,7 +274,6 @@ function VerModificarRubrica(props) {
                                             ))}
                                         </Box>
                                     )}
-                                    disabled={!editMode}
                                 >
                                     {aspectos.map((aspecto) => (
                                         <MenuItem key={aspecto.id} value={aspecto.id}>
@@ -268,17 +297,22 @@ function VerModificarRubrica(props) {
                                     <TableBody>
                                         {selectedAspectos.map((aspecto) => (
                                             <TableRow key={aspecto.id}>
-                                                <TableCell>{aspecto.aspecto_nombre}</TableCell>
+                                                <TableCell>{aspecto.nombre}</TableCell>
                                                 <TableCell>
                                                     <TextField
                                                         type="number"
                                                         value={aspectoPuntajes[aspecto.id] || 0}
                                                         onChange={(e) => handleAspectoPuntajeChange(aspecto.id, e.target.value)}
                                                         inputProps={{
-                                                            min: 0,
+                                                            min: 1,
                                                             max: 100,
                                                         }}
                                                         required
+                                                        error={!aspectoPuntajes[aspecto.id] ||
+                                                            aspectoPuntajes[aspecto.id] > 100 ||
+                                                            aspectoPuntajes[aspecto.id] < 1
+                                                        }
+                                                        helperText={"El puntaje debe estar entre 1 y 100"}
                                                         disabled={!editMode}
                                                     />
                                                 </TableCell>
@@ -288,7 +322,7 @@ function VerModificarRubrica(props) {
                                                         color="secondary"
                                                         onClick={() => handleAspectoRemove(aspecto.id)}
                                                         disabled={!editMode}
-                                                   >
+                                                    >
                                                         Eliminar
                                                     </Button>
                                                 </TableCell>
@@ -306,7 +340,9 @@ function VerModificarRubrica(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} disabled={!editMode} sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -317,6 +353,7 @@ function VerModificarRubrica(props) {
 }
 VerModificarRubrica.propTypes = {
     onClose: PropTypes.func.isRequired,
+    onSubmit: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     rubrica: PropTypes.object.isRequired,
 };

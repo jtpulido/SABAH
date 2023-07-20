@@ -38,7 +38,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     verEntregasRealizadasSinCalificar,
     verInfoDocEntregado,
     verAspectosEspacio,
-    guardarCalificacion
+    guardarCalificacion,validarModificarRubrica, validarModificarEspacio
 } = require('../controllers/entregas.controller')
 
 const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
@@ -90,6 +90,7 @@ router.get('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session:
 // Rutas para espacios
 router.post('/comite/espacio', passport.authenticate('jwt', { session: false }), crearEspacio);
 router.delete('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), eliminarEspacio);
+router.get('/comite/usoEspacio/:espacio_id', passport.authenticate('jwt', { session: false }), validarModificarEspacio);
 router.put('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), modificarEspacio);
 router.get('/comite/espacio', passport.authenticate('jwt', { session: false }), obtenerEspacio);
 router.get('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), obtenerEspacioPorId);
@@ -101,6 +102,7 @@ router.get('/comite/roles', passport.authenticate('jwt', { session: false }), ob
 router.get('/comite/rubricas', passport.authenticate('jwt', { session: false }), obtenerRubricas);
 router.post('/comite/crearRubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
 router.delete('/comite/rubrica/:rubrica_id', passport.authenticate('jwt', { session: false }), eliminarRubrica);
+router.get('/comite/usoRubrica/:rubrica_id', passport.authenticate('jwt', { session: false }), validarModificarRubrica);
 router.put('/comite/rubrica/:rubrica_id', passport.authenticate('jwt', { session: false }), modificarRubrica);
 
 router.get('/comite/obtenerRubricasAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
