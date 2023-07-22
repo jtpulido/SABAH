@@ -24,7 +24,6 @@ import {
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { ExpandMore, SaveOutlined } from '@mui/icons-material';
-import { native } from 'pg';
 import CustomDataGrid from '../../../layouts/DataGrid';
 
 function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
