@@ -50,7 +50,7 @@ export default function Espacios() {
             const data = await response.json();
             if (!data.success) {
                 mostrarMensaje(data.message, "error")
-            }else{
+            } else {
                 setEspacio(data.espacio)
                 abrirDialogVerEspacio()
             }
@@ -103,15 +103,16 @@ export default function Espacios() {
                     );
                 },
             },
-            { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, align: "center" },
-            { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150, align: "center" },
-            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-            { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-            { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100, align: "center" },
-            { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, align: "center" },
-            { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100, align: "center" },
-            { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.1, minWidth: 100, align: "center" }
+            { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150 },
+            { field: 'descripcion', headerName: 'Descripción', flex: 0.2, minWidth: 150 },
+            { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+            { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+            { field: 'nombre_rol', headerName: 'Calificador', flex: 0.1, minWidth: 100 },
+            { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100 },
+            { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100 },
+            { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.2, minWidth: 150 },
+            { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') }
+
         ]
         return [...columns, ...extraColumns];
     };
@@ -151,7 +152,6 @@ export default function Espacios() {
 
     return (
         <div >
-
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
                     <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
@@ -171,9 +171,12 @@ export default function Espacios() {
             <VerModificarEspacio
                 open={abrirVerEspacio}
                 onSubmit={cerrarEspacioModificado}
-                onClose={cerrarVerEspacio} 
-                espacio= {espacio}/>
+                onClose={cerrarVerEspacio}
+                espacio={espacio} />
             <Box sx={{ m: 2 }}>
+                <Typography variant="h6">
+                    Al modificar un espacio, los cambios se aplicarán a todas las entregas de este espacio.
+                </Typography>
                 <CustomDataGrid rows={espacios} columns={columns} mensaje="No hay espacios creados" />
             </Box>
         </div>

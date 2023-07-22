@@ -16,7 +16,8 @@ export default function Entregas() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
-  const [entrega, setEntrega] = useState(null);
+  const [entrega, setEntrega] = useState({});
+  const [tipo, setTipo] = useState("");
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCalificadas, setRowsCalificadas] = useState([]);
   const [rowsPorCalificar, setRowsPorCalificar] = useState([]);
@@ -49,8 +50,9 @@ export default function Entregas() {
   };
   const [openCalificar, setOpenCalificar] = useState(false);
 
-  const abrirDialogCalificar = (row) => {
+  const abrirDialogCalificar = (row, tipo) => {
     setEntrega(row)
+    setTipo(tipo)
     setOpenCalificar(true);
   };
   const cerrarDialogCalificado = () => {
@@ -72,21 +74,17 @@ export default function Entregas() {
 
   const generarColumnas = (extraColumns) => {
     const columns = [
-      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.3, minWidth: 200, align: "center" },
-      { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.1, minWidth: 100, align: "center" },    
-      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 150, align: "center" },
-      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100, align: "center" }
-     ]
+      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
+      { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
+      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
+    ]
     return [...columns, ...extraColumns];
   };
 
-  const columnaPendientes = generarColumnas([ { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-  { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') }
- ]);
-  const columnaPorCalificar = generarColumnas([
+  const columnaPendientes = generarColumnas([
     { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },   
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
       field: "calificar",
       headerName: "",
@@ -95,8 +93,30 @@ export default function Entregas() {
       renderCell: ({ row }) => {
         return (
           <Box width="100%" ml="10px" display="flex" justifyContent="center">
-            <Tooltip title="Ver entrega">
-              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row)}>
+            <Tooltip title="Ver Entrega">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "pendiente")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    }
+  ]);
+  const columnaPorCalificar = generarColumnas([
+    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    {
+      field: "calificar",
+      headerName: "",
+      flex: 0.1,
+      minWidth: 50,
+      renderCell: ({ row }) => {
+        return (
+          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificar")}>
                 <Source />
               </IconButton>
             </Tooltip>
@@ -106,25 +126,43 @@ export default function Entregas() {
     }
   ]);
   const columnaCalificadas = generarColumnas([
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100, align: "center" }
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
+    {
+      field: "calificar",
+      headerName: "",
+      flex: 0.1,
+      minWidth: 50,
+      renderCell: ({ row }) => {
+        return (
+          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificado")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    }
 
   ]);
   return (
     <div>
-        <AppBar position="static" color="transparent" variant="contained" >
-                <Toolbar >
-                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
-                        ESPACIOS DE ENTREGAS
-                    </Typography>
-                </Toolbar>
-            </AppBar>
+      <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar >
+          <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
+            ESPACIOS DE ENTREGAS
+          </Typography>
+        </Toolbar>
+      </AppBar>
       <CalificarEntrega
         open={openCalificar}
         onClose={cerrarDialogCalificar}
         onSubmit={cerrarDialogCalificado}
         entrega={entrega}
+        tipo={tipo}
       />
       <Box sx={{ m: 2 }}>
         <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>

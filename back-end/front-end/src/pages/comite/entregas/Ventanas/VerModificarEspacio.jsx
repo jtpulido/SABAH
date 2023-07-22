@@ -187,20 +187,21 @@ function VerModificarEspacio(props) {
         const fechaAperturaDate = dayjs(fechaApertura);
         const fechaCierreDate = dayjs(fechaCierre);
 
-        if (fechaAperturaDate.isBefore(today, 'day')) {
+        if (fechaAperturaDate.isBefore(today, 'minute')) {
             mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
             return;
         }
 
-        if (fechaCierreDate.isBefore(fechaAperturaDate, 'day')) {
+        if (fechaCierreDate.isBefore(fechaAperturaDate, 'minute')) {
             mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
             return;
         }
+
         const espacioData = {
             nombre,
             descripcion,
-            fecha_apertura: fechaApertura.format("DD/MM/YYYY hh:mm A"),
-            fecha_cierre: fechaCierre.format("DD/MM/YYYY hh:mm A"),
+            fecha_apertura: fechaAperturaDate.format("YYYY-MM-DDTHH:mm:ssZ"),
+            fecha_cierre: fechaCierreDate.format("YYYY-MM-DDTHH:mm:ssZ"),
             id_rol: idRol,
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
@@ -214,7 +215,7 @@ function VerModificarEspacio(props) {
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "error");
             } else {
                 onSubmit();
                 setNombre("");
@@ -225,13 +226,14 @@ function VerModificarEspacio(props) {
                 setIdModalidad("");
                 setIdEtapa("");
                 setIdRubrica("");
-                setEditMode(false)
-                mostrarMensaje(data.message, "success")
+                setEditMode(false);
+                mostrarMensaje(data.message, "success");
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
     };
+
 
     const handleCancel = () => {
         onClose();
@@ -260,15 +262,8 @@ function VerModificarEspacio(props) {
 
                 <DialogContent dividers >
                     <Typography variant="h6" color={colors.naranja[100]}>
-                       Si un proyecto ya realizo la entrega nos se puede cambiar la etapa y la modalidad.
+                        Si un proyecto ya realizo la entrega nos se puede cambiar la etapa y la modalidad. No se puede modificar un espacio si ya se ha calificado una entrega realizada en el mismo.
                     </Typography>
-                    <Typography variant="h6" color={colors.naranja[100]}>
-                       No se puede modificar un espacio si ya se ha calificado una entrega realizada en el mismo.
-                    </Typography>
-                    <Typography variant="h6">
-                        Al modificar un espacio, los cambios se aplicarán a todas las entregas de este espacio.
-                    </Typography>
-
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
                             <CircularProgress />

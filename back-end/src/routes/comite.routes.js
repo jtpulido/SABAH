@@ -38,7 +38,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     verEntregasRealizadasSinCalificar,
     verInfoDocEntregado,
     verAspectosEspacio,
-    guardarCalificacion,validarModificarRubrica, validarModificarEspacio
+    guardarCalificacion,validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
 } = require('../controllers/entregas.controller')
 
 const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
@@ -121,6 +121,7 @@ router.get('/comite/documento/aspectos/:id_esp_entrega', passport.authenticate('
 
 //calificación
 router.post('/comite/documento/guardarCalificacion', passport.authenticate('jwt', { session: false }), guardarCalificacion);
+router.get('/comite/calificacion/aspectos/:id_calificacion', passport.authenticate('jwt', { session: false }), verCalificacionAspectos);
 
 
 module.exports = router;

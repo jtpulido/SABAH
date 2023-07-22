@@ -633,6 +633,8 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
             `SELECT 
         c.id,
         ee.nombre AS nombre_espacio_entrega,
+        ee.fecha_apertura,
+        ee.fecha_cierre,
         r.nombre AS nombre_rol,
         p.nombre AS nombre_proyecto,
         u.nombre AS evaluador,
@@ -694,7 +696,8 @@ const verInfoDocEntregado = async (req, res) => {
     } catch (error) {
         return res.status(502).json({ success: false, message });
     }
-}; const verAspectosEspacio = async (req, res) => {
+}; 
+const verAspectosEspacio = async (req, res) => {
     try {
         const id = req.params.id_esp_entrega;
         const query =
@@ -724,7 +727,32 @@ const verInfoDocEntregado = async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
+const verCalificacionAspectos = async (req, res) => {
+    try {
+        const id = req.params.id_calificacion;
+        const query =
+            `SELECT ca.id, a.nombre AS nombre_aspecto,
+            ca.puntaje AS puntaje_aspecto,
+            ca.comentario AS comentario_aspecto
+     FROM calificacion_aspecto ca
+     JOIN rubrica_aspecto ra ON ca.id_rubrica_aspecto = ra.id
+     JOIN aspecto a ON ra.id_aspecto = a.id
+     WHERE ca.id_calificacion = $1  
+    `;
+        await pool.query(query, [id], (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
 
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+            }
+            return res.status(200).json({ success: true, aspectos: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
 const guardarCalificacion = async (req, res) => {
     try {
         const { id_doc_entrega, calificacion_aspecto } = req.body;
@@ -760,5 +788,5 @@ module.exports = {
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,validarModificarRubrica,
     verEntregasPendientesProyecto, verEntregasRealizadasProyecto,validarModificarEspacio,
     verEntregasPendientes, verEntregasRealizadasSinCalificar, verEntregasRealizadasCalificadas,
-    verInfoDocEntregado, verAspectosEspacio, guardarCalificacion
+    verInfoDocEntregado, verAspectosEspacio, guardarCalificacion,verCalificacionAspectos
 }
