@@ -4,7 +4,6 @@ import { Box, Typography, useTheme, Tooltip, IconButton, Toolbar, AppBar } from 
 import { Source } from '@mui/icons-material';
 
 import CustomDataGrid from "../../layouts/DataGrid";
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
@@ -12,9 +11,7 @@ import { useSnackbar } from 'notistack';
 import CalificarEntrega from './Ventanas/Calificar';
 
 export default function Entregas() {
-
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+ 
   const token = useSelector(selectToken);
   const [entrega, setEntrega] = useState(null);
   const [rowsPendientes, setRowsPendientes] = useState([]);
@@ -80,16 +77,32 @@ export default function Entregas() {
     return [...columns, ...extraColumns];
   };
 
-  const columnaPendientes = generarColumnas([ { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-  { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') }
- ]);
+  const columnaPendientes = generarColumnas([
+    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    {
+      field: "pendiente",
+      flex: 0.1,
+      minWidth: 50,
+      renderCell: ({ row }) => {
+        return (
+          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+            <Tooltip title="Ver Entrega">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "pendiente")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    }
+  ]);
   const columnaPorCalificar = generarColumnas([
     { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },   
     { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
       field: "calificar",
-      headerName: "",
       flex: 0.1,
       minWidth: 50,
       renderCell: ({ row }) => {
@@ -106,20 +119,37 @@ export default function Entregas() {
     }
   ]);
   const columnaCalificadas = generarColumnas([
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100, align: "center" }
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
+    {
+      field: "calificado",
+      headerName: "",
+      flex: 0.1,
+      minWidth: 50,
+      renderCell: ({ row }) => {
+        return (
+          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificado")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    }
 
   ]);
   return (
     <div>
-        <AppBar position="static" color="transparent" variant="contained" >
-                <Toolbar >
-                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
-                        ESPACIOS DE ENTREGAS
-                    </Typography>
-                </Toolbar>
-            </AppBar>
+      <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar >
+          <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+            ESPACIOS DE ENTREGAS
+          </Typography>
+        </Toolbar>
+      </AppBar>
       <CalificarEntrega
         open={openCalificar}
         onClose={cerrarDialogCalificar}
@@ -127,15 +157,15 @@ export default function Entregas() {
         entrega={entrega}
       />
       <Box sx={{ m: 2 }}>
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>
         <CustomDataGrid rows={rowsPendientes} columns={columnaPendientes} mensaje="No hay entregas pendientes" />
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Entregas por calificar
         </Typography>
         <CustomDataGrid rows={rowsPorCalificar} columns={columnaPorCalificar} mensaje="No entregas por calificar" />
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Entregas calificadas
         </Typography>
         <CustomDataGrid rows={rowsCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />

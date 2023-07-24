@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, IconButton, Tooltip } from "@mui/material";
 import { Source, Person, Edit } from '@mui/icons-material';
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
@@ -72,8 +71,6 @@ export default function Directores() {
     }
   ];
 
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
 
   const [rowsActivos, setRowsActivos] = useState([]);
@@ -113,19 +110,19 @@ export default function Directores() {
   return (
     <div style={{ margin: "15px" }} >
 
-      <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
+      <Typography variant="h1" color="secondary" fontWeight="bold">
         DIRECTORES POR PROYECTO
       </Typography>
       <Box>
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Proyectos en desarrollo
         </Typography>
         <CustomDataGrid rows={rowsActivos} columns={columnsEditar} mensaje="No hay directores" />
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Proyectos cerrados
         </Typography>
         <CustomDataGrid rows={rowsCerrados} columns={columnsEditar} mensaje="No hay directores" />
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Inactivos
         </Typography>
         <CustomDataGrid rows={rowsInactivos} columns={columnsEditar} mensaje="No hay directores" />

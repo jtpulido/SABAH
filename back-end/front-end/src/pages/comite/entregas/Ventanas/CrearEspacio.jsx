@@ -19,7 +19,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function CrearEspacio(props) {
 
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
 
     const { onClose, onSubmit, open, ...other } = props;
@@ -219,14 +218,14 @@ function CrearEspacio(props) {
 
         <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <form onSubmit={guardarEspacio}>
-                <DialogTitle variant="h1" color={colors.primary[100]}>
+                <DialogTitle variant="h1"color="primary">
                     CREAR ESPACIO
                 </DialogTitle>
 
                 <DialogContent dividers >
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Nombre
                             </Typography>
                             <TextField
@@ -238,7 +237,7 @@ function CrearEspacio(props) {
                                 helperText={'Ingresa el nombre del espacio'} />
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Descripción
                             </Typography>
                             <TextField
@@ -253,7 +252,7 @@ function CrearEspacio(props) {
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Fecha de apertura
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -267,7 +266,7 @@ function CrearEspacio(props) {
                             </LocalizationProvider>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Fecha de cierre
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -281,7 +280,7 @@ function CrearEspacio(props) {
                             </LocalizationProvider>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Rol Calificador
                             </Typography>
                             <Select
@@ -298,7 +297,7 @@ function CrearEspacio(props) {
                             </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Modalidad
                             </Typography>
                             <Select
@@ -314,7 +313,7 @@ function CrearEspacio(props) {
                             </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Etapa
                             </Typography>
                             <Select
@@ -331,7 +330,7 @@ function CrearEspacio(props) {
                             </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6"color="primary">
                                 Rubrica
                             </Typography>
                             <Select
