@@ -75,7 +75,7 @@ function VerModificarAspecto(props) {
     return (
         <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
             <CssBaseline />
-            <DialogTitle variant="h1" color={colors.primary[100]}>
+            <DialogTitle variant="h1" color="primary">
                 VER/MODIFICAR ASPECTO
 
                 <IconButton onClick={habilitarEdicion}>
@@ -94,7 +94,7 @@ function VerModificarAspecto(props) {
                         </Box>
                     ) : (
                         <>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Nombre del aspecto
                             </Typography>
 

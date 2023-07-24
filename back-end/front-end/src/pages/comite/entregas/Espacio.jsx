@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 
-import { useTheme, Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
 import { Delete, Source, AddCircleOutline } from '@mui/icons-material';
 import CrearEspacio from "./Ventanas/CrearEspacio";
 import CustomDataGrid from "../../layouts/DataGrid";
@@ -17,8 +16,6 @@ export default function Espacios() {
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
     const [espacios, setEspacios] = useState([]);
     const [espacio, setEspacio] = useState({});
@@ -154,7 +151,7 @@ export default function Espacios() {
         <div >
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
-                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h1" color="secondary"fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ESPACIOS DE ENTREGAS
                     </Typography>
                     <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirDialog} sx={{

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-
-import { tokens } from "../../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
-import { useTheme, TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid } from "@mui/material";
+import { TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
@@ -17,8 +15,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CrearEspacio(props) {
-
-    const theme = useTheme();
     const token = useSelector(selectToken);
 
     const { onClose, onSubmit, open, ...other } = props;
@@ -153,12 +149,12 @@ function CrearEspacio(props) {
         if (fechaAperturaDate.isBefore(today, 'minute')) {
             mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
             return;
-          }
-        
-          if (fechaCierreDate.isBefore(fechaAperturaDate, 'minute')) {
+        }
+
+        if (fechaCierreDate.isBefore(fechaAperturaDate, 'minute')) {
             mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
             return;
-          }
+        }
         const espacioData = {
             nombre,
             descripcion,
@@ -218,14 +214,14 @@ function CrearEspacio(props) {
 
         <Dialog maxWidth="md" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <form onSubmit={guardarEspacio}>
-                <DialogTitle variant="h1"color="primary">
+                <DialogTitle variant="h1" color="primary">
                     CREAR ESPACIO
                 </DialogTitle>
 
                 <DialogContent dividers >
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Nombre
                             </Typography>
                             <TextField
@@ -237,7 +233,7 @@ function CrearEspacio(props) {
                                 helperText={'Ingresa el nombre del espacio'} />
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Descripción
                             </Typography>
                             <TextField
@@ -252,7 +248,7 @@ function CrearEspacio(props) {
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Fecha de apertura
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -266,7 +262,7 @@ function CrearEspacio(props) {
                             </LocalizationProvider>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Fecha de cierre
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -280,7 +276,7 @@ function CrearEspacio(props) {
                             </LocalizationProvider>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Rol Calificador
                             </Typography>
                             <Select
@@ -297,7 +293,7 @@ function CrearEspacio(props) {
                             </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Modalidad
                             </Typography>
                             <Select
@@ -313,7 +309,7 @@ function CrearEspacio(props) {
                             </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Etapa
                             </Typography>
                             <Select
@@ -330,7 +326,7 @@ function CrearEspacio(props) {
                             </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography variant="h6"color="primary">
+                            <Typography variant="h6" color="primary">
                                 Rubrica
                             </Typography>
                             <Select

@@ -103,10 +103,10 @@ function CambiarCodigo(props) {
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }}  {...other} >
             <CssBaseline />
 
-            <DialogTitle variant="h1" color={colors.secundary[100]}>Asignar código</DialogTitle>
+            <DialogTitle variant="h1" color="secondary">Asignar código</DialogTitle>
             <DialogContent dividers  >
 
-                <Typography variant="h4" color={colors.primary[100]}>
+                <Typography variant="h4" color="primary">
                     Código del proyecto:
                 </Typography>
                 <Typography variant="h5">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton, Tooltip } from "@mui/material";
+import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 import { Source, Person, Edit } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";

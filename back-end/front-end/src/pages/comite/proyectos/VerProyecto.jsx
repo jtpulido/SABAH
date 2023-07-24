@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 
 import { useParams } from 'react-router-dom';
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton } from "@mui/material";
+import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton } from "@mui/material";
 
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
@@ -24,8 +23,7 @@ export default function VerProyectos() {
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  
   const [existe, setExiste] = useState([]);
   const [proyecto, setProyecto] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -179,11 +177,11 @@ export default function VerProyectos() {
 
   const generarColumnas = (extraColumns) => {
     const columns = [
-      { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150,  align: "center" },
-      { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150,  align: "center" },
+      { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150   },
+      { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150},
       { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-      { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100,  align: "center" }
+      { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100 }
     ];
     return [...columns, ...extraColumns];
   };
@@ -222,7 +220,7 @@ export default function VerProyectos() {
 
           <Typography
             variant="h4"
-            color={colors.secundary[100]}
+            color="secondary"
           >
             {proyecto.modalidad || ''}
           </Typography>
@@ -253,43 +251,43 @@ export default function VerProyectos() {
             proyectoCodigo={proyecto.codigo || ''}
           />
           <Box >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+            <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
               Información General
             </Typography>
 
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Modalidad
                 </Typography>
                 <TextField value={proyecto.modalidad || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Etapa
                 </Typography>
                 <TextField value={proyecto.etapa || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Estado
                 </Typography>
                 <TextField value={proyecto.estado || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Año
                 </Typography>
                 <TextField value={proyecto.anio || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Período
                 </Typography>
                 <TextField value={proyecto.periodo || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Director
                 </Typography>
                 <TextField value={director.nombre || ''} fullWidth />
@@ -298,11 +296,11 @@ export default function VerProyectos() {
               {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
                 <>
                   <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <Typography variant="h6" color={colors.primary[100]}>Lector</Typography>
+                    <Typography variant="h6" color="primary">Lector</Typography>
                     {existeLector ? (
                       <TextField value={lector || ''} xs={12} sm={6} md={4} lg={4} xl={3} fullWidth />
                     ) : (
-                      <Typography variant="h6" color={colors.primary[100]}>No se ha asignado lector para este proyecto</Typography>
+                      <Typography variant="h6" color="primary">No se ha asignado lector para este proyecto</Typography>
                     )}
 
                   </Grid>
@@ -312,7 +310,7 @@ export default function VerProyectos() {
           </Box>
 
           <Box>
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+            <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
               Estudiante(s)
             </Typography>
 
@@ -321,7 +319,7 @@ export default function VerProyectos() {
                 <Grid item key={estudiante.num_identificacion} xs={12}>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
-                      <Typography variant="h6" color={colors.primary[100]}>
+                      <Typography variant="h6" color="primary">
                         Nombre
                       </Typography>
                       <TextField
@@ -330,7 +328,7 @@ export default function VerProyectos() {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
-                      <Typography variant="h6" color={colors.primary[100]}>
+                      <Typography variant="h6" color="primary">
                         Correo electrónico
                       </Typography>
                       <TextField
@@ -339,7 +337,7 @@ export default function VerProyectos() {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
-                      <Typography variant="h6" color={colors.primary[100]}>
+                      <Typography variant="h6" color="primary">
                         Número de Identificación
                       </Typography>
                       <TextField
@@ -355,7 +353,7 @@ export default function VerProyectos() {
           {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
             <> <Box>
 
-              <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+              <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
                 Jurado(s)
               </Typography>
               {existeJurados ? (
@@ -364,7 +362,7 @@ export default function VerProyectos() {
                 <Grid container spacing={2}>
                   {listaJurado.map((jurado) => (
                     <Grid item key={jurado.id} xs={12} sm={6} md={6} lg={6} xl={6}>
-                      <Typography variant="h6" color={colors.primary[100]}>
+                      <Typography variant="h6" color="primary">
                         Nombre
                       </Typography>
                       <TextField
@@ -375,21 +373,21 @@ export default function VerProyectos() {
                   ))}
                 </Grid>
 
-              ) : (<Typography variant="h6" color={colors.primary[100]}>No se han asignado jurados</Typography>
+              ) : (<Typography variant="h6" color="primary">No se han asignado jurados</Typography>
               )}
             </Box>
             </>
           )}
         </Box>
       ) : (
-        <Typography variant="h6" color={colors.primary[100]}>Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
+        <Typography variant="h6" color="primary">Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
       )}
       
       <Box mt={4}>
-      <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold">
+      <Typography variant="h1" color="secondary" fontWeight="bold">
         ENTREGAS
       </Typography>
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>
         <CustomDataGrid rows={rowsPendientes} columns={columnasPendientes} mensaje="No hay entregas pendientes" />
@@ -399,7 +397,7 @@ export default function VerProyectos() {
           onSubmit={cerrarEntregaAgregada}
           entrega={selectedRow || {}}
         />
-        <Typography variant="h2" color={colors.primary[100]} sx={{ mt: "30px" }}>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Entregas realizadas
         </Typography>
         <CustomDataGrid rows={rowsRealizadas} columns={columnas} mensaje="No hay entregas realizadas" />

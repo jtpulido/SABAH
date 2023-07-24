@@ -108,7 +108,7 @@ const generarPDF = async () => {
       <CssBaseline />
       <Typography
         variant="h4"
-        color={colors.secundary[100]}
+        color="secondary"
       >
         FORMATO REUNIONES REALIMENTACIÓN
       </Typography>
@@ -116,7 +116,7 @@ const generarPDF = async () => {
       </br>
 
         <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Descripción de Objetivos * 
         </Typography>
         <Box >
@@ -133,7 +133,7 @@ const generarPDF = async () => {
           </Box>  
         </Box>
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Resultados de Reunión * 
         </Typography>
         <Box >
@@ -149,7 +149,7 @@ const generarPDF = async () => {
           </Box>  
         </Box> 
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Tareas Sesión Anterior * 
         </Typography>
         <Box >
@@ -165,7 +165,7 @@ const generarPDF = async () => {
           </Box>  
         </Box>
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Compromisos * 
         </Typography>
         <Box >

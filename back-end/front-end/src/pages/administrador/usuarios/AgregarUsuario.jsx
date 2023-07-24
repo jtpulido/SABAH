@@ -94,7 +94,7 @@ export default function AgregarUsuario() {
 
             <Typography
                 variant="h1"
-                color={colors.secundary[100]}
+                color="secondary"
                 fontWeight="bold"
             >
                 AGREGAR USUARIO
@@ -103,19 +103,19 @@ export default function AgregarUsuario() {
             <Box >
                 <CssBaseline />
                 <Box >
-                    <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+                    <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
                         Información General
                     </Typography>
 
                     <Grid container spacing={3}>
                         <Grid item xs={12} sm={6} md={6} lg={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Nombre Completo
                             </Typography>
                             <TextField name="nombre" id="nombre" type="text" value={usuario.nombre} onChange={handleChange} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={6} lg={6}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Correo Electrónico
                             </Typography>
                             <TextField name="correo" id="correo" type="text" value={usuario.correo} onChange={handleChange} fullWidth />

@@ -50,7 +50,7 @@ export default function VerReunion() {
 
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
-       <Typography variant="h1" color={colors.secundary[100]} > VER REUNIÓN </Typography>
+       <Typography variant="h1" color="secondary" > VER REUNIÓN </Typography>
        <IconButton color="secondary" style={{ marginLeft: '20px' }} aria-label="delete" size="large" >
             <CreateIcon />
           </IconButton>

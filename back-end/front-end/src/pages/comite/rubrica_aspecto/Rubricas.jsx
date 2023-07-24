@@ -136,7 +136,7 @@ export default function Rubricas() {
         <div>
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
-                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
                         RUBRICAS
                     </Typography>
                     <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearRubrica} sx={{

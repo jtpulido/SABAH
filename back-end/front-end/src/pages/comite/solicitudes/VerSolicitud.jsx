@@ -148,7 +148,7 @@ function VerSolicitud(props) {
 
             <CssBaseline />
 
-            <DialogTitle variant="h1" color={colors.primary[100]}>VER SOLICITUD</DialogTitle>
+            <DialogTitle variant="h1" color="primary">VER SOLICITUD</DialogTitle>
             <DialogContent dividers  >
                 {solicitud == null || loading ? (
                     <Box sx={{ display: 'flex' }}>
@@ -156,58 +156,58 @@ function VerSolicitud(props) {
                     </Box>
                 ) : (
                     <>
-                        <Typography variant="h2" color={colors.secundary[100]}>
+                        <Typography variant="h2" color="secondary">
                             Información del proyecto
                         </Typography>
 
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Código
                                 </Typography>
                                 <TextField value={solicitud.codigo_proyecto || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Etapa
                                 </Typography>
                                 <TextField value={solicitud.etapa_proyecto || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Nombre del director
                                 </Typography>
                                 <TextField multiline value={solicitud.nombre_director || ''} fullWidth />
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Typography variant="h2" color={colors.secundary[100]}>
+                        <Typography variant="h2" color="secondary">
                             Información de la solicitud
                         </Typography>
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Tipo
                                 </Typography>
                                 <TextField multiline value={solicitud.tipo_solicitud || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Fecha de creación
                                 </Typography>
                                 <TextField value={solicitud.fecha_solicitud || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Creada por
                                 </Typography>
                                 <TextField value={solicitud.creado_por_proyecto ? 'Proyecto' : 'Director del proyecto' || ''} fullWidth />
                             </Grid>
 
                             <Grid item xs={12} sm={12} md={12} lg={12}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Justificación
                                 </Typography>
                                 <TextField fullWidth multiline value={solicitud.justificacion || ''} />
@@ -220,21 +220,21 @@ function VerSolicitud(props) {
                             <>
                                 <Accordion>
                                     <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
-                                        <Typography variant="h2" color={colors.secundary[100]}>
+                                        <Typography variant="h2" color="secondary">
                                             Responder solicitud
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
                                         <FormControl fullWidth>
                                             <Stack spacing={1} >
-                                                <Typography variant="h6" color={colors.secundary[100]}>
+                                                <Typography variant="h6" color="secondary">
                                                     Aprobado
                                                 </Typography>
                                                 <RadioGroup row value={approval} onChange={handleApprovalChange}>
                                                     <FormControlLabel value="false" control={<Radio />} label="No" />
                                                     <FormControlLabel value="true" control={<Radio />} label="Sí" />
                                                 </RadioGroup>
-                                                <Typography variant="h6" color={colors.secundary[100]}>
+                                                <Typography variant="h6" color="secondary">
                                                     Comentarios
                                                 </Typography>
                                                 <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
@@ -257,7 +257,7 @@ function VerSolicitud(props) {
                         )
                         }
                         <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Typography variant="h2" color={colors.secundary[100]}>
+                        <Typography variant="h2" color="secondary">
                             Aprobaciones
                         </Typography>
                         <Divider sx={{ mt: 1, mb: 1 }} />

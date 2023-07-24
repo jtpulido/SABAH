@@ -49,8 +49,7 @@ export default function Proyectos() {
   const verProyecto = (id) => {
     navigate(`/comite/verProyecto/${id}`)
   }
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  
   const token = useSelector(selectToken);
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);
@@ -90,20 +89,20 @@ export default function Proyectos() {
      
       <Typography
         variant="h1"
-        color={colors.secundary[100]}
+        color="secondary"
         fontWeight="bold"
       >
         PROYECTOS
       </Typography>
 
       <Box>
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           En desarrollo
         </Typography>
         <CustomDataGrid rows={rowsEnCurso || []} columns={columns} mensaje="No hay proyectos" />
 
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           Cerrados
         </Typography>

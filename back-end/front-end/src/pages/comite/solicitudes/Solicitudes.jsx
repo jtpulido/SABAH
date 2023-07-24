@@ -137,26 +137,26 @@ export default function Proyectos() {
       />
       <Typography
         variant="h1"
-        color={colors.secundary[100]}
+        color="secondary"
         fontWeight="bold"
       >
         SOLICITUDES
       </Typography>
 
       <Box   > 
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
         sx={{ mt: "30px" }}>
           Pendientes
         </Typography>
         <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} mensaje="No hay solicitudes" />
 
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           Aprobadas
         </Typography>
         <CustomDataGrid rows={rowsAprobadas} columns={columnsAprobadas} mensaje="No hay solicitudes" />
 
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           Rechazadas
         </Typography>

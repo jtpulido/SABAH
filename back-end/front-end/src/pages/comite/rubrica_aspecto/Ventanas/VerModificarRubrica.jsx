@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from '../../../../theme';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 import {
     Typography,
-    useTheme,
     CircularProgress,
     Box,
     TextField,
@@ -36,8 +34,6 @@ function VerModificarRubrica(props) {
 
     const token = useSelector(selectToken);
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [loading, setLoading] = useState(true);
     const [rubricaNombre, setRubricaNombre] = useState('');
@@ -208,7 +204,7 @@ function VerModificarRubrica(props) {
 
         <Dialog fullWidth maxWidth="md"  open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
 
-            <DialogTitle variant="h1" color={colors.primary[100]}>
+            <DialogTitle variant="h1" color="primary">
                 VER/MODIFICAR RUBRICA
                 <IconButton onClick={habilitarEdicion}>
                     <Edit />
@@ -225,7 +221,7 @@ function VerModificarRubrica(props) {
                         </Box>
                     ) : (
                         <>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Nombre de la rubrica
                             </Typography>
                             <TextField
@@ -237,7 +233,7 @@ function VerModificarRubrica(props) {
                                 fullWidth
                                 disabled={!editMode}
                             />
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Descripción
                             </Typography>
                             <TextField
@@ -253,7 +249,7 @@ function VerModificarRubrica(props) {
                             />
 
                             <FormControl fullWidth margin="normal">
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Seleccionar aspectos
                                 </Typography>
                                 <Select
@@ -282,7 +278,7 @@ function VerModificarRubrica(props) {
                                     ))}
                                 </Select>
                             </FormControl>
-                            <Typography variant="h4" color={colors.secundary[100]}>
+                            <Typography variant="h4" color="secondary">
                                 Aspectos seleccionados
                             </Typography>
                             <TableContainer component={Paper}>

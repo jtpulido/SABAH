@@ -4,7 +4,6 @@ import { Box, CssBaseline, TextField, Grid } from '@mui/material';
 import { Typography, useTheme} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
 import { tokens } from "../../theme";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
@@ -448,7 +447,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
 
-        <Typography variant="h1" color={colors.secundary[100]}> REUNIONES </Typography>
+        <Typography variant="h1" color="secondary"> REUNIONES </Typography>
         <Tooltip title="crear">
            <IconButton color="secondary" onClick={() => handleOpenModal()}>
                 <ControlPointIcon sx={{ fontSize: 20 }}/>
@@ -526,26 +525,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
 
       </div>
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", 
-            paddingRight: "0px" 
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box> <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Pendientes
       </Typography>
@@ -607,51 +587,14 @@ const rowsWithIdsx = canceladas.map((row) => ({
     </Box>
     
       <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", 
-            paddingRight: "0px"
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      > <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Completas
       </Typography>
       <CustomDataGrid rows={rowsWithIdsc} columns={columnsCompletas} />
     </Box>
       
-    <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px",
-            paddingRight: "0px" 
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+    <Box      > <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Canceladas
       </Typography>

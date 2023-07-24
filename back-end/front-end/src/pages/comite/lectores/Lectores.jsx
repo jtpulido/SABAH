@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton, Tooltip } from "@mui/material";
+import { Box, Typography, IconButton, Tooltip, useTheme } from "@mui/material";
 
 import { Source, Person, Edit } from '@mui/icons-material';
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
-
+import { tokens } from "../../../theme";
 export default function Lectores() {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
@@ -86,8 +87,7 @@ export default function Lectores() {
   const verProyecto = (id_proyecto) => {
     navigate(`/comite/verProyecto/${id_proyecto}`)
   }
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+
   const token = useSelector(selectToken);
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsCerrados, setRowsCerrados] = useState([]);
@@ -126,24 +126,24 @@ export default function Lectores() {
     <div style={{ margin: "15px" }} >
         <Typography
           variant="h1"
-          color={colors.secundary[100]}
+          color="secondary"
           fontWeight="bold"
         >
           LECTORES POR PROYECTO
         </Typography>
         <Box>
-          <Typography variant="h2" color={colors.primary[100]}
+          <Typography variant="h2" color="primary"
             sx={{ mt: "30px" }}>
             Proyectos en desarrollo
           </Typography>
           <CustomDataGrid rows={rowsActivos} columns={columnsEditar} mensaje="No hay lectores" />
-          <Typography variant="h2" color={colors.primary[100]}
+          <Typography variant="h2" color="primary"
             sx={{ mt: "30px" }}>
             Proyectos cerrados
           </Typography>
           <CustomDataGrid rows={rowsCerrados} columns={columns} mensaje="No hay lectores" />
 
-          <Typography variant="h2" color={colors.primary[100]}
+          <Typography variant="h2" color="primary"
             sx={{ mt: "30px" }}>
             Inactivos
           </Typography>

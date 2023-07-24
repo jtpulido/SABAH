@@ -268,7 +268,7 @@ const rowsWithIdsc = completadas.map((row) => ({
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <Typography variant="h1" color={colors.secundary[100]}> SOLICITUDES </Typography>
+        <Typography variant="h1" color="secondary"> SOLICITUDES </Typography>
         <Tooltip title="crear">
            <IconButton color="secondary" onClick={() => handleOpenModal()}>
                 <ControlPointIcon sx={{ fontSize: 20 }}/>
@@ -315,52 +315,14 @@ const rowsWithIdsc = completadas.map((row) => ({
             </DialogActions>
           </Dialog>
       </div>
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", 
-            paddingRight: "0px"
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box> <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Pendientes
       </Typography>
       <CustomDataGrid rows={rowsWithIds} columns={columnsPendientes} />
     </Box>
     
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px",
-            paddingRight: "0px"
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box> <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Completas
       </Typography>

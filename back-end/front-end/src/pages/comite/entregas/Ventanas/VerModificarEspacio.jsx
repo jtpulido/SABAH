@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 
-import { tokens } from "../../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
-import { useTheme, TextField, Button, Select, MenuItem, Dialog, Typography, DialogContent, DialogTitle, DialogActions, Grid, CircularProgress, Box, IconButton } from "@mui/material";
+import { TextField, Button, Select, MenuItem, Dialog, Typography, DialogContent, DialogTitle, DialogActions, Grid, CircularProgress, Box, IconButton, useTheme } from "@mui/material";
 import { Edit, SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { tokens } from '../../../../theme';
 
 function VerModificarEspacio(props) {
-
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
@@ -253,7 +252,7 @@ function VerModificarEspacio(props) {
 
         <Dialog maxWidth="md" fullWidth open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <form onSubmit={modificarEspacio}>
-                <DialogTitle variant="h1" color={colors.primary[100]}>
+                <DialogTitle variant="h1" color="primary">
                     VER/MODIFICAR ESPACIO
                     <IconButton onClick={habilitarEdicion}>
                         <Edit />
@@ -272,7 +271,7 @@ function VerModificarEspacio(props) {
                         <>
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Nombre
                                     </Typography>
                                     <TextField
@@ -285,7 +284,7 @@ function VerModificarEspacio(props) {
                                         helperText={'Ingresa el nombre del espacio'} />
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Descripción
                                     </Typography>
                                     <TextField
@@ -301,7 +300,7 @@ function VerModificarEspacio(props) {
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Fecha de apertura
                                     </Typography>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -317,7 +316,7 @@ function VerModificarEspacio(props) {
 
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Fecha de cierre
                                     </Typography>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -333,7 +332,7 @@ function VerModificarEspacio(props) {
 
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Rol Calificador
                                     </Typography>
                                     <Select
@@ -351,7 +350,7 @@ function VerModificarEspacio(props) {
                                     </Select>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Modalidad
                                     </Typography>
                                     <Select
@@ -368,7 +367,7 @@ function VerModificarEspacio(props) {
                                     </Select>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Etapa
                                     </Typography>
                                     <Select
@@ -386,7 +385,7 @@ function VerModificarEspacio(props) {
                                     </Select>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="h6" color={colors.primary[100]}>
+                                    <Typography variant="h6" color="primary">
                                         Rubrica
                                     </Typography>
                                     <Select

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, Typography, useTheme, Tooltip, IconButton, Toolbar, AppBar } from '@mui/material';
+import { Box, Typography, Tooltip, IconButton, Toolbar, AppBar } from '@mui/material';
 import { Source } from '@mui/icons-material';
 
 import CustomDataGrid from "../../layouts/DataGrid";

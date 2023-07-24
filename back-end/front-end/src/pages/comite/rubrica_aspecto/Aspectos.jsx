@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
 import {
     Typography,
-    useTheme,
     Box,
     AppBar,
     Toolbar,
@@ -27,8 +25,6 @@ export default function Aspectos() {
     };
 
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [aspectos, setAspectos] = useState([]);
     const [aspecto, setAspecto] = useState({});
@@ -138,7 +134,7 @@ export default function Aspectos() {
         <div >
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
-                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ASPECTOS
                     </Typography>
                     <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearAspecto} sx={{

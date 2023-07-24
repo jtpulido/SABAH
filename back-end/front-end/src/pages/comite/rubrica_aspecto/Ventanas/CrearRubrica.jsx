@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from '../../../../theme';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 import {
     Typography,
-    useTheme,
     CircularProgress,
     Box,
     TextField,
@@ -36,8 +34,6 @@ function CrearRubrica(props) {
 
     const token = useSelector(selectToken);
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [loading, setLoading] = useState(true);
 
@@ -156,7 +152,7 @@ function CrearRubrica(props) {
     return (
         <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel}>
             <CssBaseline />
-            <DialogTitle variant="h1" color={colors.primary[100]}>
+            <DialogTitle variant="h1" color="primary">
                 CREAR RUBRICA
             </DialogTitle>
             <form onSubmit={crearRubrica}>
@@ -167,7 +163,7 @@ function CrearRubrica(props) {
                         </Box>
                     ) : (
                         <>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Nombre de la rubrica
                             </Typography>
                             <TextField
@@ -178,7 +174,7 @@ function CrearRubrica(props) {
                                 required
                                 fullWidth
                             />
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Descripción
                             </Typography>
                             <TextField
@@ -193,7 +189,7 @@ function CrearRubrica(props) {
                             />
 
                             <FormControl fullWidth margin="normal">
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Seleccionar aspectos
                                 </Typography>
                                 <Select
@@ -221,7 +217,7 @@ function CrearRubrica(props) {
                                     ))}
                                 </Select>
                             </FormControl>
-                            <Typography variant="h4" color={colors.secundary[100]}>
+                            <Typography variant="h4" color="secondary">
                                 Aspectos seleccionados
                             </Typography>
                             <TableContainer component={Paper}>
