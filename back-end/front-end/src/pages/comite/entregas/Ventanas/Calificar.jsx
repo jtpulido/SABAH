@@ -27,6 +27,7 @@ import CustomDataGrid from '../../../layouts/DataGrid';
 function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
 
     const { enqueueSnackbar } = useSnackbar();
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
@@ -40,11 +41,20 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const [aspectosCalificados, setAspectosCalificados] = useState([]);
     const [docEntregado, setDocEntregado] = useState(null);
 
-    const handleEntering = () => {
-        infoDocEntrega(entrega.id);
-        obtenerAspectos(entrega.id_espacio_entrega)
+    const handleEntering = async () => {
+        if (tipo !== "pendiente") {
+            await infoDocEntrega(entrega.id);
+        }
+        if (tipo === "calificar") {
+            await obtenerAspectos(entrega.id_espacio_entrega);
+        }
+        if (tipo === "calificado") {
+            await obtenerCalificacionAspectos(entrega.id);
+        }
         setLoading(false);
+        console.log(entrega);
     };
+
     const handleCancel = () => {
         onClose();
         setPuntaje({});
@@ -64,9 +74,8 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setComentario((prevComentario) => ({
             ...prevComentario,
-            [aspectoId]: isOnlyWhitespace ? "" : value,
+            [aspectoId]: isOnlyWhitespace ? '' : value,
         }));
-
     };
 
     const infoDocEntrega = async (id) => {
@@ -114,6 +123,29 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             );
         }
     };
+    const obtenerCalificacionAspectos = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/comite/calificacion/aspectos/${id}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            });
+            const data = await response.json();
+            if (response.status === 200) {
+                console.log(data.aspectos)
+                setAspectosCalificados(data.aspectos);
+            } else if (response.status === 502) {
+                mostrarMensaje(data.message, 'error');
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, 'warning');
+            }
+        } catch (error) {
+            setLoading(true);
+            mostrarMensaje(
+                'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.',
+                'error'
+            );
+        }
+    };
 
     const guardarCalificacion = async (event) => {
         setLoading(true);
@@ -124,7 +156,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 calificacion_aspecto: aspectos.map((aspecto) => ({
                     id_rubrica_aspecto: aspecto.id_rubrica_aspecto,
                     puntaje: puntaje[aspecto.id_aspecto] || 0,
-                    comentario: comentario[aspecto.id_aspecto].trim() || '',
+                    comentario: comentario[aspecto.id_aspecto]?.trim() || '',
                 })),
             };
 
@@ -139,8 +171,8 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 setPuntaje({});
                 setComentario({});
                 setAspectos([]);
-                setLoading(true);
-                onSubmit()
+                setLoading(false);
+                onSubmit();
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
             } else if (response.status === 203 || response.status === 400) {
@@ -161,12 +193,12 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         setLoading(false);
     };
     const columnas = [
-        { field: 'nombre_aspecto', headerName: 'Aspecto', flex: 0.3, minWidth: 200},
-        { field: 'puntaje_aspecto', headerName: 'Puntaje', flex: 0.1, minWidth: 100 },    
+        { field: 'nombre_aspecto', headerName: 'Aspecto', flex: 0.3, minWidth: 200 },
+        { field: 'puntaje_aspecto', headerName: 'Puntaje', flex: 0.1, minWidth: 100 },
         { field: 'comentario_aspecto', headerName: 'Comentario', flex: 0.3, minWidth: 150 },
-        ]
+    ]
     return (
-        <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
+        <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <CssBaseline />
 
             <DialogTitle variant="h1" color="primary">
@@ -321,13 +353,12 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                     </AccordionDetails>
                                 </Accordion>
                             )}
-                        </>)}
+                        </>
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
-                        width: 150,
-                    }}>
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -340,6 +371,9 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
 CalificarEntrega.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    entrega: PropTypes.object.isRequired,
+    onSubmit: PropTypes.func.isRequired,
+    tipo: PropTypes.string.isRequired
 };
 
 export default CalificarEntrega;

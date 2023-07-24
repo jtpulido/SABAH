@@ -13,7 +13,8 @@ import CalificarEntrega from './Ventanas/Calificar';
 export default function Entregas() {
  
   const token = useSelector(selectToken);
-  const [entrega, setEntrega] = useState(null);
+  const [entrega, setEntrega] = useState({});
+  const [tipo, setTipo] = useState("");
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCalificadas, setRowsCalificadas] = useState([]);
   const [rowsPorCalificar, setRowsPorCalificar] = useState([]);
@@ -46,8 +47,9 @@ export default function Entregas() {
   };
   const [openCalificar, setOpenCalificar] = useState(false);
 
-  const abrirDialogCalificar = (row) => {
+  const abrirDialogCalificar = (row, tipo) => {
     setEntrega(row)
+    setTipo(tipo)
     setOpenCalificar(true);
   };
   const cerrarDialogCalificado = () => {
@@ -69,11 +71,11 @@ export default function Entregas() {
 
   const generarColumnas = (extraColumns) => {
     const columns = [
-      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.3, minWidth: 200, align: "center" },
-      { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.1, minWidth: 100, align: "center" },    
-      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 150, align: "center" },
-      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100, align: "center" }
-     ]
+      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
+      { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
+      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
+    ]
     return [...columns, ...extraColumns];
   };
 
@@ -81,7 +83,7 @@ export default function Entregas() {
     { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
-      field: "pendiente",
+      field: "calificar",
       flex: 0.1,
       minWidth: 50,
       renderCell: ({ row }) => {
@@ -99,17 +101,18 @@ export default function Entregas() {
   ]);
   const columnaPorCalificar = generarColumnas([
     { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },   
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
       field: "calificar",
+      headerName: "",
       flex: 0.1,
       minWidth: 50,
       renderCell: ({ row }) => {
         return (
           <Box width="100%" ml="10px" display="flex" justifyContent="center">
-            <Tooltip title="Ver entrega">
-              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row)}>
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificar")}>
                 <Source />
               </IconButton>
             </Tooltip>
@@ -155,6 +158,7 @@ export default function Entregas() {
         onClose={cerrarDialogCalificar}
         onSubmit={cerrarDialogCalificado}
         entrega={entrega}
+        tipo={tipo}
       />
       <Box sx={{ m: 2 }}>
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>

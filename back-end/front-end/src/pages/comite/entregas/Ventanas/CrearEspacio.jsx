@@ -150,15 +150,15 @@ function CrearEspacio(props) {
         const fechaAperturaDate = dayjs(fechaApertura);
         const fechaCierreDate = dayjs(fechaCierre);
 
-        if (fechaAperturaDate.isBefore(today, 'day')) {
+        if (fechaAperturaDate.isBefore(today, 'minute')) {
             mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
             return;
-        }
-
-        if (fechaCierreDate.isBefore(fechaAperturaDate, 'day')) {
+          }
+        
+          if (fechaCierreDate.isBefore(fechaAperturaDate, 'minute')) {
             mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
             return;
-        }
+          }
         const espacioData = {
             nombre,
             descripcion,
