@@ -71,7 +71,7 @@ export const Login = () => {
           if (tipo_usuario === 'admin') {
             navigate('/admin');
           } else if (tipo_usuario === 'normal') {
-            sessionStorage.setItem('id_usuario', id_usuario);
+            sessionStorage.setItem('user_id_usuario', id_usuario);
             navigate('/user');
           } else if (tipo_usuario === 'comite') {
             navigate('/comite');

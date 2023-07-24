@@ -22,8 +22,10 @@ import {
 function CustomToolbar() {
   return (
     <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <GridToolbarFilterButton />
+        <GridToolbarExport />
+      </div>
     </GridToolbarContainer>
   );
 }
