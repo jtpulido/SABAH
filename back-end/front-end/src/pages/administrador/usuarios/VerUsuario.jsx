@@ -274,7 +274,7 @@ export default function VerUsuario() {
       <div style={{ display: 'flex', marginBottom: "20px" }}>
         <Typography
           variant="h1"
-          color={colors.secundary[100]}
+          color="secondary"
           fontWeight="bold"
         >
           VER USUARIO
@@ -288,31 +288,31 @@ export default function VerUsuario() {
         <Box >
           <CssBaseline />
           <Box >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+            <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
               Información General
             </Typography>
 
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={6} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Nombre Completo
                 </Typography>
                 <TextField value={usuario.nombre || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={6} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Correo Electrónico
                 </Typography>
                 <TextField value={usuario.correo || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={6} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Estado
                 </Typography>
                 <TextField value={(usuario.estado === null ? '' : (usuario.estado ? 'Habilitado' : 'Inhabilitado')) || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={8} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Roles
                 </Typography>
                 <FormControlLabel
@@ -348,7 +348,7 @@ export default function VerUsuario() {
               }
             }}
           >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
+            <Typography variant="h6" color="secondary" sx={{ mt: "50px" }}>
               Proyectos Asociados - Rol Director
             </Typography>
             <DataGrid
@@ -388,7 +388,7 @@ export default function VerUsuario() {
               },
             }}
           >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
+            <Typography variant="h6" color="secondary" sx={{ mt: "50px" }}>
               Proyectos Asociados - Rol Lector
             </Typography>
             <DataGrid
@@ -428,7 +428,7 @@ export default function VerUsuario() {
               }
             }}
           >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
+            <Typography variant="h6" color="secondary" sx={{ mt: "50px" }}>
               Proyectos Asociados - Rol Jurado
             </Typography>
             <DataGrid
@@ -453,7 +453,7 @@ export default function VerUsuario() {
 
         </Box>
       ) : (
-        <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
+        <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
       )}
     </div>
   );

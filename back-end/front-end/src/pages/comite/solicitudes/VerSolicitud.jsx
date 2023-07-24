@@ -7,16 +7,20 @@ import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { ExpandMore } from '@mui/icons-material';
-import { Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails, useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent } from "@mui/material";
+import {
+    Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails,
+    useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent
+} from "@mui/material";
 
 import CustomDataGrid from "../../layouts/DataGrid";
- import { useSnackbar } from 'notistack';
+import { useSnackbar } from 'notistack';
+
 function VerSolicitud(props) {
 
-    const { onClose, id_solicitud, open } = props;
+    const { onClose, id_solicitud, onSubmit, open } = props;
 
     const { enqueueSnackbar } = useSnackbar();
-  
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
@@ -52,10 +56,9 @@ function VerSolicitud(props) {
 
     const obtenerInfoSolicitud = async (id) => {
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/verSolicitud", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id })
+            const response = await fetch(`http://localhost:5000/comite/solicitudes/verSolicitud/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (response.status === 200) {
@@ -72,10 +75,9 @@ function VerSolicitud(props) {
     };
     const obtenerAprobacionesSolicitud = async (id) => {
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/verAprobaciones", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id })
+            const response = await fetch(`http://localhost:5000/comite/solicitudes/verAprobaciones/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (response.status === 200) {
@@ -102,9 +104,10 @@ function VerSolicitud(props) {
 
             setIsFormValid(false)
             if (response.status === 200) {
-                mostrarMensaje("Se ha guardado su respuesta!","success")
+                mostrarMensaje("Se ha guardado su respuesta!", "success")
                 obtenerInfoSolicitud(id_solicitud)
                 obtenerAprobacionesSolicitud(id_solicitud)
+                onSubmit()
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203 || response.status === 400) {
@@ -121,10 +124,10 @@ function VerSolicitud(props) {
     };
 
     const columns = [
-        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80,  align: "center" },
-        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80,  align: "center" },
-        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100,  align: "center" },
-        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150,  align: "center" }
+        { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80, align: "center" },
+        { field: 'aprobador', headerName: 'Aprobador', flex: 0.2, minWidth: 80, align: "center" },
+        { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, align: "center" },
+        { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, align: "center" }
     ];
     const handleApprovalChange = (event) => {
         setApproval(event.target.value);
@@ -142,10 +145,10 @@ function VerSolicitud(props) {
 
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md' onClose={handleCancel}>
-           
+
             <CssBaseline />
 
-            <DialogTitle variant="h1" color={colors.primary[100]}>VER SOLICITUD</DialogTitle>
+            <DialogTitle variant="h1" color="primary">VER SOLICITUD</DialogTitle>
             <DialogContent dividers  >
                 {solicitud == null || loading ? (
                     <Box sx={{ display: 'flex' }}>
@@ -153,58 +156,58 @@ function VerSolicitud(props) {
                     </Box>
                 ) : (
                     <>
-                        <Typography variant="h2" color={colors.secundary[100]}>
+                        <Typography variant="h2" color="secondary">
                             Información del proyecto
                         </Typography>
 
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Código
                                 </Typography>
                                 <TextField value={solicitud.codigo_proyecto || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Etapa
                                 </Typography>
                                 <TextField value={solicitud.etapa_proyecto || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Nombre del director
                                 </Typography>
                                 <TextField multiline value={solicitud.nombre_director || ''} fullWidth />
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Typography variant="h2" color={colors.secundary[100]}>
+                        <Typography variant="h2" color="secondary">
                             Información de la solicitud
                         </Typography>
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Tipo
                                 </Typography>
                                 <TextField multiline value={solicitud.tipo_solicitud || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Fecha de creación
                                 </Typography>
                                 <TextField value={solicitud.fecha_solicitud || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Creada por
                                 </Typography>
                                 <TextField value={solicitud.creado_por_proyecto ? 'Proyecto' : 'Director del proyecto' || ''} fullWidth />
                             </Grid>
 
                             <Grid item xs={12} sm={12} md={12} lg={12}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Justificación
                                 </Typography>
                                 <TextField fullWidth multiline value={solicitud.justificacion || ''} />
@@ -217,25 +220,27 @@ function VerSolicitud(props) {
                             <>
                                 <Accordion>
                                     <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
-                                        <Typography variant="h2" color={colors.secundary[100]}>
+                                        <Typography variant="h2" color="secondary">
                                             Responder solicitud
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
                                         <FormControl fullWidth>
                                             <Stack spacing={1} >
-                                                <Typography variant="h6" color={colors.secundary[100]}>
+                                                <Typography variant="h6" color="secondary">
                                                     Aprobado
                                                 </Typography>
                                                 <RadioGroup row value={approval} onChange={handleApprovalChange}>
                                                     <FormControlLabel value="false" control={<Radio />} label="No" />
                                                     <FormControlLabel value="true" control={<Radio />} label="Sí" />
                                                 </RadioGroup>
-                                                <Typography variant="h6" color={colors.secundary[100]}>
+                                                <Typography variant="h6" color="secondary">
                                                     Comentarios
                                                 </Typography>
                                                 <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
-                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} >
+                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} sx={{
+                                                    width: 150,
+                                                }}>
                                                     Guardar
                                                 </Button>
                                             </Stack>
@@ -252,7 +257,7 @@ function VerSolicitud(props) {
                         )
                         }
                         <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Typography variant="h2" color={colors.secundary[100]}>
+                        <Typography variant="h2" color="secondary">
                             Aprobaciones
                         </Typography>
                         <Divider sx={{ mt: 1, mb: 1 }} />
@@ -273,7 +278,8 @@ function VerSolicitud(props) {
 }
 VerSolicitud.propTypes = {
     onClose: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired
+    open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
 };
 
 export default VerSolicitud;

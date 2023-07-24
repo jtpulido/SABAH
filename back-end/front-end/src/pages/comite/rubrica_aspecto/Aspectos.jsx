@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
 import {
     Typography,
-    useTheme,
     Box,
     AppBar,
     Toolbar,
@@ -27,8 +25,6 @@ export default function Aspectos() {
     };
 
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [aspectos, setAspectos] = useState([]);
     const [aspecto, setAspecto] = useState({});
@@ -108,8 +104,11 @@ export default function Aspectos() {
 
     const cerrarCrearAspecto = () => {
         setAbrirCrear(false);
-        obtenerAspectos()
     }
+    const cerrarAspectoAgregado = () => {
+        obtenerAspectos()
+        setAbrirCrear(false);
+      };
     const [abrirModificar, setAbrirModificar] = useState(false);
 
     const verModificarAspecto = async (aspecto) => {
@@ -120,8 +119,12 @@ export default function Aspectos() {
     const cerrarModificarAspecto = () => {
         setAbrirModificar(false);
         setAspecto({})
-        obtenerAspectos()
     }
+    const cerrarAspectoModificado = () => {
+        setAspecto({})
+        obtenerAspectos()
+        setAbrirModificar(false);
+      };
 
     useEffect(() => {
         obtenerAspectos();
@@ -131,10 +134,12 @@ export default function Aspectos() {
         <div >
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
-                    <Typography variant="h1" color={colors.secundary[100]} fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ASPECTOS
                     </Typography>
-                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearAspecto}>
+                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearAspecto} sx={{
+                        width: 150,
+                    }}>
                         Crear Aspecto
                     </Button>
                 </Toolbar>
@@ -142,10 +147,12 @@ export default function Aspectos() {
             <CrearAspecto
                 open={abrirCrear}
                 onClose={cerrarCrearAspecto}
+                onSubmit={cerrarAspectoAgregado}
             />
             <VerModificarAspecto
                 open={abrirModificar}
                 onClose={cerrarModificarAspecto}
+                onSubmit={cerrarAspectoModificado}
                 aspecto={aspecto}
             />
             <CustomDataGrid rows={aspectos} columns={columnas} mensaje="No hay aspectos." />

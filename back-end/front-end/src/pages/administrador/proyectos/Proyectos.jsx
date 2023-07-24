@@ -136,30 +136,14 @@ export default function Proyectos() {
     <div style={{ margin: "15px" }} >
       <Typography
         variant="h1"
-        color={colors.secundary[100]}
+        color="secondary"
         fontWeight="bold"
       >
         PROYECTOS
       </Typography>
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-            height: rowsEnCurso.length === 0 ? "200px" : "auto",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      >
-        <Typography variant="h2" color={colors.primary[100]}
+      <Box >
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           En desarrollo
         </Typography>
@@ -183,24 +167,8 @@ export default function Proyectos() {
         />
       </Box>
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-            height: rowsTerminados.length === 0 ? "200px" : "auto",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14,
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: "flex-end",
-            align: "right",
-          },
-        }}
-      >
-        <Typography variant="h2" color={colors.primary[100]}
+      <Box      >
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           Cerrados
         </Typography>

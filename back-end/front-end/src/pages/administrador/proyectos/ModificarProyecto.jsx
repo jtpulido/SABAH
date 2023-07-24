@@ -640,7 +640,7 @@ export default function ModificarProyectos() {
             <div style={{ display: 'flex', marginBottom: "20px" }}>
                 <Typography
                     variant="h1"
-                    color={colors.secundary[100]}
+                    color="secondary"
                     fontWeight="bold"
                 >
                     MODIFICAR PROYECTO
@@ -655,7 +655,7 @@ export default function ModificarProyectos() {
 
                     <Typography
                         variant="h4"
-                        color={colors.secundary[100]}
+                        color="secondary"
                         sx={{ mb: "5px" }}
                     >
                         {proyecto.modalidad || ''}
@@ -672,13 +672,13 @@ export default function ModificarProyectos() {
                         {proyecto.codigo || ''}
                     </Typography>
                     <Box >
-                        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "30px", mb: "10px" }}>
+                        <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
                             Información General
                         </Typography>
 
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Modalidad
                                 </Typography>
                                 <Select
@@ -702,7 +702,7 @@ export default function ModificarProyectos() {
                                 </Select>
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Etapa
                                 </Typography>
 
@@ -731,7 +731,7 @@ export default function ModificarProyectos() {
 
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Estado
                                 </Typography>
 
@@ -760,13 +760,13 @@ export default function ModificarProyectos() {
 
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Año
                                 </Typography>
                                 <TextField value={proyectoModificado.anio} fullWidth onChange={handleAnioChange} />
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Período
                                 </Typography>
                                 <Select
@@ -783,7 +783,7 @@ export default function ModificarProyectos() {
                                 </Select>
                             </Grid>
                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Director
                                 </Typography>
                                 <Select
@@ -810,7 +810,7 @@ export default function ModificarProyectos() {
                     </Box>
 
                     <Box>
-                        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "30px", mb: "10px" }}>
+                        <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
                             Estudiante(s)
                         </Typography>
 
@@ -820,7 +820,7 @@ export default function ModificarProyectos() {
                                     <Grid item key={index} xs={12}>
                                         <Grid container spacing={2}>
                                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                                <Typography variant="h6" color={colors.primary[100]}>
+                                                <Typography variant="h6" color="primary">
                                                     Nombre Completo
                                                 </Typography>
                                                 <TextField value={estudiantesModificados[index]?.nombre || ''}
@@ -828,7 +828,7 @@ export default function ModificarProyectos() {
                                                     onChange={(event) => handleEstudianteChange(event, index, 'nombre')} />
                                             </Grid>
                                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                                <Typography variant="h6" color={colors.primary[100]}>
+                                                <Typography variant="h6" color="primary">
                                                     Correo Electrónico
                                                 </Typography>
                                                 <TextField value={estudiantesModificados[index]?.correo || ''}
@@ -836,7 +836,7 @@ export default function ModificarProyectos() {
                                                     onChange={(event) => handleEstudianteChange(event, index, 'correo')} />
                                             </Grid>
                                             <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                                <Typography variant="h6" color={colors.primary[100]}>
+                                                <Typography variant="h6" color="primary">
                                                     Número de Identificación
                                                 </Typography>
                                                 <TextField value={estudiantesModificados[index]?.num_identificacion || ''}
@@ -853,7 +853,7 @@ export default function ModificarProyectos() {
                     {proyecto.acronimo !== "AUX" && proyecto.modalidad !== "Coterminal" && (
                         <> <Box>
 
-                            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "30px", mb: "10px" }}>
+                            <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
                                 Jurado(s)
                             </Typography>
 
@@ -865,7 +865,7 @@ export default function ModificarProyectos() {
                                         <Grid item key={index} xs={12}>
                                             <Grid container spacing={2}>
                                                 <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                                    <Typography variant="h6" color={colors.primary[100]}>
+                                                    <Typography variant="h6" color="primary">
                                                         Nombre Completo
                                                     </Typography>
                                                     <Select
@@ -903,7 +903,7 @@ export default function ModificarProyectos() {
                     {proyecto.acronimo !== "AUX" && (
                         <> <Box>
 
-                            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "30px", mb: "10px" }}>
+                            <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
                                 Lector(s)
                             </Typography>
 
@@ -913,7 +913,7 @@ export default function ModificarProyectos() {
                                         <Grid item key={index} xs={12}>
                                             <Grid container spacing={2}>
                                                 <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                                    <Typography variant="h6" color={colors.primary[100]}>
+                                                    <Typography variant="h6" color="primary">
                                                         Nombre Completo
                                                     </Typography>
                                                     <Select
@@ -950,7 +950,7 @@ export default function ModificarProyectos() {
                     )}
                 </Box>
             ) : (
-                <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
+                <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
             )}
 
             <Button sx={{

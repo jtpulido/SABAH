@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams } from 'react-router-dom';
-import { Typography, useTheme, Alert, Snackbar, Box, TextField, CssBaseline, TableContainer, TableHead, TableRow, TableCell, TableBody, Grid } from "@mui/material";
+import { Typography, Alert, Snackbar, Box, TextField, CssBaseline, Grid } from "@mui/material";
 import "./InicioPro.css";
 import { Button } from "@mui/material";
-import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import { useSnackbar } from 'notistack';
@@ -12,8 +11,6 @@ import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 export default function ActaReunion() {
   const { id } = useParams();
   const token = useSelector(selectToken);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [error, setError] = useState(null);
   const handleClose = () => setError(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -55,7 +52,7 @@ export default function ActaReunion() {
       <CssBaseline />
       <Typography
         variant="h4"
-        color={colors.secundary[100]}
+        color="secondary"
       >
         FORMATO SOLICITUDES
       </Typography>
@@ -63,13 +60,13 @@ export default function ActaReunion() {
       </br>
 
         <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Información general * 
         </Typography> 
         </Box>
 
       <Box>
-      <Typography variant="h6" color={colors.primary[100]} sx={{ mt: "20px", mb: "20px" }}>
+      <Typography variant="h6" color="primary" sx={{ mt: "20px", mb: "20px" }}>
           Tipo Solicitud * 
         </Typography>
       <Box >
@@ -93,7 +90,7 @@ export default function ActaReunion() {
           </Box> 
       </Box>
       <Box >
-        <Typography variant="h6" color={colors.primary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="primary" sx={{ mt: "20px", mb: "20px" }}>
           Justificación * 
         </Typography>
         <Box >
@@ -105,7 +102,7 @@ export default function ActaReunion() {
           </Box>  
         </Box> 
       <Box >
-        <Typography variant="h6" color={colors.primary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="primary" sx={{ mt: "20px", mb: "20px" }}>
           Link Documento De Soporte * 
         </Typography>
         <Box >

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from "../../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import {
@@ -9,13 +8,14 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions, CssBaseline, Grid,
-    TextField, useTheme, Typography, Divider
+    TextField, Typography, Divider
 } from '@mui/material';
 
 
 import { useSnackbar } from 'notistack';
+import { SaveOutlined } from '@mui/icons-material';
 
-function Entrega({ open, onClose, onSubmit, entrega }) {
+function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -23,8 +23,6 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
 
     const [selectedFile, setSelectedFile] = useState(null);
@@ -49,17 +47,18 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                     body: formData
                 });
                 const data = await response.json();
-                if (response.ok) {
+                if (!data.success) {
+                    mostrarMensaje(data.message, "error");
+                } else if (response.status === 203) {
+                    mostrarMensaje(data.message, "warning");
+                } else if (response.status === 200) {
+                    onSubmit()
                     mostrarMensaje(data.message, "success")
-                } else {
-                    mostrarMensaje(data.message, "error")
                 }
             } catch (error) {
                 mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
             }
         }
-
-        onSubmit()
     };
 
     const formatFecha = (fecha) => {
@@ -72,40 +71,40 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
 
             <CssBaseline />
             <form onSubmit={handleSubmit}>
-                <DialogTitle variant="h1" color={colors.primary[100]}>Entrega de Documento</DialogTitle>
+                <DialogTitle variant="h1" color="primary">Entrega de Documento</DialogTitle>
                 <DialogContent dividers>
-                    <Typography variant="h2" color={colors.secundary[100]}>
+                    <Typography variant="h2" color="secondary">
                         Información del proyecto
                     </Typography>
 
                     <Divider sx={{ mt: 1, mb: 1 }} />
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Nombre
                             </Typography>
                             <TextField value={entrega.nombre || ''} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Descripción
                             </Typography>
                             <TextField value={entrega.descripcion || ''} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Evaluador
                             </Typography>
                             <TextField multiline value={entrega.nombre_rol || ''} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Fecha de apertura
                             </Typography>
                             <TextField multiline value={formatFecha(entrega.fecha_apertura) || ''} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Fecha de cierre
                             </Typography>
                             <TextField multiline value={formatFecha(entrega.fecha_cierre) || ''} fullWidth />
@@ -113,11 +112,11 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                     </Grid>
 
                     <Divider sx={{ mt: 2, mb: 2 }} />
-                    <Typography variant="h2" color={colors.secundary[100]}>
+                    <Typography variant="h2" color="secondary">
                         Agregar entrega
                     </Typography>
 
-                    <Typography variant="h6" color={colors.secundary[100]}>
+                    <Typography variant="h6" color="secondary">
                         Documento
                     </Typography>
                     <TextField fullWidth required placeholder="Agregue el documento" type='file' onChange={handleInputChange} />
@@ -125,19 +124,21 @@ function Entrega({ open, onClose, onSubmit, entrega }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancelar</Button>
-                    <Button type="submit" variant="contained" color="primary">
-                        Entregar
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                        width: 150,
+                    }}>
+                        Guardar
                     </Button>
                 </DialogActions>
             </form>
         </Dialog>
     );
 };
-Entrega.propTypes = {
+RealizarEntrega.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     onSubmit: PropTypes.func.isRequired,
     entrega: PropTypes.object.isRequired,
 };
 
-export default Entrega;
+export default RealizarEntrega;

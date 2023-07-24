@@ -1,4 +1,4 @@
-import { ColorModeContext, useMode } from "./theme";
+import { ColorModeContext} from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 
 import { BrowserRouter } from "react-router-dom";
@@ -6,6 +6,7 @@ import AppRoutes from "./Routes";
 import { SnackbarProvider } from 'notistack';
 import { MaterialDesignContent } from 'notistack'
 import { styled } from '@mui/system';
+import { useMode } from "./theme";
 
 
 export default function App() {

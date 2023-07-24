@@ -4,7 +4,6 @@ import { Box, CssBaseline, TextField, Grid } from '@mui/material';
 import { Typography, useTheme} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
 import { tokens } from "../../theme";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
@@ -20,6 +19,8 @@ import dayjs from 'dayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 
 function CustomToolbar() {
   return (
@@ -69,7 +70,6 @@ const CustomNoRowsMessage = () => {
 
 export default function Reuniones() {
 
-  const navigate = useNavigate();
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
   const theme = useTheme();
@@ -86,6 +86,12 @@ export default function Reuniones() {
   const [enlace, setEnlace] = useState("");
   const [rol, setRol] = useState("");
   const [reunionSeleccionada, setReunionSeleccionada] = useState(null);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const roles = ['director', 'cliente', 'lector'];
+
+  const handleRoleChange = (event) => {
+    setSelectedRoles(event.target.value);
+  };
 
 
   const handleOpenModal = () => {
@@ -150,12 +156,10 @@ export default function Reuniones() {
       hora: hora,
       nombre: nombre,
       enlace: enlace,
-      invitados: rol,
-      id_reunion: reunionSeleccionada[0].id, // Convertir a número entero
-    };
-  
+      invitados: selectedRoles.join(','),
+      id_reunion: reunionSeleccionada[0].id,
+    };  
     
-    // Realiza la solicitud POST al backend
     const response = await fetch("http://localhost:5000/proyecto/editarReunion", {
       method: "POST",
       headers: {
@@ -165,9 +169,8 @@ export default function Reuniones() {
       body: JSON.stringify(data)
     });
     
-
-    // Verifica si la solicitud fue exitosa
     if (response.ok) {
+      llenarTablaPendientes();
       mostrarMensaje("La reunion se edito exitosamente.",'success');
     } else {
       mostrarMensaje("Ocurrió un error.",'error');
@@ -177,7 +180,6 @@ export default function Reuniones() {
 
   const handleSave = async () => {
     try {
-      // Crea un objeto con los datos que deseas enviar al backend
       const data = {
         fecha: fecha,
         hora: hora,
@@ -189,7 +191,6 @@ export default function Reuniones() {
         
       };
   
-      // Realiza la solicitud POST al backend
       const response = await fetch("http://localhost:5000/proyecto/guardarReunion", {
         method: "POST",
         headers: {
@@ -200,13 +201,13 @@ export default function Reuniones() {
 
       });
   
-      // Verifica si la solicitud fue exitosa
       if (response.ok) {
         mostrarMensaje("La reunion se genero exitosamente.",'success');
       } else {
         mostrarMensaje("Ocurrió un error.",'error');
       }
-      handleCloseModal()
+      handleCloseModal();
+      llenarTablaPendientes();
     } catch (error) {
       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
@@ -308,6 +309,7 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
     }
   };
+
   useEffect(() => {
     llenarTablaPendientes();
     llenarTablaCompletas();
@@ -318,7 +320,6 @@ export default function Reuniones() {
       setEnlace(reunionSeleccionada[0].enlace);
       setRol(reunionSeleccionada[0].invitados)
       setShowModal1(true);
-      // navigate(`/proyecto/VerReunion?${urlParams.toString()}`);
     }
   }, [reunionSeleccionada]);
 
@@ -342,24 +343,23 @@ const columnsPendientes = generarColumnas([
            <IconButton color="secondary"
               onClick={() => {
                 if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
-                  // Llamar al método cancelarReunion en el puerto 5000
                  
                   fetch('http://localhost:5000/proyecto/cancelarReunion', {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ id: row.id })
-                    // Opcional: si necesitas enviar datos adicionales
-                    // body: JSON.stringify({ reunionId: row.id }),
+                    
                   })
                   
                     .then(response => {
                       if (response.ok) {
+                        
+                        llenarTablaCanceladas();
+                        
                         mostrarMensaje('La reunión se canceló correctamente','success');
-                        // Lógica adicional si es necesario
                       } else {
                         
                         mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
-                        // Lógica adicional si es necesario
                       }
                     })
                     .catch(error => {
@@ -373,7 +373,8 @@ const columnsPendientes = generarColumnas([
           </Tooltip>
         </Box>
       );
-    },},
+    },
+  },
 ]);
 
 const columnsCompletas = generarColumnas([
@@ -385,8 +386,8 @@ const columnsCompletas = generarColumnas([
     headerAlign: "center",
     align: "center",
     renderCell: ({ row }) => {
-const id = row && row.id; // Verificar si row existe y tiene una propiedad id      
-      const ruta = `/proyecto/ActaReunion/${id}`; // Agregar el ID a la ruta
+    const id = row && row.id; 
+      const ruta = `/proyecto/ActaReunion/${id}`; 
 
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -402,7 +403,7 @@ const id = row && row.id; // Verificar si row existe y tiene una propiedad id
 ]);
 const { enqueueSnackbar } = useSnackbar();
 
-  const mostrarMensaje = (mensaje, variante) => {
+const mostrarMensaje = (mensaje, variante) => {
       enqueueSnackbar(mensaje, { variant: variante });
     };
 const columnsCanceladas = generarColumnas([
@@ -446,7 +447,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
 
-        <Typography variant="h1" color={colors.secundary[100]}> REUNIONES </Typography>
+        <Typography variant="h1" color="secondary"> REUNIONES </Typography>
         <Tooltip title="crear">
            <IconButton color="secondary" onClick={() => handleOpenModal()}>
                 <ControlPointIcon sx={{ fontSize: 20 }}/>
@@ -467,7 +468,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
                       label="Fecha"
                       value={fecha}
                       onChange={(newValue) => setFecha(newValue)}
-                      renderInput={(props) => <input {...props} />} // Optional: Use this line if you're not using MUI TextField component
+                      renderInput={(props) => <input {...props} />}  
                     />
                   </LocalizationProvider>
                 </Grid>
@@ -489,8 +490,28 @@ const rowsWithIdsx = canceladas.map((row) => ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  rol
+                  <FormControl fullWidth>
+                    <InputLabel id="rol-label">Rol</InputLabel>
+                    <Select
+                      labelId="rol-label"
+                      id="rol"
+                      multiple
+                      value={selectedRoles}
+                      onChange={handleRoleChange}
+                      inputProps={{
+                        name: 'rol',
+                        id: 'rol',
+                      }}
+                    >
+                      {roles.map((role) => (
+                        <MenuItem key={role} value={role}>
+                          {role}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
+
               </Grid>
             </DialogContent>
 
@@ -504,26 +525,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
 
       </div>
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box> <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Pendientes
       </Typography>
@@ -543,7 +545,7 @@ const rowsWithIdsx = canceladas.map((row) => ({
                label="Fecha"
                value={fecha}
                onChange={(newValue) => setFecha(newValue)}
-               renderInput={(props) => <input {...props} />} // Optional: Use this line if you're not using MUI TextField component
+               renderInput={(props) => <input {...props} />} 
                 />
             </LocalizationProvider>
             </Grid>
@@ -585,51 +587,14 @@ const rowsWithIdsx = canceladas.map((row) => ({
     </Box>
     
       <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      > <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Completas
       </Typography>
       <CustomDataGrid rows={rowsWithIdsc} columns={columnsCompletas} />
     </Box>
       
-    <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+    <Box      > <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Canceladas
       </Typography>

@@ -150,7 +150,7 @@ export default function Usuarios() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: "25px" }}>
                 <Typography
                     variant="h1"
-                    color={colors.secundary[100]}
+                    color="secondary"
                     fontWeight="bold"
                 >
                     USUARIOS
@@ -161,20 +161,6 @@ export default function Usuarios() {
             </div>
 
             <Box
-                sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        color: colors.primary[100],
-                        textAlign: "center",
-                        fontSize: 14
-                    },
-                    "& .MuiDataGrid-toolbarContainer": {
-                        justifyContent: 'flex-end',
-                        align: "right"
-                    }
-                }}
             >
                 <DataGrid
                     rows={rowsUsuarios}

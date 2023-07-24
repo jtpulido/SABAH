@@ -175,14 +175,12 @@ export default function Solicitudes() {
   }; 
   const handleSave = async () => {
     try {
-      // Crea un objeto con los datos que deseas enviar al backend
       const data = {
         fecha: fecha,
         justificacion: justificacion  ,
         nombre: nombre
       };
   
-      // Realiza la solicitud POST al backend
       const response = await fetch("http://localhost:5000/proyecto/guardarSolicitud", {
         method: "POST",
         headers: {
@@ -193,7 +191,6 @@ export default function Solicitudes() {
 
       });
   
-      // Verifica si la solicitud fue exitosa
       if (response.ok) {
         mostrarMensaje("La solicitud se genero exitosamente.", 'success');
       } else {
@@ -271,7 +268,7 @@ const rowsWithIdsc = completadas.map((row) => ({
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <Typography variant="h1" color={colors.secundary[100]}> SOLICITUDES </Typography>
+        <Typography variant="h1" color="secondary"> SOLICITUDES </Typography>
         <Tooltip title="crear">
            <IconButton color="secondary" onClick={() => handleOpenModal()}>
                 <ControlPointIcon sx={{ fontSize: 20 }}/>
@@ -318,52 +315,14 @@ const rowsWithIdsc = completadas.map((row) => ({
             </DialogActions>
           </Dialog>
       </div>
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box> <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Pendientes
       </Typography>
       <CustomDataGrid rows={rowsWithIds} columns={columnsPendientes} />
     </Box>
     
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none"
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          },
-          "& .MuiDataGrid-gridContainer": {
-            paddingLeft: "0px", // Ajusta el espaciado izquierdo
-            paddingRight: "0px" // Ajusta el espaciado derecho
-          }
-        }}
-      > <Typography variant="h2" color={colors.primary[100]}
+      <Box> <Typography variant="h2" color="primary"
          sx={{ mt: "30px" }}>
         Completas
       </Typography>

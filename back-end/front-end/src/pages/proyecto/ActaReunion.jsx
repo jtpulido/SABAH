@@ -26,7 +26,6 @@ const mostrarMensaje = (mensaje, variante) => {
 const traerInfo = async ( id) => {
     
     try {
-      // Llama a tu API para generar el PDF en el backend
       const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${id}`, { 
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` ,'id':`${id}`}
@@ -54,7 +53,7 @@ const generarPDF = async () => {
         comrpomisos: info.acta[0].compromisos,
         objetivos: info.acta[0].descrip_obj,
         tareas: info.acta[0].tareas_ant,
-        nombre: info.acta[0].nombre,  // Convertir a número entero
+        nombre: info.acta[0].nombre,  
       };
       const response = await fetch('http://localhost:5000/proyecto/generarPDF', { 
         method: "POST",
@@ -74,7 +73,6 @@ const generarPDF = async () => {
 
   const guardarInfoActa = async (e) => {
     try {
-      // Crea un objeto con los datos que deseas enviar al backend
       const data = {
         id_reunion: id,
         objetivos : objetivos, 
@@ -84,7 +82,6 @@ const generarPDF = async () => {
 
       };
   
-      // Realiza la solicitud POST al backend
       const response = await fetch("http://localhost:5000/proyecto/guardarInfoActa", {
         method: "POST",
         headers: {
@@ -95,7 +92,6 @@ const generarPDF = async () => {
 
       });
   
-      // Verifica si la solicitud fue exitosa
       if (response.ok) {
         mostrarMensaje("El acta se guardo exitosamente.",'success');
       } else {
@@ -112,7 +108,7 @@ const generarPDF = async () => {
       <CssBaseline />
       <Typography
         variant="h4"
-        color={colors.secundary[100]}
+        color="secondary"
       >
         FORMATO REUNIONES REALIMENTACIÓN
       </Typography>
@@ -120,7 +116,7 @@ const generarPDF = async () => {
       </br>
 
         <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Descripción de Objetivos * 
         </Typography>
         <Box >
@@ -137,7 +133,7 @@ const generarPDF = async () => {
           </Box>  
         </Box>
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Resultados de Reunión * 
         </Typography>
         <Box >
@@ -153,7 +149,7 @@ const generarPDF = async () => {
           </Box>  
         </Box> 
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Tareas Sesión Anterior * 
         </Typography>
         <Box >
@@ -169,7 +165,7 @@ const generarPDF = async () => {
           </Box>  
         </Box>
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Compromisos * 
         </Typography>
         <Box >
