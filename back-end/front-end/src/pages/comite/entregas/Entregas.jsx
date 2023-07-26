@@ -11,7 +11,7 @@ import { useSnackbar } from 'notistack';
 import CalificarEntrega from './Ventanas/Calificar';
 
 export default function Entregas() {
- 
+
   const token = useSelector(selectToken);
   const [entrega, setEntrega] = useState({});
   const [tipo, setTipo] = useState("");
@@ -54,6 +54,8 @@ export default function Entregas() {
   };
   const cerrarDialogCalificado = () => {
     setEntrega({})
+    setRowsCalificadas([])
+    setRowsPorCalificar([])
     llenarTabla("pendientes", setRowsPendientes);
     llenarTabla("realizadas/calificadas", setRowsCalificadas);
     llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
@@ -72,7 +74,6 @@ export default function Entregas() {
   const generarColumnas = (extraColumns) => {
     const columns = [
       { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
-      { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
       { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
       { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
     ]
@@ -83,12 +84,13 @@ export default function Entregas() {
     { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
-      field: "calificar",
+      field: "ver",
+      headerName: "",
       flex: 0.1,
       minWidth: 50,
       renderCell: ({ row }) => {
         return (
-          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
             <Tooltip title="Ver Entrega">
               <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "pendiente")}>
                 <Source />
@@ -100,7 +102,8 @@ export default function Entregas() {
     }
   ]);
   const columnaPorCalificar = generarColumnas([
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+      { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     {
@@ -110,7 +113,7 @@ export default function Entregas() {
       minWidth: 50,
       renderCell: ({ row }) => {
         return (
-          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
             <Tooltip title="Calificar">
               <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificar")}>
                 <Source />
@@ -122,6 +125,7 @@ export default function Entregas() {
     }
   ]);
   const columnaCalificadas = generarColumnas([
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
     { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
@@ -132,7 +136,7 @@ export default function Entregas() {
       minWidth: 50,
       renderCell: ({ row }) => {
         return (
-          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
             <Tooltip title="Calificar">
               <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificado")}>
                 <Source />

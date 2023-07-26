@@ -195,7 +195,7 @@ export default function VerProyectos() {
       
       renderCell: ({ row }) => {
         return (
-          <Box width="100%" ml="10px" display="flex" justifyContent="center">
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
             <Tooltip title="Añadir entrega">
               <IconButton color="secondary" onClick={() => abrirDialogAgregarEntrega(row)}>
                 <PostAdd />

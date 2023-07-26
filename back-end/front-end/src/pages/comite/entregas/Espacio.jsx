@@ -3,13 +3,15 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 
-import { Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, AppBar, Toolbar, Button, Slide, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { Delete, Source, AddCircleOutline } from '@mui/icons-material';
 import CrearEspacio from "./Ventanas/CrearEspacio";
 import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
 import VerModificarEspacio from "./Ventanas/VerModificarEspacio";
-
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
 export default function Espacios() {
     const { enqueueSnackbar } = useSnackbar();
 
@@ -57,6 +59,7 @@ export default function Espacios() {
     };
 
     const eliminarEspacio = async (espacio_id) => {
+        setOpen(false);
         try {
             const response = await fetch(`http://localhost:5000/comite/espacio/${espacio_id}`, {
                 method: "DELETE",
@@ -85,17 +88,21 @@ export default function Espacios() {
                 renderCell: ({ row }) => {
                     const { id } = row;
                     return (
-                        <Box width="100%" ml="10px" display="flex" justifyContent="center">
-                            <Tooltip title="Ver espacio">
-                                <IconButton color="secondary" onClick={() => obtenerEspacioPorId(id)}>
-                                    <Source />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Eliminar espacio">
-                                <IconButton color="secondary" onClick={() => eliminarEspacio(id)}>
-                                    <Delete />
-                                </IconButton>
-                            </Tooltip>
+                        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+                            <Box mr="5px">
+                                <Tooltip title="Ver espacio">
+                                    <IconButton color="secondary" onClick={() => obtenerEspacioPorId(id)}>
+                                        <Source />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
+                            <Box ml="5px">
+                                <Tooltip title="Eliminar espacio">
+                                    <IconButton color="naranja" onClick={() => confirmarEliminacion(row)}>
+                                        <Delete />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
                         </Box>
                     );
                 },
@@ -116,19 +123,18 @@ export default function Espacios() {
 
     const columns = generarColumnas([
     ]);
-    const [open, setOpen] = useState(false);
+    const [abrirCrearEspacio, setAbrirCrearEspacio] = useState(false);
 
     const abrirDialog = () => {
-        setOpen(true);
+        setAbrirCrearEspacio(true);
     };
 
     const cerrarDialog = () => {
-        setOpen(false);
+        setAbrirCrearEspacio(false);
     }
     const cerrarEspacioCreado = () => {
         obtenerEspacios();
-        setOpen(false);
-
+        setAbrirCrearEspacio(false);
     }
     const [abrirVerEspacio, setAbrirVerEspacio] = useState(false);
     const abrirDialogVerEspacio = () => {
@@ -146,12 +152,19 @@ export default function Espacios() {
     useEffect(() => {
         obtenerEspacios();
     }, []);
-
+    const [open, setOpen] = useState(false);
+    const confirmarEliminacion = (espacio) => {
+        setEspacio(espacio);
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+    };
     return (
         <div >
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar >
-                    <Typography variant="h1" color="secondary"fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
                         ESPACIOS DE ENTREGAS
                     </Typography>
                     <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirDialog} sx={{
@@ -162,7 +175,7 @@ export default function Espacios() {
                 </Toolbar>
             </AppBar>
             <CrearEspacio
-                open={open}
+                open={abrirCrearEspacio}
                 onSubmit={cerrarEspacioCreado}
                 onClose={cerrarDialog} />
             <VerModificarEspacio
@@ -176,6 +189,25 @@ export default function Espacios() {
                 </Typography>
                 <CustomDataGrid rows={espacios} columns={columns} mensaje="No hay espacios creados" />
             </Box>
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+            >
+                <DialogTitle variant="h1" color="primary">
+                    ¿Está seguro de que quiere eliminar el espacio?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText variant="h4">
+                        No se puede recuperar un espacio una vez eliminado y no podrá eliminarlo si ya se realizo por lo menos una entrega.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="naranja">Cancelar</Button>
+                    <Button onClick={() => { eliminarEspacio(espacio.id); }} variant="contained" sx={{ width: 150 }}>Continuar</Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }

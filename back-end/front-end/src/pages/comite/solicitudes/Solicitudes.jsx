@@ -33,31 +33,35 @@ export default function Proyectos() {
   const generarColumnas = (extraColumns) => {
     const commonColumns = [
       {
-        field: "Acción", headerName: "", flex: 0.01, minWidth: 50,  
+        field: "Acción", headerName: "", flex: 0.01, minWidth: 50,
         renderCell: ({ row }) => {
           const { id, id_proyecto } = row;
           return (
             <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-              <Tooltip title="Ver Solicitud">
-                <IconButton color="secondary" onClick={() => abrirDialog(id)}>
-                  <Feed />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Ver proyecto">
-                <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
-                  <Source />
-                </IconButton>
-              </Tooltip>
+              <Box mr="5px">
+                <Tooltip title="Ver Solicitud" >
+                  <IconButton color="secondary" onClick={() => abrirDialog(id)}>
+                    <Feed />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Box ml="5px">
+                <Tooltip title="Ver proyecto">
+                  <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
+                    <Source />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           );
         },
       },
-      { field: 'creado_por', headerName: 'Creado por', flex: 0.1,   valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
+      { field: 'creado_por', headerName: 'Creado por', flex: 0.1, valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
       { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150 },
-      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.1,  valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.1, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
       { field: 'codigo_proyecto', headerName: 'Código', flex: 0.1, minWidth: 100 },
       {
-        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,  
+        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,
         valueGetter: (params) =>
           `${params.row.etapa_proyecto || ''} - ${params.row.estado || ''}`,
       },
@@ -73,12 +77,12 @@ export default function Proyectos() {
     },
   }]);
   const columnsAprobadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1},
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
     { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.1 }
   ]);
   const columnsRechazadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1},
-    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1}
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
+    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1 }
   ]);
 
   const verProyecto = (id) => {
@@ -143,9 +147,9 @@ export default function Proyectos() {
         SOLICITUDES
       </Typography>
 
-      <Box   > 
+      <Box   >
         <Typography variant="h2" color="primary"
-        sx={{ mt: "30px" }}>
+          sx={{ mt: "30px" }}>
           Pendientes
         </Typography>
         <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} mensaje="No hay solicitudes" />

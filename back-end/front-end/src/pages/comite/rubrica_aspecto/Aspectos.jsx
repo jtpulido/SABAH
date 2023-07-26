@@ -10,12 +10,22 @@ import {
     Toolbar,
     IconButton,
     Tooltip,
-    Button
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Slide
 } from '@mui/material';
 
 import { AddCircleOutline, Delete, Source } from "@mui/icons-material";
 import CrearAspecto from "./Ventanas/CrearAspecto";
 import VerModificarAspecto from "./Ventanas/VerModificarAspecto";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
 
 export default function Aspectos() {
     const { enqueueSnackbar } = useSnackbar();
@@ -52,6 +62,7 @@ export default function Aspectos() {
     };
 
     const eliminarAspecto = async (aspectoId) => {
+        setOpen(false);
         try {
             const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
                 method: "DELETE",
@@ -79,24 +90,28 @@ export default function Aspectos() {
             minWidth: 50,
             renderCell: ({ row }) => {
                 return (
-                    <Box width="100%" ml="10px" display="flex" justifyContent="center">
-                        <Tooltip title="Ver aspecto">
-                            <IconButton color="secondary" onClick={() => verModificarAspecto(row)}>
-                                <Source />
-                            </IconButton>
-
-                        </Tooltip>
-                        <Tooltip title="Eliminar Aspecto">
-                            <IconButton color="secondary" onClick={() => eliminarAspecto(row.id)}>
-                                <Delete />
-                            </IconButton>
-                        </Tooltip>
+                    <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+                        <Box mr="5px">
+                            <Tooltip title="Ver aspecto">
+                                <IconButton color="secondary" onClick={() => verModificarAspecto(row)}>
+                                    <Source />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                        <Box ml="5px">
+                            <Tooltip title="Eliminar Aspecto">
+                                <IconButton color="naranja" onClick={() => confirmarEliminacion(row)}>
+                                    <Delete />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
                     </Box>
                 );
             },
         }
     ]
     const [abrirCrear, setAbrirCrear] = useState(false);
+    const [abrirModificar, setAbrirModificar] = useState(false);
 
     const abrirCrearAspecto = () => {
         setAbrirCrear(true);
@@ -108,8 +123,7 @@ export default function Aspectos() {
     const cerrarAspectoAgregado = () => {
         obtenerAspectos()
         setAbrirCrear(false);
-      };
-    const [abrirModificar, setAbrirModificar] = useState(false);
+    };
 
     const verModificarAspecto = async (aspecto) => {
         setAspecto(aspecto)
@@ -124,11 +138,19 @@ export default function Aspectos() {
         setAspecto({})
         obtenerAspectos()
         setAbrirModificar(false);
-      };
+    };
 
     useEffect(() => {
         obtenerAspectos();
     }, []);
+    const [open, setOpen] = useState(false);
+    const confirmarEliminacion = (aspecto) => {
+        setAspecto(aspecto);
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     return (
         <div >
@@ -156,6 +178,26 @@ export default function Aspectos() {
                 aspecto={aspecto}
             />
             <CustomDataGrid rows={aspectos} columns={columnas} mensaje="No hay aspectos." />
+
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+            >
+                <DialogTitle variant="h1" color="primary">
+                    ¿Está seguro de que quiere eliminar el aspecto?
+                    </DialogTitle>
+                <DialogContent>
+                    <DialogContentText variant="h4">
+                        No se puede recuperar un aspecto una vez eliminado y no podrá eliminarlo si está siendo utilizado en una rúbrica.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="naranja">Cancelar</Button>
+                    <Button onClick={() => { eliminarAspecto(aspecto.id); }} variant="contained" sx={{ width: 150 }}>Continuar</Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }

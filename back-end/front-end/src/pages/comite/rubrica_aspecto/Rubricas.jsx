@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
 import {
     Typography,
-    useTheme,
     AppBar,
     Toolbar,
     Button,
     Box,
     Tooltip,
-    IconButton
+    IconButton,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Dialog,
+    Slide
 } from '@mui/material';
 
 import { AddCircleOutline, Delete, Source } from '@mui/icons-material';
@@ -21,14 +25,15 @@ import CustomDataGrid from "../../layouts/DataGrid";
 import CrearRubrica from "./Ventanas/CrearRubrica";
 import VerModificarRubrica from "./Ventanas/VerModificarRubrica";
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+
 export default function Rubricas() {
-    
+
     const { enqueueSnackbar } = useSnackbar();
 
-
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [rubricas, setRubricas] = useState([]);
     const [rubrica, setRubrica] = useState({});
@@ -66,6 +71,7 @@ export default function Rubricas() {
     }
 
     const eliminarRubrica = async (id) => {
+        setOpen(false);
         try {
             const response = await fetch(`http://localhost:5000/comite/rubrica/${id}`, {
                 method: "DELETE",
@@ -109,18 +115,21 @@ export default function Rubricas() {
             minWidth: 50,
             renderCell: ({ row }) => {
                 return (
-                    <Box width="100%" ml="10px" display="flex" justifyContent="center">
-                        <Tooltip title="Ver aspecto">
-                            <IconButton color="secondary" onClick={() => abrirVerModificarRubrica(row)}>
-                                <Source />
-                            </IconButton>
-
-                        </Tooltip>
-                        <Tooltip title="Eliminar Aspecto">
-                            <IconButton color="secondary" onClick={() => eliminarRubrica(row.id)}>
-                                <Delete />
-                            </IconButton>
-                        </Tooltip>
+                    <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+                        <Box mr="5px">
+                            <Tooltip title="Ver aspecto">
+                                <IconButton color="secondary" onClick={() => abrirVerModificarRubrica(row)}>
+                                    <Source />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                        <Box ml="5px">
+                            <Tooltip title="Eliminar Aspecto">
+                                <IconButton color="naranja" onClick={() => confirmarEliminacion(row)}>
+                                    <Delete />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
                     </Box>
                 );
             },
@@ -131,6 +140,14 @@ export default function Rubricas() {
         obtenerRubricas();
     }, []);
 
+    const [open, setOpen] = useState(false);
+    const confirmarEliminacion = (rubrica) => {
+        setRubrica(rubrica);
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     return (
         <div>
@@ -159,6 +176,25 @@ export default function Rubricas() {
                 onSubmit={cerrarRubricaModificada}
             />
             <CustomDataGrid rows={rubricas} columns={columnas} mensaje="No hay rubricas creadas." />
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+            >
+                <DialogTitle variant="h1" color="primary">
+                    ¿Está seguro de que quiere eliminar la rúbrica?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText variant="h4">
+                        No se puede recuperar una rubrica una vez eliminada y no podrá eliminarla si está siendo utilizado en un espacio.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="naranja">Cancelar</Button>
+                    <Button onClick={() => { eliminarRubrica(rubrica.id); }} variant="contained" sx={{ width: 150 }}>Continuar</Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }

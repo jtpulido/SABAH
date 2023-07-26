@@ -3,13 +3,12 @@ import React, { useState } from 'react';
 
 import PropTypes from 'prop-types';
 
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { ExpandMore } from '@mui/icons-material';
 import {
     Typography, Stack, RadioGroup, FormControlLabel, FormControl, Radio, Accordion, AccordionSummary, AccordionDetails,
-    useTheme, CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent
+    CircularProgress, Box, TextField, Grid, CssBaseline, Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent
 } from "@mui/material";
 
 import CustomDataGrid from "../../layouts/DataGrid";
@@ -25,9 +24,6 @@ function VerSolicitud(props) {
         enqueueSnackbar(mensaje, { variant: variante });
     };
     const token = useSelector(selectToken);
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [loading, setLoading] = useState(true);
     const [isFormValid, setIsFormValid] = useState(false);
