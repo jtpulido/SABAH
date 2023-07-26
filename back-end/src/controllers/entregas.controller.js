@@ -279,7 +279,6 @@ const validarModificarEspacio = async (req, res) => {
 
         await pool.query('SELECT COUNT(*) FROM calificacion c JOIN documento_entrega de ON c.id_doc_entrega = de.id JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id WHERE ee.id = $1', values, async (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message });
             }
             if (parseInt(result.rows[0].count) === 0) {
@@ -289,7 +288,6 @@ const validarModificarEspacio = async (req, res) => {
             }
         })
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -310,7 +308,6 @@ const modificarEspacio = async (req, res) => {
 
             await pool.query(query, values, (error, result) => {
                 if (error) {
-                    console.log(error);
                     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });
                 }
                 if (result.rowCount === 0) {
@@ -590,27 +587,31 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
         const query =
             `SELECT 
             ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
-        de.id AS id_doc_entrega,
-        ee.id AS id_espacio_entrega,
-        ee.nombre AS nombre_espacio_entrega,
-        r.nombre AS nombre_rol,
-        ee.fecha_apertura,
-        ee.fecha_cierre,
-        p.nombre AS nombre_proyecto,
-        ur.id AS id_usuario_rol,
-        u.nombre AS evaluador,
-        de.fecha_entrega
-            FROM 
-        documento_entrega de
+            de.id AS id_doc_entrega,
+            ee.id AS id_espacio_entrega,
+            ee.nombre AS nombre_espacio_entrega,
+            r.nombre AS nombre_rol,
+            ee.fecha_apertura,
+            ee.fecha_cierre,
+            p.nombre AS nombre_proyecto,
+            ur.id AS id_usuario_rol,
+            u.nombre AS evaluador,
+            de.fecha_entrega
+        FROM 
+            documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
-            WHERE 
-        de.id NOT IN (SELECT id_doc_entrega FROM calificacion)
-            ORDER BY 
-        de.fecha_entrega`;
+        WHERE 
+            de.id NOT IN (
+                SELECT id_doc_entrega 
+                FROM calificacion 
+                WHERE id_usuario_rol = ur.id
+            )
+        ORDER BY 
+            de.fecha_entrega`;
 
         await pool.query(query, (error, result) => {
             if (error) {
@@ -654,8 +655,6 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
 
         await pool.query(query, (error, result) => {
             if (error) {
-
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -758,7 +757,7 @@ const guardarCalificacion = async (req, res) => {
     try {
         const { id_doc_entrega, id_usuario_rol, calificacion_aspecto } = req.body;
         await pool.query('BEGIN');
-        const insertCal = 'INSERT INTO calificacion (id_doc_entrega, id_usuario_rol) VALUES ($1) RETURNING id';
+        const insertCal = 'INSERT INTO calificacion (id_doc_entrega, id_usuario_rol) VALUES ($1, $2) RETURNING id';
         const calResult = await pool.query(insertCal, [id_doc_entrega, id_usuario_rol]);
         const id_calificacion = calResult.rows[0].id;
 

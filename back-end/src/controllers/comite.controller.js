@@ -1,4 +1,18 @@
 const pool = require('../database')
+const obtenerUsuarios = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id_tipo_usuario=2 ORDER BY nombre ASC')
+        const usuarios = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, usuarios });
+        } else {
+            return  res.status(203).json({ success: true, message: 'No hay usuarios actualmente.' })
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
 
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
@@ -20,7 +34,7 @@ const obtenerProyectosDesarrollo = async (req, res) => {
 };
 const obtenerProyectosTerminados = async (req, res) => {
     try {
-       await pool.query(
+        await pool.query(
             'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id <> 1', async (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -200,7 +214,7 @@ const obtenerJuradosProyectosInactivos = async (req, res) => {
 };
 const obtenerLectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_lector, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_lector, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, u.id AS id_usuario, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
@@ -282,7 +296,7 @@ const verSolicitud = async (req, res) => {
 
         const id = req.params.solicitud_id;
         await pool.query(
-            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.justificacion, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto, u.nombre AS nombre_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN usuario_rol ur ON s.id_director = ur.id JOIN usuario u ON ur.id_usuario = u.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id  WHERE s.id = $1",
+            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.justificacion, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto, u.nombre AS nombre_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN usuario_rol ur ON p.id = ur.id_proyecto JOIN usuario u ON ur.id_usuario = u.id JOIN rol r ON ur.id_rol = r.id AND r.id = 1 JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE s.id = $1",
             [id], async (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -318,12 +332,12 @@ const verAprobacionesSolicitud = async (req, res) => {
 const agregarAprobacion = async (req, res) => {
     try {
         const { aprobado, comentario, id_solicitud } = req.body;
-
         await pool.query(
             "INSERT INTO public.aprobado_solicitud_comite (aprobado, comentario, id_solicitud) VALUES ($1, $2, $3)",
             [aprobado, comentario, id_solicitud],
             (error, result) => {
                 if (error) {
+                    console.log(error);
                     if (error.code === "23505") {
                         return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
                     }
@@ -354,6 +368,7 @@ const agregarAprobacion = async (req, res) => {
 };
 
 module.exports = {
+    obtenerUsuarios,
     obtenerProyecto,
     obtenerProyectosTerminados,
     obtenerProyectosDesarrollo,

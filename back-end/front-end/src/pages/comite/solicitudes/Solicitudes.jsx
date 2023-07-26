@@ -72,9 +72,7 @@ export default function Proyectos() {
   };
 
   const columnsPendientes = generarColumnas([{
-    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1, renderCell: (params) => {
-      return params.value || "N/A";
-    },
+    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1
   }]);
   const columnsAprobadas = generarColumnas([
     { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },

@@ -24,7 +24,8 @@ const {
     asignarNuevoCodigo,
     verAprobacionesSolicitud,
     verSolicitud,
-    agregarAprobacion
+    agregarAprobacion,
+    obtenerUsuarios
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -55,6 +56,8 @@ router.post('/comite/guardar', upload.single('file'), async (req, res) => {
         res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
     }
 });
+
+router.get('/comite/usuarios', passport.authenticate('jwt', { session: false }), obtenerUsuarios);
 
 router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);

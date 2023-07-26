@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../../../../store/authSlice';
+import { selectToken } from '../../../store/authSlice';
 import {
     CircularProgress,
     Box,
@@ -13,29 +13,38 @@ import {
     DialogActions,
     DialogContent,
     IconButton,
-    Typography
+    Typography,
+    Select,
+    MenuItem
 } from '@mui/material';
 
 import { useSnackbar } from 'notistack';
 import { Edit, SaveOutlined } from '@mui/icons-material';
 
-function VerModificarAspecto(props) {
-    const { onClose, onSubmit, open, aspecto } = props;
+function VerModificarUsuario(props) {
+    const { onClose, onSubmit, open, informacion, rol, accion } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
-    const [nombre, setNombre] = useState("");
+    const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
-
+    const [id_rol, setId_rol] = useState("");
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
-    const handleEntering = () => {
-        setNombre(aspecto.nombre)
+    const handleEntering = async () => {
+        obtenerUsuarios()
         setLoading(false);
     };
+    useEffect(() => {
+        if (usuarios.length > 0) {
+            setId_rol(informacion.id_usuario)
+            setLoading(false);
+        }
+    }, [usuarios, informacion.id_lector]);
+
     const handleCancel = () => {
         onClose();
         setLoading(true);
@@ -43,66 +52,68 @@ function VerModificarAspecto(props) {
     const habilitarEdicion = () => {
         setEditMode(!editMode);
     };
-    const handleNombreASChange = (value) => {
-        const isOnlyWhitespace = /^\s*$/.test(value);
-        setNombre(isOnlyWhitespace ? "" : value);
+    const handleIdRolChange = (event) => {
+        setId_rol(event.target.value);
     };
+    const cambiarUsuarioRol = async () => {
 
-    const modificarAspecto = async () => {
+    }
+    const obtenerUsuarios = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspecto.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ nombre })
+            const response = await fetch("http://localhost:5000/comite/usuarios", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`
+                }
             });
             const data = await response.json();
             if (!data.success) {
                 mostrarMensaje(data.message, "error");
-            } else {
-                setNombre("");
-                onSubmit()
-                mostrarMensaje(data.message, "success")
+            } else if (response.status === 203) {
+                mostrarMensaje(data.message, "warning");
+            } else if (response.status === 200) {
+                setUsuarios(data.usuarios);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+            mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
         }
-    };
+    }
     return (
         <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
             <CssBaseline />
             <DialogTitle variant="h1" color="primary">
-                VER/MODIFICAR ASPECTO
+                VER/MODIFICAR {rol}
 
                 <IconButton onClick={habilitarEdicion}>
                     <Edit />
                 </IconButton>
             </DialogTitle>
-            <form onSubmit={modificarAspecto}>
+            <form onSubmit={cambiarUsuarioRol}>
                 <DialogContent dividers>
-                    <Typography variant="h6">
-                    Al modificar un aspecto, cambiará en todas las rúbricas que lo esten utilizando.
-                    </Typography>
 
-                    {loading ? (
+                    {loading || usuarios.length === 0 ? (
                         <Box sx={{ display: 'flex' }}>
                             <CircularProgress />
                         </Box>
                     ) : (
                         <>
                             <Typography variant="h6" color="primary">
-                                Nombre del aspecto
+                                Docentes
                             </Typography>
-
-                            <TextField
-                                value={nombre}
+                            <Select
+                                value={id_rol}
+                                onChange={handleIdRolChange}
                                 required
-                                onChange={(e) => handleNombreASChange(e.target.value)}
-                                fullWidth
-                                margin="normal"
-                                error={!nombre}
-                                helperText={'Ingresa el nombre del aspecto'}
                                 disabled={!editMode}
-                            />
+                                fullWidth
+                            >
+                                {usuarios.map((user) => (
+                                    <MenuItem key={user.id} value={user.id}>
+                                        {user.nombre}
+                                    </MenuItem>
+                                ))}
+                            </Select>
                         </>
                     )}
                 </DialogContent>
@@ -119,11 +130,13 @@ function VerModificarAspecto(props) {
     );
 }
 
-VerModificarAspecto.propTypes = {
+VerModificarUsuario.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     onSubmit: PropTypes.func.isRequired,
-    aspecto: PropTypes.object.isRequired
+    informacion: PropTypes.object.isRequired,
+    rol: PropTypes.string.isRequired,
+    accion: PropTypes.string.isRequired
 };
 
-export default VerModificarAspecto;
+export default VerModificarUsuario;
