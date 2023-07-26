@@ -22,40 +22,57 @@ import { useSnackbar } from 'notistack';
 import { Edit, SaveOutlined } from '@mui/icons-material';
 
 function VerModificarUsuario(props) {
-    const { onClose, onSubmit, open, informacion, rol, accion } = props;
+    const { onClose, onSubmit, open, informacion, rol } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [editMode, setEditMode] = useState(false);
+    const [cambio, setCambio] = useState(false);
     const [id_rol, setId_rol] = useState("");
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
     const handleEntering = async () => {
+        console.log(informacion);
         obtenerUsuarios()
         setLoading(false);
     };
     useEffect(() => {
-        if (usuarios.length > 0) {
+        if (usuarios.length > 0 && informacion.id_usuario) {
             setId_rol(informacion.id_usuario)
             setLoading(false);
         }
-    }, [usuarios, informacion.id_lector]);
+    }, [usuarios, informacion.id_usuario]);
 
     const handleCancel = () => {
         onClose();
         setLoading(true);
     };
-    const habilitarEdicion = () => {
-        setEditMode(!editMode);
-    };
     const handleIdRolChange = (event) => {
-        setId_rol(event.target.value);
+        if (informacion.id_usuario !== event.target.value) {
+            setId_rol(event.target.value);
+            setCambio(true)
+        } else {
+            setCambio(false)
+        }
     };
     const cambiarUsuarioRol = async () => {
+
+console.log("Cambiar");
+    }
+    const asignarUsuarioRol = async () => {
+        console.log("Asignar");
+
+    }
+    const guardarCambio = async () => {
+        if (informacion.id_usuario) {
+            cambiarUsuarioRol()
+        } else {
+            asignarUsuarioRol()
+        }
 
     }
     const obtenerUsuarios = async () => {
@@ -76,7 +93,7 @@ function VerModificarUsuario(props) {
                 setUsuarios(data.usuarios);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
+            mostrarMensaje("Lo siento, ha ocurrido un error al obtener los usuarios. Por favor, intente de nuevo más tarde.", "error");
         }
     }
     return (
@@ -85,11 +102,9 @@ function VerModificarUsuario(props) {
             <DialogTitle variant="h1" color="primary">
                 VER/MODIFICAR {rol}
 
-                <IconButton onClick={habilitarEdicion}>
-                    <Edit />
-                </IconButton>
+
             </DialogTitle>
-            <form onSubmit={cambiarUsuarioRol}>
+            <form onSubmit={guardarCambio}>
                 <DialogContent dividers>
 
                     {loading || usuarios.length === 0 ? (
@@ -105,7 +120,7 @@ function VerModificarUsuario(props) {
                                 value={id_rol}
                                 onChange={handleIdRolChange}
                                 required
-                                disabled={!editMode}
+
                                 fullWidth
                             >
                                 {usuarios.map((user) => (
@@ -119,7 +134,7 @@ function VerModificarUsuario(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" disabled={!editMode} startIcon={<SaveOutlined />} sx={{
+                    <Button type="submit" variant="contained" disabled={!cambio} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar
