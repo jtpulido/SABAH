@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, IconButton, Tooltip } from "@mui/material";
 import { Source, Person, Edit } from '@mui/icons-material';
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import { useSelector } from "react-redux";
-import { selectToken } from "../../../store/authSlice";
-import CustomDataGrid from "../../layouts/DataGrid";
+import { selectToken } from "../../../../store/authSlice";
+import CustomDataGrid from "../../../layouts/DataGrid";
 
 import { useSnackbar } from 'notistack';
+import VerModificarUsuario from "../Ventana/VerModificarUsuario";
 
 export default function Jurados() {
   const navigate = useNavigate();
@@ -89,18 +90,18 @@ export default function Jurados() {
 
 
       renderCell: ({ row }) => {
-        const { id_jurado } = row;
+        const { id_usuario } = row;
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            {id_jurado ? (
-              <Tooltip title="Cambiar Jurado">
-                <IconButton color="secondary">
+            {id_usuario ? (
+              <Tooltip title="Ver/Cambiar Jurado">
+                <IconButton color="secondary" onClick={() => abrirDialog(row, "modificar")}>
                   <Edit />
                 </IconButton>
               </Tooltip>
             ) : (
               <Tooltip title="Asignar Jurado">
-                <IconButton color="secondary">
+                <IconButton color="secondary" onClick={() => abrirDialog(row, "asignar")}>
                   <Person />
                 </IconButton>
               </Tooltip>
@@ -112,7 +113,26 @@ export default function Jurados() {
   ]);
 
   const columns = generarColumnas([]);
+  const rol = "JURADO";
+  const [info, setInfo] = useState({});
+  const [accion, setAccion] = useState("");
+  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
 
+  const abrirDialog = (row, accion) => {
+    setAccion(accion)
+    setInfo(row)
+    setAbrirVerModificarUsuario(true);
+  };
+
+  const cerrarDialog = () => {
+    setAbrirVerModificarUsuario(false);
+  }
+  const cerrarUsuarioCambiado = () => {
+    llenarTabla("activos", setRowsActivos);
+    llenarTabla("cerrados", setRowsCerrados);
+    llenarTabla("inactivos", setRowsInactivos);
+    setAbrirVerModificarUsuario(false);
+  }
   const verProyecto = (id_proyecto) => {
     navigate(`/comite/verProyecto/${id_proyecto}`)
   };
@@ -153,7 +173,14 @@ export default function Jurados() {
       <Typography variant="h1" color="secondary" fontWeight="bold">
         JURADOS POR PROYECTO
       </Typography>
-      <Box      >
+      <VerModificarUsuario
+        open={abrirVerModificarUsuario}
+        onSubmit={cerrarUsuarioCambiado}
+        onClose={cerrarDialog}
+        informacion={info}
+        rol={rol}
+        accion={accion} />
+      <Box >
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Proyectos en desarrollo
         </Typography>

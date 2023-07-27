@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from '../../../../theme';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 import {
-    useTheme,
     CircularProgress,
     Box,
     TextField,
@@ -26,9 +24,6 @@ function VerModificarAspecto(props) {
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [nombre, setNombre] = useState("");
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
@@ -25,10 +24,10 @@ export default function Proyectos() {
     { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100,   },
     { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100,   },
     {
+      headerName: '',
       field: "id",
-      headerName: "Acción",
       width: 100,
-      flex: 0.05, minWidth: 100,  
+      flex: 0.05, minWidth: 50,  
       renderCell: ({ row: { id } }) => {
         return (
           <Box
@@ -38,7 +37,7 @@ export default function Proyectos() {
             display="flex"
             justifyContent="center"
           >
-            <IconButton aria-label="fingerprint" color="secondary" onClick={() => verProyecto(id)}>
+            <IconButton  color="secondary" onClick={() => verProyecto(id)}>
               <Visibility />
             </IconButton>
           </Box>
