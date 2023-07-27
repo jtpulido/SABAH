@@ -2,13 +2,15 @@ import { Routes, Route } from "react-router-dom";
 import { Navigate } from 'react-router-dom';
 
 import InicioAdmin from "./InicioAdmin";
-import Usuarios from './usuarios/Usuarios'
-import Proyectos from './proyectos/Proyectos'
-import VerProyecto from './proyectos/VerProyecto'
-import VerUsuario from './usuarios/VerUsuario'
+import Usuarios from './usuarios/Usuarios';
+import Proyectos from './proyectos/Proyectos';
+import VerProyecto from './proyectos/VerProyecto';
+import VerUsuario from './usuarios/VerUsuario';
 import AgregarUsuario from "./usuarios/AgregarUsuario";
 import ModificarUsuario from "./usuarios/ModificarUsuario";
 import ModificarProyecto from "./proyectos/ModificarProyecto";
+import Estudiantes from './estudiantes/Estudiantes';
+import VerEstudiante from './estudiantes/VerEstudiante';
 
 export default function RoutesAdmin() {
 
@@ -22,6 +24,8 @@ export default function RoutesAdmin() {
                 <Route path="modificarProyecto" element={<ModificarProyecto />} />
                 <Route path="agregarUsuario" element={<AgregarUsuario />} />
                 <Route path="modificarUsuario" element={<ModificarUsuario />} />
+                <Route path="estudiantes" element={<Estudiantes />} />
+                <Route path="verEstudiante" element={<VerEstudiante />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes></div>

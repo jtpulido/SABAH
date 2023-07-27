@@ -27,6 +27,7 @@ function InicioAdmin() {
   const buttonColors = {
     usuarios: activeButton === "usuarios" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
     proyectos: activeButton === "proyectos" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
+    estudiantes: activeButton === "estudiantes" ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
   };
 
   const handleClick = (button) => {
@@ -35,6 +36,8 @@ function InicioAdmin() {
       navigate('/admin')
     } else if (button === "proyectos") {
       navigate('/admin/proyectos')
+    } else if (button === "estudiantes") {
+      navigate('/admin/estudiantes')
     }
   };
 
@@ -59,6 +62,11 @@ function InicioAdmin() {
       return pattern.test(path);
     };
 
+    const isVerEstudiantePath = (path) => {
+      const pattern = pathToRegexp('/admin/verEstudiante');
+      return pattern.test(path);
+    };
+
     if (
       location.pathname === '/admin' ||
       location.pathname === '/admin/agregarUsuario' ||
@@ -70,6 +78,10 @@ function InicioAdmin() {
       isVerProyectoPath(location.pathname) || isModificarProyectoPath(location.pathname)
     ) {
       setActiveButton('proyectos');
+    } else if (
+      location.pathname === '/admin/estudiantes' || isVerEstudiantePath(location.pathname)
+    ) {
+      setActiveButton('estudiantes');
     }
   }, [location.pathname]);
 
@@ -119,6 +131,16 @@ function InicioAdmin() {
                     },
                   }}>
                     <ListItemText primary="PROYECTOS" sx={{ color: '#576A3D' }} />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => handleClick("estudiantes")} sx={{
+                    backgroundColor: buttonColors.estudiantes,
+                    "&:hover": {
+                      backgroundColor: "rgb(184, 207, 105)",
+                    },
+                  }}>
+                    <ListItemText primary="ESTUDIANTES" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding >

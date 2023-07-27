@@ -20,8 +20,10 @@ import { useSnackbar } from 'notistack';
 function CustomToolbar() {
   return (
     <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <GridToolbarFilterButton />
+        <GridToolbarExport />
+      </div>
     </GridToolbarContainer>
   );
 }
@@ -29,10 +31,7 @@ function CustomToolbar() {
 export default function Proyectos() {
   const navigate = useNavigate();
   const columns = [
-    {
-      field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
-      headerAlign: "center"
-    },
+    { field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150, headerAlign: "center", align: "center" },
     { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
     { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
     { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },

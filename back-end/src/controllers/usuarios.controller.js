@@ -7,11 +7,11 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.id=1 ORDER BY nombre ASC', [id_usuario, id_rol]);
-        const proyectos = result.rows
+        const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
+            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -22,11 +22,11 @@ const obtenerProyectosCerradosRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.id <> 1 ORDER BY nombre ASC', [id_usuario, id_rol]);
-        const proyectos = result.rows
+        const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
+            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -63,4 +63,65 @@ const obtenerProyecto = async (req, res) => {
     }
 };
 
-module.exports = { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto }
+const rolDirector = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=1 AND id_usuario = $1 AND estado=true', [id]);
+        if (result.rowCount > 0) {
+            return res.json({ success: true });
+        } else {
+            return res.status(401).json({ success: false });
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const rolLector = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=2 AND id_usuario = $1 AND estado=true', [id]);
+        if (result.rowCount > 0) {
+            return res.json({ success: true });
+        } else {
+            return res.status(401).json({ success: false });
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const rolJurado = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=3 AND id_usuario = $1 AND estado=true', [id]);
+        if (result.rowCount > 0) {
+            return res.json({ success: true });
+        } else {
+            return res.status(401).json({ success: false });
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const verUsuario = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id = $1', [id]);
+        const infoUsuario = result.rows;
+        if (result.rowCount === 1) {
+            return res.json({ success: true, infoUsuario });
+        } else {
+            return res.status(401).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+module.exports = { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario }

@@ -137,6 +137,36 @@ const obtenerProyecto = async (req, res) => {
     }
 };
 
+const obtenerProyectosActivos = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = true', [id]);
+        const proyectos = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, proyectos });
+        } else {
+            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerProyectosInactivos = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = false', [id]);
+        const proyectos = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, proyectos });
+        } else {
+            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
 const obtenerUsuarios = async (req, res) => {
     try {
         const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id_tipo_usuario=2 ORDER BY nombre ASC')
@@ -145,6 +175,37 @@ const obtenerUsuarios = async (req, res) => {
             return res.json({ success: true, usuarios });
         } else {
             return res.status(401).json({ success: true, message: 'No hay usuarios actualmente.' })
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerEstudiantes = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT u.id, u.nombre, u.num_identificacion, u.correo FROM estudiante u ORDER BY nombre ASC')
+        const estudiantes = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, estudiantes });
+        } else {
+            return res.status(401).json({ success: true, message: 'No hay estudiantes actualmente.' })
+        }
+
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const verEstudiante = async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.num_identificacion FROM estudiante u WHERE u.id = $1', [id]);
+        const estudiante = result.rows;
+        if (result.rowCount === 1) {
+            return res.json({ success: true, estudiante });
+        } else {
+            return res.status(401).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
         }
 
     } catch (error) {
@@ -416,4 +477,4 @@ const estudiantesNuevo = async (req, res) => {
     }
 };
 
-module.exports = { estudiantesNuevo, cambioUsuarioRol, estudiantesEliminados, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, registro, modificarProyecto, obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario, cambiarEstado }
+module.exports = { estudiantesNuevo, obtenerProyectosInactivos, obtenerProyectosActivos, verEstudiante, obtenerEstudiantes, cambioUsuarioRol, estudiantesEliminados, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, registro, modificarProyecto, obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario, cambiarEstado }

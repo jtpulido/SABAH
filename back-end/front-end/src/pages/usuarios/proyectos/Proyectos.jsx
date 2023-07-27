@@ -19,15 +19,17 @@ import {
 function CustomToolbar() {
     return (
         <GridToolbarContainer>
-            <GridToolbarFilterButton />
-            <GridToolbarExport />
+            <div style={{ display: 'flex', gap: '20px' }}>
+                <GridToolbarFilterButton />
+                <GridToolbarExport />
+            </div>
         </GridToolbarContainer>
     );
 }
 
 export default function Proyectos() {
 
-    const idUsuario = sessionStorage.getItem('id_usuario');
+    const idUsuario = sessionStorage.getItem('user_id_usuario');
     const idRol = sessionStorage.getItem('id_rol');
     const navigate = useNavigate();
 
