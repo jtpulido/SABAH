@@ -5,14 +5,14 @@ import { Navigate } from 'react-router-dom';
 import InicioCmt from "./InicioCmt";
 import Proyectos from "./proyectos/Proyectos";
 import VerProyecto from "./proyectos/VerProyecto";
-import Jurados from "./jurados/Jurados";
-import Lectores from "./lectores/Lectores";
 import Solicitudes from "./solicitudes/Solicitudes";
 import Entregas from "./entregas/Entregas";
-import Directores from "./directores/Directores";
 import Rubricas from "./rubrica_aspecto/Rubricas";
 import Aspectos from "./rubrica_aspecto/Aspectos";
 import Espacios from "./entregas/Espacio";
+import Lectores from "./usuarios_normales/lectores/Lectores";
+import Jurados from "./usuarios_normales/jurados/Jurados";
+import Directores from "./usuarios_normales/directores/Directores";
 
 export default function RoutesCmt() {
 

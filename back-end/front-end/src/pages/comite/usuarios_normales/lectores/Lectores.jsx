@@ -5,10 +5,10 @@ import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 
 import { Source, Person, Edit } from '@mui/icons-material';
 import { useSelector } from "react-redux";
-import { selectToken } from "../../../store/authSlice";
-import CustomDataGrid from "../../layouts/DataGrid";
+import { selectToken } from "../../../../store/authSlice";
+import CustomDataGrid from "../../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
-import VerModificarUsuario from "./VerModificarUsuario";
+import VerModificarUsuario from "../Ventana/VerModificarUsuario";
 export default function Lectores() {
   const navigate = useNavigate();
 
@@ -61,16 +61,16 @@ export default function Lectores() {
     {
       field: "editar", headerName: "", flex: 0.01,
       renderCell: ({ row }) => {
-        const { id_lector } = row;
+        const { id_usuario } = row;
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            {id_lector ? (
+            {id_usuario ? (
               <Tooltip title="Ver/Cambiar Lector">
-                <IconButton color="secondary" onClick={() => abrirDialog(row,"modificar")}>
+                <IconButton color="secondary" onClick={() => abrirDialog(row, "modificar")}>
                   <Edit />
                 </IconButton>
               </Tooltip>
-            ) : (<Tooltip title="Asignar Lector" onClick={() => abrirDialog(row,"asignar")}>
+            ) : (<Tooltip title="Asignar Lector" onClick={() => abrirDialog(row, "asignar")}>
               <IconButton color="secondary" >
                 <Person />
               </IconButton>
@@ -85,12 +85,12 @@ export default function Lectores() {
   const verProyecto = (id_proyecto) => {
     navigate(`/comite/verProyecto/${id_proyecto}`)
   }
-  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
+  const rol = "LECTOR";
   const [info, setInfo] = useState({});
-  const [rol, setRol] = useState("LECTOR");
   const [accion, setAccion] = useState("");
+  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
 
-  const abrirDialog = (row,accion) => {
+  const abrirDialog = (row, accion) => {
     setAccion(accion)
     setInfo(row)
     setAbrirVerModificarUsuario(true);
@@ -150,12 +150,12 @@ export default function Lectores() {
         LECTORES POR PROYECTO
       </Typography>
       <VerModificarUsuario
-                open={abrirVerModificarUsuario}
-                onSubmit={cerrarUsuarioCambiado}
-                onClose={cerrarDialog}
-                informacion={info}
-                rol={rol}
-                accion={accion} />
+        open={abrirVerModificarUsuario}
+        onSubmit={cerrarUsuarioCambiado}
+        onClose={cerrarDialog}
+        informacion={info}
+        rol={rol}
+        accion={accion} />
       <Box>
         <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>

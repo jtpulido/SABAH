@@ -6,14 +6,37 @@ const obtenerUsuarios = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, usuarios });
         } else {
-            return  res.status(203).json({ success: true, message: 'No hay usuarios actualmente.' })
+            return res.status(203).json({ success: true, message: 'No hay usuarios actualmente.' })
         }
 
     } catch (error) {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+const cambioUsuarioRol = async (req, res) => {
 
+    try {
+        const { tipo, id_proyecto, id_usuario_anterior, id_usuario_nuevo, id_rol } = req.body;
+
+        await pool.query('BEGIN');
+
+        if (tipo === "anterior") {
+            await pool.query('UPDATE usuario_rol SET estado=false WHERE id_proyecto=$1 AND id_usuario=$2 AND id_rol=$3', [id_proyecto, id_usuario_anterior, id_rol]);
+            await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
+            await pool.query('COMMIT');
+            res.json({ success: true, message: 'Se realizo el cambio correctamente.' });
+        } else if (tipo === "nuevo") {
+            await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
+            await pool.query('COMMIT');
+            res.json({ success: true, message: 'Se asigno el usuario correctamente.' });
+        }
+
+
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ success: false, message: 'Ha ocurrido un error al eliminar al estudiante. Por favor inténtelo más tarde.' });
+    }
+};
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
         await pool.query(
@@ -136,7 +159,7 @@ const asignarCodigoProyecto = async (req, res) => {
 };
 const obtenerDirectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_director,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id=1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id=1')
         const directores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
@@ -149,7 +172,7 @@ const obtenerDirectoresProyectosActivos = async (req, res) => {
 };
 const obtenerDirectoresProyectosCerrados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_director,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id<>1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id<>1')
         const directores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
@@ -162,7 +185,7 @@ const obtenerDirectoresProyectosCerrados = async (req, res) => {
 };
 const obtenerDirectoresProyectosInactivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_director, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 1 AND NOT ur.estado')
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_usuario, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 1 AND NOT ur.estado')
         const directores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
@@ -175,7 +198,7 @@ const obtenerDirectoresProyectosInactivos = async (req, res) => {
 };
 const obtenerJuradosProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_jurado, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
         const jurados = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
@@ -188,7 +211,7 @@ const obtenerJuradosProyectosActivos = async (req, res) => {
 };
 const obtenerJuradosProyectosCerrados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_jurado, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1')
         const jurados = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
@@ -201,7 +224,7 @@ const obtenerJuradosProyectosCerrados = async (req, res) => {
 };
 const obtenerJuradosProyectosInactivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_jurado, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 3 AND NOT ur.estado')
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_usuario, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 3 AND NOT ur.estado')
         const jurados = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
@@ -214,7 +237,7 @@ const obtenerJuradosProyectosInactivos = async (req, res) => {
 };
 const obtenerLectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_lector, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, u.id AS id_usuario, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, u.id AS id_usuario, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1')
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
@@ -227,7 +250,7 @@ const obtenerLectoresProyectosActivos = async (req, res) => {
 };
 const obtenerLectoresProyectosCerrados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_lector, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1')
+        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1')
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
@@ -240,7 +263,7 @@ const obtenerLectoresProyectosCerrados = async (req, res) => {
 };
 const obtenerLectoresProyectosInactivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_lector, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 2 AND NOT ur.estado')
+        const result = await pool.query('SELECT ur.id,p.id AS id_proyecto, u.id AS id_usuario, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, e.nombre as etapa, es.nombre as estado FROM usuario_rol ur JOIN proyecto p ON p.id = ur.id_proyecto JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario u ON u.id = ur.id_usuario WHERE ur.id_rol = 2 AND NOT ur.estado')
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
@@ -337,7 +360,6 @@ const agregarAprobacion = async (req, res) => {
             [aprobado, comentario, id_solicitud],
             (error, result) => {
                 if (error) {
-                    console.log(error);
                     if (error.code === "23505") {
                         return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
                     }
@@ -389,5 +411,6 @@ module.exports = {
     asignarNuevoCodigo,
     verAprobacionesSolicitud,
     verSolicitud,
-    agregarAprobacion
+    agregarAprobacion,
+    cambioUsuarioRol
 }

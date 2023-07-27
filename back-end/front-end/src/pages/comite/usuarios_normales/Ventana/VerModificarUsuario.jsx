@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../../../store/authSlice';
+import { selectToken } from '../../../../store/authSlice';
 import {
     CircularProgress,
     Box,
-    TextField,
     CssBaseline,
     Button,
     DialogTitle,
     Dialog,
     DialogActions,
     DialogContent,
-    IconButton,
     Typography,
     Select,
     MenuItem
 } from '@mui/material';
 
 import { useSnackbar } from 'notistack';
-import { Edit, SaveOutlined } from '@mui/icons-material';
+import { SaveOutlined } from '@mui/icons-material';
 
 function VerModificarUsuario(props) {
     const { onClose, onSubmit, open, informacion, rol } = props;
@@ -29,50 +27,108 @@ function VerModificarUsuario(props) {
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cambio, setCambio] = useState(false);
-    const [id_rol, setId_rol] = useState("");
+    const [id_usuario, setId_usuario] = useState("");
+    const [id_rol, setIdRol] = useState("");
 
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
     const handleEntering = async () => {
-        console.log(informacion);
+        if (rol === "LECTOR") {
+            setIdRol(2)
+        } else if (rol === "DIRECTOR") {
+            setIdRol(1)
+        } else if (rol === "JURADO") {
+            setIdRol(3)
+        }
         obtenerUsuarios()
         setLoading(false);
     };
     useEffect(() => {
         if (usuarios.length > 0 && informacion.id_usuario) {
-            setId_rol(informacion.id_usuario)
+            setId_usuario(informacion.id_usuario)
             setLoading(false);
         }
     }, [usuarios, informacion.id_usuario]);
 
     const handleCancel = () => {
         onClose();
-        setLoading(true);
+        setCambio(false)
+        setId_usuario("")
+        setLoading(true)
     };
+
     const handleIdRolChange = (event) => {
+        setId_usuario(event.target.value);
         if (informacion.id_usuario !== event.target.value) {
-            setId_rol(event.target.value);
             setCambio(true)
         } else {
             setCambio(false)
         }
     };
-    const cambiarUsuarioRol = async () => {
 
-console.log("Cambiar");
+    const cambiarUsuarioRol = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/comite/cambiarUsuarioRol", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    tipo: "anterior",
+                    id_proyecto: parseInt(informacion.id_proyecto),
+                    id_usuario_anterior: informacion.id_usuario,
+                    id_usuario_nuevo: parseInt(id_usuario),
+                    id_rol: id_rol
+                })
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error");
+            } else {
+                onSubmit()
+                mostrarMensaje(data.message, "success")
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+        }
+
     }
     const asignarUsuarioRol = async () => {
-        console.log("Asignar");
+        try {
+            const response = await fetch("http://localhost:5000/comite/cambiarUsuarioRol", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    tipo: "nuevo",
+                    id_proyecto: parseInt(informacion.id_proyecto),
+                    id_usuario_anterior: "",
+                    id_usuario_nuevo: parseInt(id_usuario),
+                    id_rol: id_rol
+                })
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error");
+            } else {
+                onSubmit()
+                mostrarMensaje(data.message, "success")
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+        }
 
     }
-    const guardarCambio = async () => {
+    const guardarCambio = async (e) => {
+        e.preventDefault();
         if (informacion.id_usuario) {
             cambiarUsuarioRol()
         } else {
             asignarUsuarioRol()
         }
+        setCambio(false)
+        setId_usuario("")
+        setLoading(true)
 
     }
     const obtenerUsuarios = async () => {
@@ -117,7 +173,7 @@ console.log("Cambiar");
                                 Docentes
                             </Typography>
                             <Select
-                                value={id_rol}
+                                value={id_usuario}
                                 onChange={handleIdRolChange}
                                 required
 

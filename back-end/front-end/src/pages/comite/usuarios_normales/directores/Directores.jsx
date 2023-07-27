@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 import { Source, Person, Edit } from '@mui/icons-material';
 import { useSelector } from "react-redux";
-import { selectToken } from "../../../store/authSlice";
-import CustomDataGrid from "../../layouts/DataGrid";
+import { selectToken } from "../../../../store/authSlice";
+import CustomDataGrid from "../../../layouts/DataGrid";
 
 
 import { useSnackbar } from 'notistack';
+import VerModificarUsuario from "../Ventana/VerModificarUsuario";
 
 export default function Directores() {
 
@@ -19,64 +20,80 @@ export default function Directores() {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-  const columnsEditar = [
-    {
-      field: "editar",
-      headerName: "",
-      flex: 0.01,
-      
-      
-      renderCell: ({ row }) => {
-        const { id_director } = row;
-        const tooltipTitle = id_director ? "Cambiar Director" : "Asignar Director";
-        const iconButtonIcon = id_director ? <Edit /> : <Person />;
-        return (
-          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title={tooltipTitle}>
-              <IconButton color="secondary">
-                {iconButtonIcon}
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
+  const generarColumnas = (extraColumns) => {
+    const columns = [
+
+      { field: 'nombre_director', headerName: 'Nombre del director', flex: 0.2, minWidth: 150 },
+      { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100 },
+      {
+        field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100,
+        valueGetter: (params) => `${params.row.etapa || ''} - ${params.row.estado || ''}`,
       },
-    },
-    { field: 'nombre_director', headerName: 'Nombre del director', flex: 0.2, minWidth: 150},
-    { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-    { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100},
+      {
+        field: "Acción",
+        headerName: '',
+        flex: 0.1,
+        minWidth: 100,
+        renderCell: ({ row }) => {
+          const { id_proyecto } = row;
+          return (
+            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+              <Tooltip title="Ver proyecto">
+                <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
+                  <Source />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        },
+      }
+    ]
+    return [...columns, ...extraColumns];
+  };
+  const columns = generarColumnas([]);
+  const columnsEditar = generarColumnas([
     {
-      field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100,  
-      valueGetter: (params) => `${params.row.etapa || ''} - ${params.row.estado || ''}`,
-    },
-    {
-      field: "Acción",
-      headerName: '',
-      width: 200,
-      flex: 0.1,
-      minWidth: 100,
-      
-      
+      field: "editar", headerName: "", flex: 0.01,
       renderCell: ({ row }) => {
-        const { id_proyecto } = row;
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title="Ver proyecto">
-              <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
-                <Source />
+            <Tooltip title="Ver/Cambiar Director">
+              <IconButton color="secondary" onClick={() => abrirDialog(row, "modificar")}>
+                <Edit />
               </IconButton>
             </Tooltip>
           </Box>
         );
       },
     }
-  ];
-
+  ]);
   const token = useSelector(selectToken);
 
   const [rowsActivos, setRowsActivos] = useState([]);
   const [rowsCerrados, setRowsCerrados] = useState([]);
   const [rowsInactivos, setRowsInactivos] = useState([]);
 
+  const rol = "DIRECTOR";
+  const [info, setInfo] = useState({});
+  const [accion, setAccion] = useState("");
+  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
+
+  const abrirDialog = (row, accion) => {
+    setAccion(accion)
+    setInfo(row)
+    setAbrirVerModificarUsuario(true);
+  };
+
+  const cerrarDialog = () => {
+    setAbrirVerModificarUsuario(false);
+  }
+  const cerrarUsuarioCambiado = () => {
+    llenarTabla("activos", setRowsActivos);
+    llenarTabla("cerrados", setRowsCerrados);
+    llenarTabla("inactivos", setRowsInactivos);
+    setAbrirVerModificarUsuario(false);
+  }
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/directoresproyectos/${endpoint}`, {
@@ -113,6 +130,13 @@ export default function Directores() {
       <Typography variant="h1" color="secondary" fontWeight="bold">
         DIRECTORES POR PROYECTO
       </Typography>
+      <VerModificarUsuario
+        open={abrirVerModificarUsuario}
+        onSubmit={cerrarUsuarioCambiado}
+        onClose={cerrarDialog}
+        informacion={info}
+        rol={rol}
+        accion={accion} />
       <Box>
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Proyectos en desarrollo
@@ -121,11 +145,11 @@ export default function Directores() {
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Proyectos cerrados
         </Typography>
-        <CustomDataGrid rows={rowsCerrados} columns={columnsEditar} mensaje="No hay directores" />
+        <CustomDataGrid rows={rowsCerrados} columns={columns} mensaje="No hay directores" />
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Inactivos
         </Typography>
-        <CustomDataGrid rows={rowsInactivos} columns={columnsEditar} mensaje="No hay directores" />
+        <CustomDataGrid rows={rowsInactivos} columns={columns} mensaje="No hay directores" />
       </Box>
     </div>
   );

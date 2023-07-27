@@ -25,7 +25,8 @@ const {
     verAprobacionesSolicitud,
     verSolicitud,
     agregarAprobacion,
-    obtenerUsuarios
+    obtenerUsuarios,
+    cambioUsuarioRol
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -58,6 +59,8 @@ router.post('/comite/guardar', upload.single('file'), async (req, res) => {
 });
 
 router.get('/comite/usuarios', passport.authenticate('jwt', { session: false }), obtenerUsuarios);
+router.post('/comite/cambiarUsuarioRol', passport.authenticate('jwt', { session: false }), cambioUsuarioRol);
+
 
 router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
