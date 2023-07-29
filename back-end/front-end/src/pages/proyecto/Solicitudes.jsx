@@ -3,7 +3,6 @@ import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline  } from '@mui/material';
 import { Typography, useTheme} from "@mui/material";
-import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import {  TextField, Grid } from '@mui/material';

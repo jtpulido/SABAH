@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { TextField, Grid } from '@mui/material';
 import { Typography, useTheme} from "@mui/material";
-import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";

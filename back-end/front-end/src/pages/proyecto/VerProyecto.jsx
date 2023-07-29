@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Typography, useTheme, Box, TextField, Grid, CssBaseline } from "@mui/material";
-import "./Proyectos.css";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";

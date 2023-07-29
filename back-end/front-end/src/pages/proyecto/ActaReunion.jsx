@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Box, TextField, CssBaseline, Grid } from "@mui/material";
-import "./InicioPro.css";
 import { Button } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
