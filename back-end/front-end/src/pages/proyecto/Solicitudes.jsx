@@ -1,333 +1,180 @@
 import React, { useState, useEffect } from "react";
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
-import { Box, CssBaseline  } from '@mui/material';
-import { Typography, useTheme} from "@mui/material";
-import {  Button, IconButton, Tooltip } from "@mui/material";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import {  TextField, Grid } from '@mui/material';
-import { tokens } from "../../theme";
+
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, IconButton, Tooltip, Toolbar, AppBar, Button } from "@mui/material";
+import { Source, Feed, AddCircleOutline } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
-import dayjs from 'dayjs';
-import ControlPointIcon from '@mui/icons-material/ControlPoint';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import { useSnackbar } from 'notistack';
+import VerSolicitud from './VentanasSolicitud/VerSolicitud';
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
-function CustomDataGrid({ rows, columns }) {
-  const [height, setHeight] = useState('300px');
+import CustomDataGrid from "../layouts/DataGrid";
+
+import { useSnackbar } from 'notistack';
+import CrearSolicitud from "./VentanasSolicitud/CrearSolicitud";
+
+export default function Proyectos() {
+
+  const token = useSelector(selectToken);
+  const id = sessionStorage.getItem('id_proyecto');
+  const { enqueueSnackbar } = useSnackbar();
+
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
+  const [solicitud, setSolicitud] = useState({});
+  const [rowsEnCurso, setRowsEnCurso] = useState([]);
+  const [rowsAprobadas, setRowsAprobadas] = useState([]);
+  const [rowsRechazadas, setRowsRechazadas] = useState([]);
+  const [idSolicitud, setIdSolicitud] = useState(null);
+  const navigate = useNavigate();
+
+  const generarColumnas = (extraColumns) => {
+    const commonColumns = [
+      {
+        field: "Acción", headerName: "", flex: 0.01, minWidth: 50,
+        renderCell: ({ row }) => {
+          const { id, id_proyecto } = row;
+          return (
+            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+              <Box mr="5px">
+                <Tooltip title="Ver Solicitud" >
+                  <IconButton color="secondary" onClick={() => abrirDialog(id)}>
+                    <Feed />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Box ml="5px">
+                <Tooltip title="Ver proyecto">
+                  <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
+                    <Source />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          );
+        },
+      },
+      { field: 'creado_por', headerName: 'Creado por', flex: 0.1, valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
+      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150 },
+      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.1, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+    ];
+
+    return [...commonColumns, ...extraColumns];
+  };
+
+  const columnsPendientes = generarColumnas([{
+    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1
+  }]);
+  const columnsAprobadas = generarColumnas([
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
+    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.1 }
+  ]);
+  const columnsRechazadas = generarColumnas([
+    { field: 'fecha_director', headerName: 'Respuesta Director', flex: 0.1 },
+    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1 }
+  ]);
+
+  const verProyecto = (id) => {
+    navigate(`/comite/verProyecto/${id}`)
+  }
+
+  const llenarTabla = async (endpoint, setRowsFunc, id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 203) {
+        mostrarMensaje(data.message, "warning")
+      } else if (response.status === 200) {
+        setRowsFunc(data.solicitudes);
+      }
+    }
+    catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+    }
+  };
 
   useEffect(() => {
-    setHeight(rows.length > 0 ? 'auto' : '300px');
-  }, [rows]);
-  
-  return (
-    <Box sx={{ height }}>
-      <DataGrid
-        getRowHeight={() => 'auto'}
-        rows={rows}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-            },
-          },
-        }}
-        pageSizeOptions={[10, 25, 50, 100]}
-        slots={{
-          toolbar: CustomToolbar,
-          noRowsOverlay: CustomNoRowsMessage
-        }}
-        disableColumnSelector
-      />
-    </Box>
-  );
-} 
-const CustomNoRowsMessage = () => {
-  return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      No hay solicitudes
-    </div>
-  );
-};
+    llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
+    llenarTabla("obtenerSolicitudesRechazadas", setRowsRechazadas, id);
+    llenarTabla("obtenerSolicitudesAprobadas", setRowsAprobadas, id);
+  }, []);
 
-export default function Solicitudes() {
-
-  const id = sessionStorage.getItem('id_proyecto');  const token = useSelector(selectToken);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [pendientes, setPendientes] = useState([]);
-  const [completadas, setCompletadas] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [tipoSol, setTipoSol] = useState("");
-  const [fecha, setFecha] = useState(dayjs());
-  const [nombre, setNombre] = useState("");
-  const [justificacion, setJustificacion] = useState("");
   const [open, setOpen] = useState(false);
-  const [idSolicitud, setIdSolicitud] = useState(null);
+
   const abrirDialog = (id) => {
     setIdSolicitud(id)
     setOpen(true);
   };
-  const { enqueueSnackbar } = useSnackbar();
 
-  const mostrarMensaje = (mensaje, variante) => {
-      enqueueSnackbar(mensaje, { variant: variante });
-    };
-  const handleOpenModal = () => {
-    setShowModal(true);
-    setFecha(null);
-    setNombre("");
-    setJustificacion("");
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setFecha(null);
-    setNombre("");
-    setJustificacion("");
-  };
-
-  const generarColumnas = (extraColumns) => {
-
-    const commonColumns = [
-      {
-        field: 'fecha',
-        headerName: 'Fecha',
-        flex: 0.2,
-        minWidth: 150,
-        headerAlign: "center",
-        align: "center",
-      },
-      {
-        field: 'nombre_tipo_solicitud',
-        headerName: 'Tipo',
-        flex: 0.2,
-        minWidth: 150,
-        headerAlign: "center",
-        align: "center",
-      },
-      
-    ];
-
-    return [...commonColumns, ...extraColumns];
+  const cerrarDialog = () => {
+    setOpen(false);
   }
 
-  const llenarTablaPendientes = async () => {
-    
-    try {
-      
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesPendientes/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
+  const [abrirCrear, setAbrirCrear] = useState(false);
 
-      if (!data.success) {
-        mostrarMensaje(data.message,'error');
-      } else {
-        const formattedPendientes = data.pendientes.map(row => ({
-          ...row,
-          fecha: new Date(row.fecha).toLocaleDateString()
-        }));
-        setPendientes(formattedPendientes);
-      }
-    }
-    catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.","error");
-    }
+  const abrirCrearSolicitud = () => {
+    setAbrirCrear(true);
   };
 
-  const llenarTablaCompletas = async () => {
-    
-    try {
-      
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerSolicitudesCompletas/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-
-      if (!data.success) {
-        mostrarMensaje(data.message,'error');
-      } else {
-        const formattedCompletadas = data.completas.map(row => ({
-          ...row,
-          fecha: new Date(row.fecha).toLocaleDateString()
-        }));
-        setCompletadas(formattedCompletadas);
-      }
-    }
-    catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
-    }
-  }; 
-  const handleSave = async () => {
-    try {
-      const data = {
-        fecha: fecha,
-        justificacion: justificacion  ,
-        nombre: nombre
-      };
-  
-      const response = await fetch("http://localhost:5000/proyecto/guardarSolicitud", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-
-      });
-  
-      if (response.ok) {
-        mostrarMensaje("La solicitud se genero exitosamente.", 'success');
-      } else {
-        mostrarMensaje("Ocurrió un error.",'error');
-      }
-      handleCloseModal()
-    } catch (error) {
-      mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
-    }
+  const cerrarCrearSolicitud = () => {
+    setAbrirCrear(false);
+  }
+  const cerrarSolicitudAgregada = () => {
+    llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
+    setAbrirCrear(false);
   };
-
-  useEffect(() => {
-    llenarTablaPendientes();
-    llenarTablaCompletas();
-}, []);
-
-const columnsPendientes = generarColumnas([
-  
-  {
-    field: "Acción",
-    headerName: "Acción",
-    flex: 0.01,
-    minWidth: 150,
-    headerAlign: "center",
-    align: "center",
-    renderCell: () => {
-      return (
-        <Box sx={{ display: 'flex' }}>
-          <Tooltip title="Ver información">
-           <IconButton color="secondary">
-                <VisibilityIcon />
-              </IconButton >
-          </Tooltip>
-        </Box>
-      );
-    },},
-]);
-
-
-const columnsCompletas = generarColumnas([
-  {
-    field: "Acción",
-    headerName: "Acción",
-    flex: 0.01,
-    minWidth: 150,
-    headerAlign: "center",
-    align: "center",
-    renderCell: ({ row }) => {
-      const { id } = row;
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Tooltip title="Ver información">
-           <IconButton color="secondary">
-                <VisibilityIcon  color="secondary" onClick={() => abrirDialog(id)}/>
-              </IconButton>
-          </Tooltip>
-
-        </Box>
-      );
-    },},
-]);
-
-const rowsWithIds = pendientes.map((row) => ({
-  ...row,
-  id: row.id
-}));
-const rowsWithIdsc = completadas.map((row) => ({
-  ...row,
-  id: row.id
-}));
 
   return (
-    <div style={{ margin: "15px" }} >
-      
-      <CssBaseline />
+    <div >
+      <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar >
+          <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+            SOLICITUDES
+          </Typography>
+          <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearSolicitud} sx={{
+            width: 150,
+          }}>
+            Crear Solicitud
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <VerSolicitud
+        open={open}
+        onClose={cerrarDialog}
+        id_solicitud={idSolicitud}
+      />
+      <CrearSolicitud
+        open={abrirCrear}
+        onClose={cerrarCrearSolicitud}
+        onSubmit={cerrarSolicitudAgregada}
+      />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-        <Typography variant="h1" color="secondary"> SOLICITUDES </Typography>
-        <Tooltip title="crear">
-           <IconButton color="secondary" onClick={() => handleOpenModal()}>
-                <ControlPointIcon sx={{ fontSize: 20 }}/>
-              </IconButton>
-          </Tooltip>
+      <Box sx={{ m: 3 }}>
+        <Typography variant="h2" color="primary"
+          sx={{ mt: "30px" }}>
+          Pendientes
+        </Typography>
+        <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} mensaje="No hay solicitudes pendientes." />
 
-          <Dialog open={showModal} onClose={handleCloseModal}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <DialogTitle variant="h5">Crear Solicitud</DialogTitle>
-              <Button onClick={handleCloseModal} startIcon={<HighlightOffIcon />} />
-            </div>
+        <Typography variant="h2" color="primary"
+          sx={{ mt: "30px" }}>
+          Aprobadas
+        </Typography>
+        <CustomDataGrid rows={rowsAprobadas} columns={columnsAprobadas} mensaje="No hay solicitudes aprobadas." />
 
-            <DialogContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={12}>
-                <FormControl fullWidth>
-                    <InputLabel>Tipo De Solicitud</InputLabel>
-                    <Select
-                      onChange={(e) => setTipoSol(e.target.value)}
-                    >
-                      <MenuItem value="sol1">sol1</MenuItem>
-                      <MenuItem value="sol2">sol2</MenuItem>
-                      <MenuItem value="sol3">sol3</MenuItem>
-                    </Select>
-                  </FormControl>
-                  </Grid>
-              
-                <Grid item xs={12} sm={12}>
-                  <TextField
-                    label="Justificacion"
-                    value={justificacion}
-                    onChange={(e) => setJustificacion(e.target.value)}
-                    fullWidth
-                  />
-                </Grid>
-                
-              </Grid>
-            </DialogContent>
+        <Typography variant="h2" color="primary"
+          sx={{ mt: "30px" }}>
+          Rechazadas
+        </Typography>
+        <CustomDataGrid rows={rowsRechazadas} columns={columnsRechazadas} mensaje="No hay solicitudes rechazadas." />
 
-            <DialogActions sx={{ justifyContent: "center" }}>
-              <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
-                Enviar
-              </Button>
-            </DialogActions>
-          </Dialog>
-      </div>
-      <Box> <Typography variant="h2" color="primary"
-         sx={{ mt: "30px" }}>
-        Pendientes
-      </Typography>
-      <CustomDataGrid rows={rowsWithIds} columns={columnsPendientes} />
-    </Box>
-    
-      <Box> <Typography variant="h2" color="primary"
-         sx={{ mt: "30px" }}>
-        Completas
-      </Typography>
-      <CustomDataGrid rows={rowsWithIdsc} columns={columnsCompletas} />
-    </Box>
-      
+      </Box>
+
     </div>
   );
 }

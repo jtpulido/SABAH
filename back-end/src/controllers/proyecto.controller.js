@@ -163,34 +163,124 @@ const obtenerReunionesCanceladas = async (req, res) => {
 const obtenerSolicitudesPendientes = async (req, res) => {
 
   const { id } = req.params;
-
   try {
-    const result = await pool.query('SELECT s.*, ts.nombre AS nombre_tipo_solicitud FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id WHERE s.finalizado = false AND s.id_proyecto = $1; ', [id])
-    const pendientes = result.rows
+    const result = await pool.query(`
+      SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.id AS id_proyecto, TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+      LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  
+      WHERE ad.aprobado = true AND ac.id IS NULL AND p.id = $1
+  
+      UNION 
+  
+      SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+      WHERE s.creado_proyecto = false AND ac.id IS NULL AND p.id = $1
+  
+      UNION 
+  
+      SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto, NULL AS fecha_aprobado_director 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+      WHERE s.creado_proyecto = true AND ad.id IS NULL AND p.id = $1`, [id]);
+    const solicitudes = result.rows
     if (result.rowCount > 0) {
-      return res.json({ success: true, pendientes });
+      return res.json({ success: true, solicitudes });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay solicitudes pendientes' })
+      return res.status(203).json({ success: true, message: 'No hay solicitudes pendientes por aprobación del comité' })
     }
   } catch (error) {
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
+
 };
 
-const obtenerSolicitudesCompletas = async (req, res) => {
-
+const obtenerSolicitudesAprobadas = async (req, res) => {
   const { id } = req.params;
-
   try {
-    const result = await pool.query('SELECT s.*, ts.nombre AS nombre_tipo_solicitud FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id WHERE s.finalizado = true AND s.id_proyecto = $1; ', [id])
-    const completas = result.rows
+    const result = await pool.query(`
+      SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+      LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  
+      WHERE ad.aprobado = true AND ac.aprobado = true AND p.id = $1
+  
+      UNION 
+  
+      SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+      WHERE s.creado_proyecto = false AND ac.aprobado = true AND p.id = $1`, [id]);
+    const solicitudes = result.rows
     if (result.rowCount > 0) {
-      return res.json({ success: true, completas });
+      return res.json({ success: true, solicitudes });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay solicitudes completas' })
+      return res.status(203).json({ success: true, message: 'No hay solicitudes aprobadas por el comité' })
     }
   } catch (error) {
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+const obtenerSolicitudesRechazadas = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+      LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  
+      WHERE ad.aprobado = true AND ac.aprobado = false AND p.id = $1
+      UNION 
+      SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+      WHERE s.creado_proyecto = false AND ac.aprobado = false AND p.id = $1
+      UNION 
+      SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_director, NULL AS fecha_rechazado_comite 
+      FROM solicitud s 
+      JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+      JOIN proyecto p ON s.id_proyecto = p.id 
+      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN estado es ON p.id_estado = es.id 
+      JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+      WHERE ad.aprobado = false AND p.id = $1`, [id]);
+    const solicitudes = result.rows
+    if (result.rowCount > 0) {
+      return res.json({ success: true, solicitudes });
+    } else {
+      return res.status(203).json({ success: true, message: 'No hay solicitudes rechazadas por el comité' })
+    }
+  } catch (error) {
+    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
 
@@ -207,7 +297,6 @@ const guardarReunion = async (req, res) => {
 
     res.status(200).json({ message: 'Reunión guardada exitosamente' });
   } catch (error) {
-    console.log(error)
     res.status(500).json({ message: 'Error al guardar la reunión' });
   }
 };
@@ -241,7 +330,7 @@ const cancelarReunion = async (req, res) => {
       WHERE id = $1
       `;
     const values = [id];
- await pool.query(query, values);
+    await pool.query(query, values);
 
     res.status(200).json({ message: 'Reunión cancelada exitosamente' });
   } catch (error) {
@@ -267,30 +356,42 @@ const editarReunion = async (req, res) => {
     res.status(500).json({ message: 'Error al editar la reunión' });
   }
 };
-
-const guardarSolicitud = async (req, res) => {
-
-  const { tipo_solicitud, justificacion, id_proyecto } = req.body;
-
-  // Aquí puedes agregar la lógica para validar los datos recibidos si es necesario
-
-  // Luego, puedes usar un ORM o una consulta SQL para guardar los datos en la base de datos
+const obtenerTipoSolicitud = async (req, res) => {
   try {
-    // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
-    const id_tipo_solicitud = await pool.query('SELECT id FROM tipo_solicitud WHERE nombre = $1;', [id_proyecto])
-    const id_tipo = id_tipo_solicitud.rows
-    const query = `
-        INSERT INTO public.solicitud(fecha, justificacion, id_tipo_solicitud)
-        VALUES ( $1, $2, $3)
-      `;
-    const values = [tipo_solicitud, justificacion, id_tipo_solicitud[0]];
-
-    // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
-    await pool.query(query, values);
-
-    res.status(200).json({ message: 'Solicitud enviada exitosamente' });
+    const query = 'SELECT * FROM tipo_solicitud';
+    await pool.query(query, (error, result) => {
+      if (error) {
+        return res.status(502).json({ success: false, message });
+      }
+      const tipos = result.rows;
+      if (tipos.length === 0) {
+        return res.status(203).json({ success: true, message: 'No hay tipos de solicitudes.' });
+      }
+      return res.status(200).json({ success: true, message: 'Tipos obtenidos correctamente', tipos });
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error al enviar la solicitud' });
+    return res.status(502).json({ success: false, message });
+  }
+};
+const guardarSolicitud = async (req, res) => {
+  try {
+    const { id_tipo_solicitud, justificacion, id_proyecto, creado_proyecto } = req.body;
+
+    const query = 'INSERT INTO solicitud (justificacion, id_tipo_solicitud, id_proyecto, creado_proyecto) VALUES ($1, $2, $3, $4) RETURNING id';
+    const values = [justificacion, id_tipo_solicitud, id_proyecto, creado_proyecto];
+    await pool.query(query, values, (error, result) => {
+      if (error) {
+        return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al obtener la información de los tipos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+      }
+      if (result.rowCount > 0) {
+        return res.status(200).json({ success: true, message: 'Solicitud creada correctamente.' });
+      } else {
+        return res.status(203).json({ success: true, message: 'No pudo crear la solicitud.' })
+      }
+    });
+  } catch (error) {
+    console.log(error)
+    return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error en la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
   }
 };
 
@@ -313,7 +414,6 @@ const guardarInfoActa = async (req, res) => {
 
     res.status(200).json({ message: 'Acta guardada exitosamente' });
   } catch (error) {
-    console.log(id_reunion);
     res.status(500).json({ message: 'Error al guardar el acta' });
   }
 };
@@ -439,7 +539,7 @@ const guardarLink = async (req, res) => {
       const values = [id, link];
       await pool.query(query, values);
     } else {
-     if (tipol === 'A' || tipol === 'D') {
+      if (tipol === 'A' || tipol === 'D') {
         const columnToSet = tipol === 'A' ? 'artefactos' : 'documentos';
         const query = `
           UPDATE public.link
@@ -462,6 +562,8 @@ const guardarLink = async (req, res) => {
 module.exports = {
   obtenerProyecto, obtenerEntregasCompletadas, obtenerEntregasPendientes,
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
-  obtenerSolicitudesPendientes, obtenerSolicitudesCompletas, guardarReunion, obtenerReunion,
-  cancelarReunion, editarReunion, guardarSolicitud, guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink
+  obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas, guardarReunion, obtenerReunion,
+  cancelarReunion, editarReunion,
+  obtenerTipoSolicitud, guardarSolicitud,
+  guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink
 }

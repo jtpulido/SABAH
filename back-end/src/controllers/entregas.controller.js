@@ -1,6 +1,6 @@
 const pool = require('../database')
 const moment = require('moment');
-const message = 'Lo siento, ha ocurrido un error en el la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.'
+const message = 'Lo siento, ha ocurrido un error en la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.'
 
 const crearAspecto = async (req, res) => {
     try {

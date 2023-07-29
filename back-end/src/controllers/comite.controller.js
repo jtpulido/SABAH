@@ -319,17 +319,20 @@ const verSolicitud = async (req, res) => {
 
         const id = req.params.solicitud_id;
         await pool.query(
-            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.justificacion, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto, u.nombre AS nombre_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN usuario_rol ur ON p.id = ur.id_proyecto JOIN usuario u ON ur.id_usuario = u.id JOIN rol r ON ur.id_rol = r.id AND r.id = 1 JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE s.id = $1",
+            "SELECT s.id, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, s.creado_proyecto AS creado_por_proyecto, s.justificacion, s.finalizado, ts.nombre AS tipo_solicitud, TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha_solicitud, p.id AS id_proyecto, u.nombre AS nombre_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN usuario_rol ur ON p.id = ur.id_proyecto JOIN usuario u ON ur.id_usuario = u.id JOIN rol r ON ur.id_rol = r.id AND r.id = 1 JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE s.id = $1 AND ur.estado = TRUE",
             [id], async (error, result) => {
                 if (error) {
+                    console.log(error)
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
                 } else if (result.rowCount === 1) {
                     return res.json({ success: true, solicitud: result.rows[0] });
                 } else {
+                    console.log(result.rows)
                     return res.status(203).json({ success: true, message: 'No fue posible encontrar la solicitud' });
                 }
             })
     } catch (error) {
+        console.log(error)
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
