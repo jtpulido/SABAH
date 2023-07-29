@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button, Select } from "@mui/material";
-import { tokens } from "../../../theme";
+import { Typography,  Box, TextField, Grid, CssBaseline, Button, Select } from "@mui/material";
+
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useNavigate } from 'react-router-dom';
@@ -11,8 +11,7 @@ export default function ModificarProyectos() {
 
     const id = sessionStorage.getItem('admin_id_proyecto');
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
+    
 
     const navigate = useNavigate();
 
