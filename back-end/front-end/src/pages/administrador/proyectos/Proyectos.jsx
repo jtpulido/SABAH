@@ -1,32 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
 import Tooltip from '@mui/material/Tooltip';
 
 import { Visibility } from '@mui/icons-material';
 import "./Proyectos.css";
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarFilterButton,
-  GridToolbarExport
-} from '@mui/x-data-grid';
 import { useSnackbar } from 'notistack';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <div style={{ display: 'flex', gap: '20px' }}>
-        <GridToolbarFilterButton />
-        <GridToolbarExport />
-      </div>
-    </GridToolbarContainer>
-  );
-}
 
 export default function Proyectos() {
   const navigate = useNavigate();
@@ -68,8 +52,6 @@ export default function Proyectos() {
     navigate(`/admin/verProyecto`)
   }
 
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);
@@ -124,74 +106,30 @@ export default function Proyectos() {
     llenarTablaCerrados()
   }, [llenarTablaEnCurso, llenarTablaCerrados]);
 
-  const CustomNoRowsMessage = (mensaje) => {
-    return (
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        {mensaje}
-      </div>
-    );
-  }
 
   return (
-    <div style={{ margin: "15px" }} >
-      <Typography
-        variant="h1"
-        color="secondary"
-        fontWeight="bold"
-      >
-        PROYECTOS
-      </Typography>
-
-      <Box >
+    <div>
+    <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar>
+            <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+                PROYECTOS
+            </Typography>
+        </Toolbar>
+    </AppBar>
+    <Box sx={{ m: 3 }}>
         <Typography variant="h2" color="primary"
-          sx={{ mt: "30px" }}>
-          En desarrollo
+            sx={{ mt: "30px" }}>
+            En desarrollo
         </Typography>
-        <DataGrid
-          getRowHeight={() => 'auto'}
-          rows={rowsEnCurso}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          slots={{
-            toolbar: CustomToolbar,
-            noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-          }}
-          disableColumnSelector
-        />
-      </Box>
+        <CustomDataGrid rows={rowsEnCurso || []} columns={columns} mensaje="No hay proyectos" />
 
-      <Box      >
         <Typography variant="h2" color="primary"
-          sx={{ mt: "30px" }}>
-          Cerrados
+            sx={{ mt: "30px" }}>
+            Cerrados
         </Typography>
-        <DataGrid
-          getRowHeight={() => 'auto'}
-          rows={rowsTerminados}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          slots={{
-            toolbar: CustomToolbar,
-            noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-          }}
-          disableColumnSelector
-        />
-      </Box>
+        <CustomDataGrid rows={rowsTerminados || []} columns={columns} mensaje="No hay proyectos" />
 
-    </div>
+    </Box>
+</div>
   );
 }

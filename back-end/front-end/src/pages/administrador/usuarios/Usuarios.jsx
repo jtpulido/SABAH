@@ -1,36 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
 
-import { Visibility } from '@mui/icons-material';
-import { tokens } from "../../../theme";
+import { ControlPoint, Visibility } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import {
-    DataGrid,
-    GridToolbarContainer,
-    GridToolbarFilterButton,
-    GridToolbarExport
-} from '@mui/x-data-grid';
 
-import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import DoDisturbIcon from '@mui/icons-material/DoDisturb';
 
 import { useSnackbar } from 'notistack';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <div style={{ display: 'flex', gap: '20px' }}>
-                <GridToolbarFilterButton />
-                <GridToolbarExport />
-            </div>
-        </GridToolbarContainer>
-    );
-}
 
 export default function Usuarios() {
 
@@ -90,8 +73,6 @@ export default function Usuarios() {
         navigate(`/admin/agregarUsuario`)
     };
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
     const [rowsUsuarios, setRowsUsuarios] = useState([]);
 
@@ -145,40 +126,19 @@ export default function Usuarios() {
     }, [token, llenarTablaUsuarios]);
 
     return (
-        <div style={{ margin: "15px" }} >
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: "25px" }}>
-                <Typography
-                    variant="h1"
-                    color="secondary"
-                    fontWeight="bold"
-                >
-                    USUARIOS
-                </Typography>
-                <Tooltip title="Agregar Usuario" sx={{ fontSize: '20px' }}>
-                    <ControlPointIcon sx={{ color: '#B8CF69', fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={handleAgregarUsuario} />
-                </Tooltip>
-            </div>
-
-            <Box
-            >
-                <DataGrid
-                    rows={rowsUsuarios}
-                    columns={columns}
-                    initialState={{
-                        pagination: {
-                            paginationModel: {
-                                pageSize: 10,
-                            },
-                        },
-                    }}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    getRowHeight={() => 'auto'}
-                    slots={{
-                        toolbar: CustomToolbar,
-                    }}
-                    disableColumnSelector
-                />
+        <div >
+            <AppBar position="static" color="transparent" variant="contained" >
+                <Toolbar>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+                        USUARIOS
+                    </Typography>
+                    <Tooltip title="Agregar Usuario" sx={{ fontSize: '20px' }}>
+                        <ControlPoint color="secondary" sx={{ fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={handleAgregarUsuario} />
+                    </Tooltip>
+                </Toolbar>
+            </AppBar>
+            <Box sx={{ m: 3 }}>
+                <CustomDataGrid rows={rowsUsuarios} columns={columns} mensaje="No hay usuarios" />
             </Box>
 
         </div>

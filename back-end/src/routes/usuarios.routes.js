@@ -6,7 +6,7 @@ const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProye
 
 router.post('/usuario/obtenerProyectosDesarrolloRol', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrolloRol);
 router.post('/usuario/obtenerProyectosCerradosRol', passport.authenticate('jwt', { session: false }), obtenerProyectosCerradosRol);
-router.post('/usuario/obtenerProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.get('/usuario/obtenerProyecto/:proyecto_id', passport.authenticate('jwt', { session: false }), obtenerProyecto);
 
 router.post('/usuario/rolDirector', passport.authenticate('jwt', { session: false }), rolDirector);
 router.post('/usuario/rolLector', passport.authenticate('jwt', { session: false }), rolLector);

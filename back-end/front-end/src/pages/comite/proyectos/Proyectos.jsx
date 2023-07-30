@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, Toolbar, AppBar } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
 import { useSelector } from "react-redux";
@@ -17,17 +17,17 @@ export default function Proyectos() {
       field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150,
       headerAlign: "center"
     },
-    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100,   },
-    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100,   },
-    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100,   },
-    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100,   },
-    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100,   },
-    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100,   },
+    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, },
+    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, },
+    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, },
+    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100, },
+    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100, },
+    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100, },
     {
       headerName: '',
       field: "id",
       width: 100,
-      flex: 0.05, minWidth: 50,  
+      flex: 0.05, minWidth: 50,
       renderCell: ({ row: { id } }) => {
         return (
           <Box
@@ -37,7 +37,7 @@ export default function Proyectos() {
             display="flex"
             justifyContent="center"
           >
-            <IconButton  color="secondary" onClick={() => verProyecto(id)}>
+            <IconButton color="secondary" onClick={() => verProyecto(id)}>
               <Visibility />
             </IconButton>
           </Box>
@@ -48,7 +48,7 @@ export default function Proyectos() {
   const verProyecto = (id) => {
     navigate(`/comite/verProyecto/${id}`)
   }
-  
+
   const token = useSelector(selectToken);
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);
@@ -56,7 +56,7 @@ export default function Proyectos() {
   const { enqueueSnackbar } = useSnackbar();
 
   const mostrarMensaje = (mensaje, variante) => {
-      enqueueSnackbar(mensaje, { variant: variante });
+    enqueueSnackbar(mensaje, { variant: variante });
   };
 
   const llenarTabla = async (endpoint, setRowsFunc) => {
@@ -69,7 +69,7 @@ export default function Proyectos() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message,"warning")
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRowsFunc(data.proyectos);
       }
@@ -84,17 +84,15 @@ export default function Proyectos() {
     llenarTabla("obtenerEnCurso", setRowsEnCurso);
   }, []);
   return (
-    <div style={{ margin: "15px" }} >
-     
-      <Typography
-        variant="h1"
-        color="secondary"
-        fontWeight="bold"
-      >
-        PROYECTOS
-      </Typography>
-
-      <Box>
+    <div>
+      <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar >
+          <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+            PROYECTOS
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Box sx={{ m: 2 }}>
         <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           En desarrollo
@@ -108,7 +106,7 @@ export default function Proyectos() {
         <CustomDataGrid rows={rowsTerminados || []} columns={columns} mensaje="No hay proyectos" />
 
       </Box>
-
     </div>
+
   );
 }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Typography, useTheme, Box, TextField, Grid, CssBaseline } from "@mui/material";
-import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -16,8 +15,6 @@ export default function VerProyectos() {
 
   const id = sessionStorage.getItem('admin_id_proyecto');
   const token = useSelector(selectToken);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [existe, setExiste] = useState([]);
   const [proyecto, setProyecto] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -36,10 +33,9 @@ export default function VerProyectos() {
 
   const infoProyecto = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:5000/admin/verProyecto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id })
+      const response = await fetch(`http://localhost:5000/admin/verProyecto/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
 
       const data = await response.json();
@@ -113,7 +109,7 @@ export default function VerProyectos() {
             {proyecto.codigo || ''}
           </Typography>
           <Box >
-            <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
+            <Typography variant="h3" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
               Información General
             </Typography>
 
@@ -173,7 +169,7 @@ export default function VerProyectos() {
           </Box>
 
           <Box>
-            <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
+            <Typography variant="h3" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
               Estudiante(s)
             </Typography>
 
@@ -216,7 +212,7 @@ export default function VerProyectos() {
             {proyecto.acronimo !== "AUX" && proyecto.modalidad !== "Coterminal" && (
               <>
                 <Box>
-                  <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
+                  <Typography variant="h3" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
                     Jurado(s)
                   </Typography>
 
@@ -243,7 +239,7 @@ export default function VerProyectos() {
 
         </Box>
       ) : (
-        <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
+        <Typography variant="h3" color="primary">{mostrarMensaje.mensaje}</Typography>
       )}
     </div>
   );

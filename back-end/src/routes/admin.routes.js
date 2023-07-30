@@ -9,7 +9,7 @@ router.get('/admin/obtenerTodos', passport.authenticate('jwt', { session: false 
 router.get('/admin/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/admin/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
 router.get('/admin/obtenerEstudiantes', passport.authenticate('jwt', { session: false }), obtenerEstudiantes);
-router.post('/admin/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.get('/admin/verProyecto/:proyecto_id', passport.authenticate('jwt', { session: false }), obtenerProyecto);
 
 router.post('/admin/obtenerProyectosActivos', passport.authenticate('jwt', { session: false }), obtenerProyectosActivos);
 router.post('/admin/obtenerProyectosInactivos', passport.authenticate('jwt', { session: false }), obtenerProyectosInactivos);

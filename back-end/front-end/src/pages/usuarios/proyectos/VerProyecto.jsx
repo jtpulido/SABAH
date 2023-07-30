@@ -29,10 +29,9 @@ export default function VerProyectos() {
 
     const infoProyecto = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/usuario/obtenerProyecto", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/usuario/obtenerProyecto/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();

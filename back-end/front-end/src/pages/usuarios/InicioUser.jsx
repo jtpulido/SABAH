@@ -184,8 +184,7 @@ function InicioUser() {
       label: 'SOLICITUDES',
       button: 'solicitudes',
       subItems: [
-        { label: 'DIRECTOR', button: 'directorSolicitudes', show: isDirector },
-        { label: 'JURADO', button: 'juradoSolicitudes', show: isJurado },
+        { label: 'DIRECTOR', button: 'directorSolicitudes', show: isDirector }
       ],
     },
     { label: 'CERRAR SESIÓN', button: 'cerrarSesion', action: cerrarSesion, buttonColors: '#576A3D', onClick: cerrarSesion },

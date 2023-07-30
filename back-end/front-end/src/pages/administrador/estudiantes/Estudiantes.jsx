@@ -1,30 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import {
-    DataGrid,
-    GridToolbarContainer,
-    GridToolbarFilterButton,
-    GridToolbarExport
-} from '@mui/x-data-grid';
 
 import Tooltip from '@mui/material/Tooltip';
 import { useSnackbar } from 'notistack';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <GridToolbarFilterButton />
-            <GridToolbarExport />
-        </GridToolbarContainer>
-    );
-}
+
 
 export default function Estudiantes() {
 
@@ -69,8 +56,6 @@ export default function Estudiantes() {
         navigate(`/admin/verEstudiante`)
     };
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
     const [rowsEstudiantes, setRowsEstudiantes] = useState([]);
 
@@ -102,51 +87,16 @@ export default function Estudiantes() {
     }, [llenarTablaEstudiantes]);
 
     return (
-        <div style={{ margin: "15px" }} >
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: "25px" }}>
-                <Typography
-                    variant="h1"
-                    color={colors.secundary[100]}
-                    fontWeight="bold"
-                >
-                    ESTUDIANTES
-                </Typography>
-            </div>
-
-            <Box
-                sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        color: colors.primary[100],
-                        textAlign: "center",
-                        fontSize: 14
-                    },
-                    "& .MuiDataGrid-toolbarContainer": {
-                        justifyContent: 'flex-end',
-                        align: "right"
-                    }
-                }}
-            >
-                <DataGrid
-                    rows={rowsEstudiantes}
-                    columns={columns}
-                    initialState={{
-                        pagination: {
-                            paginationModel: {
-                                pageSize: 10,
-                            },
-                        },
-                    }}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    getRowHeight={() => 'auto'}
-                    slots={{
-                        toolbar: CustomToolbar,
-                    }}
-                    disableColumnSelector
-                />
+        <div >
+            <AppBar position="static" color="transparent" variant="contained" >
+                <Toolbar>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+                        ESTUDIANTES
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <Box sx={{ m: 3 }}>
+                <CustomDataGrid rows={rowsEstudiantes} columns={columns} mensaje="No hay estudiantes" />
             </Box>
 
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, IconButton, useTheme, Box, TextField, Grid, CssBaseline } from "@mui/material";
+import { Typography, IconButton, useTheme, Box, TextField, Grid, CssBaseline, Toolbar, AppBar } from "@mui/material";
 import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
@@ -11,30 +11,14 @@ import { useSnackbar } from 'notistack';
 import Tooltip from '@mui/material/Tooltip';
 import { Visibility } from '@mui/icons-material';
 
-import {
-    DataGrid,
-    GridToolbarContainer,
-    GridToolbarFilterButton,
-    GridToolbarExport
-} from '@mui/x-data-grid';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <div style={{ display: 'flex', gap: '20px' }}>
-                <GridToolbarFilterButton />
-                <GridToolbarExport />
-            </div>
-        </GridToolbarContainer>
-    );
-}
+
 
 export default function VerEstudiante() {
 
     const id = sessionStorage.getItem('admin_id_estudiante');
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [existe, setExiste] = useState([]);
 
     const { enqueueSnackbar } = useSnackbar();
@@ -171,131 +155,60 @@ export default function VerEstudiante() {
     }
 
     return (
-        <div style={{ margin: "15px" }} >
+        <div >
+            <AppBar position="static" color="transparent" variant="contained" >
+                <Toolbar>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+                        VER ESTUDIANTE
+                    </Typography>
+                </Toolbar>
+            </AppBar>
 
-            <div style={{ display: 'flex', marginBottom: "20px" }}>
-                <Typography
-                    variant="h1"
-                    color={colors.secundary[100]}
-                    fontWeight="bold"
-                >
-                    VER ESTUDIANTE
-                </Typography>
-            </div>
+
 
             {existe ? (
-                <Box >
+                <Box sx={{ m: 2 }}>
                     <CssBaseline />
                     <Box >
-                        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+                        <Typography variant="h3" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
                             Información General
                         </Typography>
 
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={6} lg={6}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Nombre Completo
                                 </Typography>
                                 <TextField value={estudiante.nombre || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={6} lg={6}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Correo Electrónico
                                 </Typography>
                                 <TextField value={estudiante.correo || ''} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6} md={6} lg={6}>
-                                <Typography variant="h6" color={colors.primary[100]}>
+                                <Typography variant="h6" color="primary">
                                     Número de Identificación
                                 </Typography>
                                 <TextField value={estudiante.num_identificacion || ''} fullWidth />
                             </Grid>
                         </Grid>
                     </Box>
-
-                    <Box
-                        sx={{
-                            "& .MuiDataGrid-root": {
-                                border: "none",
-                                height: rowsProyectosActivos.length === 0 ? "200px" : "auto",
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                color: colors.primary[100],
-                                textAlign: "center",
-                                fontSize: 14
-                            },
-                            "& .MuiDataGrid-toolbarContainer": {
-                                justifyContent: 'flex-end',
-                                align: "right"
-                            }
-                        }}
-                    >
-                        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
+                    <Box >
+                        <Typography variant="h3" color="secondary" sx={{ mt: "50px" }}>
                             Proyectos Activos
                         </Typography>
-                        <DataGrid
-                            getRowHeight={() => 'auto'}
-                            rows={rowsProyectosActivos}
-                            columns={columns}
-                            initialState={{
-                                pagination: {
-                                    paginationModel: {
-                                        pageSize: 10,
-                                    },
-                                },
-                            }}
-                            pageSizeOptions={[10, 25, 50, 100]}
-                            slots={{
-                                toolbar: CustomToolbar,
-                                noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-                            }}
-                            disableColumnSelector
-                        />
-                    </Box>
+                        <CustomDataGrid rows={rowsProyectosActivos} columns={columns} mensaje="No hay proyectos" />
 
-                    <Box
-                        sx={{
-                            "& .MuiDataGrid-root": {
-                                border: "none",
-                                height: rowsProyectosInactivos.length === 0 ? "200px" : "auto",
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                color: colors.primary[100],
-                                textAlign: "center",
-                                fontSize: 14,
-                            },
-                            "& .MuiDataGrid-toolbarContainer": {
-                                justifyContent: "flex-end",
-                                align: "right",
-                            },
-                        }}
-                    >
-                        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
+                        <Typography variant="h3" color="secondary" sx={{ mt: "50px" }}>
                             Proyectos Inactivos
                         </Typography>
-                        <DataGrid
-                            getRowHeight={() => 'auto'}
-                            rows={rowsProyectosInactivos}
-                            columns={columns}
-                            initialState={{
-                                pagination: {
-                                    paginationModel: {
-                                        pageSize: 10,
-                                    },
-                                },
-                            }}
-                            pageSizeOptions={[10, 25, 50, 100]}
-                            slots={{
-                                toolbar: CustomToolbar,
-                                noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-                            }}
-                            disableColumnSelector
-                        />
+                        <CustomDataGrid rows={rowsProyectosInactivos} columns={columns} mensaje="No hay proyectos" />
                     </Box>
-
                 </Box>
             ) : (
-                <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
+                <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
             )}
         </div>
     );
