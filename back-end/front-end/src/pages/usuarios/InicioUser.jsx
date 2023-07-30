@@ -127,7 +127,6 @@ function InicioUser() {
     lectorReuniones: activeButton === 'lectorReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     juradoReuniones: activeButton === 'juradoReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     directorSolicitudes: activeButton === 'directorSolicitudes' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
-    juradoSolicitudes: activeButton === 'juradoSolicitudes' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     cerrarSesion: activeButton === 'cerrarSesion' ? '#ffffff' : '#ffffff',
   };
 
@@ -141,6 +140,7 @@ function InicioUser() {
       navigate('/user/reuniones');
 
     } else if (button === 'solicitudes') {
+      sessionStorage.setItem('id_rol', 1);
       navigate('/user/solicitudes');
 
     } else if (button === 'cerrarSesion') {
@@ -197,11 +197,6 @@ function InicioUser() {
     } else if (location.pathname === '/user/solicitudes') {
       if (sessionStorage.getItem('id_rol') === '1') {
         setActiveButton('directorSolicitudes');
-      } else if (sessionStorage.getItem('id_rol') === '2') {
-        setActiveButton('lectorSolicitudes');
-      } else if (sessionStorage.getItem('id_rol') === '3') {
-        setActiveButton('juradoSolicitudes');
-
       }
 
     } else if (location.pathname === '/user/proyectos') {
@@ -229,7 +224,7 @@ function InicioUser() {
     const initialSubMenuStates = {
       proyectos: activeButton === 'directorProyectos' || activeButton === 'lectorProyectos' || activeButton === 'juradoProyectos',
       reuniones: activeButton === 'directorReuniones' || activeButton === 'lectorReuniones' || activeButton === 'juradoReuniones',
-      solicitudes: activeButton === 'directorSolicitudes' || activeButton === 'lectorSolicitudes' || activeButton === 'juradoSolicitudes',
+      solicitudes: activeButton === 'directorSolicitudes',
     };
 
     setSubMenuStates(initialSubMenuStates);
