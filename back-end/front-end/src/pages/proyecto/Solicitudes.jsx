@@ -5,7 +5,12 @@ import { Box, Typography, IconButton, Tooltip, Toolbar, AppBar, Button } from "@
 import { Source, Feed, AddCircleOutline } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
-import VerSolicitud from './VentanasSolicitud/VerSolicitud';
+import dayjs from 'dayjs';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useSnackbar } from 'notistack';
+import VerSolicitud from './VerSolicitud';
 
 import CustomDataGrid from "../layouts/DataGrid";
 
@@ -128,31 +133,77 @@ export default function Proyectos() {
     llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
     setAbrirCrear(false);
   };
+  const cerrarDialog = () => {
+    setOpen(false);
+  }
+  useEffect(() => {
+    llenarTablaPendientes();
+    llenarTablaCompletas();
+}, []);
+
+const columnsPendientes = generarColumnas([
+  
+  {
+    field: "Acción",
+    headerName: "Acción",
+    flex: 0.01,
+    minWidth: 150,
+    headerAlign: "center",
+    align: "center",
+    renderCell: () => {
+      return (
+        <Box sx={{ display: 'flex' }}>
+          <Tooltip title="Ver información">
+           <IconButton color="secondary">
+                <VisibilityIcon />
+              </IconButton >
+          </Tooltip>
+        </Box>
+      );
+    },},
+]);
+
+
+const columnsCompletas = generarColumnas([
+  {
+    field: "Acción",
+    headerName: "Acción",
+    flex: 0.01,
+    minWidth: 150,
+    headerAlign: "center",
+    align: "center",
+    renderCell: ({ row }) => {
+      const { id } = row;
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Tooltip title="Ver información">
+           <IconButton color="secondary">
+                <VisibilityIcon  color="secondary" onClick={() => abrirDialog(id)}/>
+              </IconButton>
+          </Tooltip>
+
+        </Box>
+      );
+    },},
+]);
+
+const rowsWithIds = pendientes.map((row) => ({
+  ...row,
+  id: row.id
+}));
+const rowsWithIdsc = completadas.map((row) => ({
+  ...row,
+  id: row.id
+}));
 
   return (
-    <div >
-      <AppBar position="static" color="transparent" variant="contained" >
-        <Toolbar >
-          <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
-            SOLICITUDES
-          </Typography>
-          <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearSolicitud} sx={{
-            width: 150,
-          }}>
-            Crear Solicitud
-          </Button>
-        </Toolbar>
-      </AppBar>
+    <div style={{ margin: "15px" }} >
       <VerSolicitud
         open={open}
         onClose={cerrarDialog}
         id_solicitud={idSolicitud}
       />
-      <CrearSolicitud
-        open={abrirCrear}
-        onClose={cerrarCrearSolicitud}
-        onSubmit={cerrarSolicitudAgregada}
-      />
+      <CssBaseline />
 
       <Box sx={{ m: 3 }}>
         <Typography variant="h2" color="primary"

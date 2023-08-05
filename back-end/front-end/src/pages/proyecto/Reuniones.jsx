@@ -1,4 +1,12 @@
 import React, { useState, useEffect } from "react";
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
+import { Box, CssBaseline, TextField, Grid } from '@mui/material';
+import { Typography, useTheme} from "@mui/material";
+import "./InicioPro.css";
+import {  Button, IconButton, Tooltip } from "@mui/material";
+import { tokens } from "../../theme";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
 import {
   Box, Grid, TextField, FormControl, InputLabel, MenuItem, Select, Typography, Button, IconButton, Tooltip,
@@ -16,7 +24,51 @@ import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
 import CustomDataGrid from "../layouts/DataGrid";
 
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarFilterButton />
+      <GridToolbarExport />
+    </GridToolbarContainer>
+  );
+}
+function CustomDataGrid({ rows, columns }) {
+  const [height, setHeight] = useState('300px');
 
+  useEffect(() => {
+    setHeight(rows.length > 0 ? 'auto' : '300px');
+  }, [rows]);
+  
+  return (
+    <Box sx={{ height }}>
+      <DataGrid
+        getRowHeight={() => 'auto'}
+        rows={rows}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 10,
+            },
+          },
+        }}
+        pageSizeOptions={[10, 25, 50, 100]}
+        slots={{
+          toolbar: CustomToolbar,
+          noRowsOverlay: CustomNoRowsMessage
+        }}
+        disableColumnSelector
+      />
+    </Box>
+  );
+} 
+const CustomNoRowsMessage = () => {
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      No hay reuniones
+    </div>
+  );
+};
 
 export default function Reuniones() {
 
@@ -40,7 +92,6 @@ export default function Reuniones() {
   const handleRoleChange = (event) => {
     setSelectedRoles(event.target.value);
   };
-
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -192,7 +243,7 @@ export default function Reuniones() {
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message, 'error');
+        mostrarMensaje(data.message,'info');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -215,7 +266,6 @@ export default function Reuniones() {
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
-
       if (!data.success) {
         mostrarMensaje(data.message, 'error');
       } else {
@@ -254,7 +304,7 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", 'error');
     }
   };
-
+  
   useEffect(() => {
     llenarTablaPendientes();
     llenarTablaCompletas();
@@ -304,42 +354,74 @@ export default function Reuniones() {
               <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => handleOpenModal1(row.id)}>
                 <Create />
               </IconButton>
-            </Tooltip>
-            <Tooltip title="Cancelar">
-              <IconButton color="secondary" onClick={() => handleCancelReunion(row, token)}>
-                <HighlightOff />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },
+          </Tooltip>
+          <Tooltip title="Cancelar">
+           <IconButton color="secondary"
+              onClick={() => {
+                if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
+                 
+                  fetch('http://localhost:5000/proyecto/cancelarReunion', {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ id: row.id })
+                    
+                  })
+                  
+                    .then(response => {
+                      if (response.ok) {
+                        
+                        llenarTablaCanceladas();
+                        
+                        mostrarMensaje('La reunión se canceló correctamente','success');
+                      } else {
+                        
+                        mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
+                      }
+                    })
+                    .catch(error => {
+                      mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
+                     
+                    });
+                }
+              }}>
+                <HighlightOffIcon />
+              </IconButton >
+          </Tooltip>
+        </Box>
+      );
     },
-  ]);
+  },
+]);
 
-  const columnsCompletas = generarColumnas([
-    {
-      field: "Acción",
-      headerName: "Acción",
-      flex: 0.01,
-      minWidth: 150,
-      headerAlign: "center",
-      align: "center",
-      renderCell: ({ row }) => {
-        const id = row && row.id;
-        const ruta = `/proyecto/ActaReunion/${id}`;
-
-        return (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title="">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`}>
-                <Description />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },
+const columnsCompletas = generarColumnas([
+  {
+    field: "Acción",
+    headerName: "Acción",
+    flex: 0.01,
+    minWidth: 150,
+    headerAlign: "center",
+    align: "center",
+    renderCell: ({ row }) => {
+    const id = row && row.id; 
+    const {has_acta} = row;
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Tooltip title="">
+            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
+              <DescriptionIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="">
+            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
+              <PictureAsPdfIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
     },
-  ]);
+  },
+]);
+
   const { enqueueSnackbar } = useSnackbar();
 
   const mostrarMensaje = (mensaje, variante) => {
