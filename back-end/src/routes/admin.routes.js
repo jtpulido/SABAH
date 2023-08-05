@@ -2,13 +2,17 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-const { registro, estudiantesNuevo, estudiantesEliminados, cambioUsuarioRol, obtenerTodosProyectos, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, obtenerProyectosTerminados, modificarProyecto, cambiarEstado, obtenerProyectosDesarrollo, obtenerProyecto, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario } = require('../controllers/admin.controller');
+const { registro, estudiantesNuevo, estudiantesEliminados, obtenerProyectosActivos, obtenerProyectosInactivos, verEstudiante, cambioUsuarioRol, obtenerEstudiantes, obtenerTodosProyectos, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, obtenerProyectosTerminados, modificarProyecto, cambiarEstado, obtenerProyectosDesarrollo, obtenerProyecto, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario } = require('../controllers/admin.controller');
 
 router.post('/registro', registro);
 router.get('/admin/obtenerTodos', passport.authenticate('jwt', { session: false }), obtenerTodosProyectos);
 router.get('/admin/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/admin/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
-router.post('/admin/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.get('/admin/obtenerEstudiantes', passport.authenticate('jwt', { session: false }), obtenerEstudiantes);
+router.get('/admin/verProyecto/:proyecto_id', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+
+router.post('/admin/obtenerProyectosActivos', passport.authenticate('jwt', { session: false }), obtenerProyectosActivos);
+router.post('/admin/obtenerProyectosInactivos', passport.authenticate('jwt', { session: false }), obtenerProyectosInactivos);
 
 router.post('/admin/obtenerProyectosDirector', passport.authenticate('jwt', { session: false }), obtenerProyectosDirector);
 router.post('/admin/obtenerProyectosLector', passport.authenticate('jwt', { session: false }), obtenerProyectosLector);
@@ -16,6 +20,7 @@ router.post('/admin/obtenerProyectosJurado', passport.authenticate('jwt', { sess
 
 router.get('/admin/obtenerUsuarios', passport.authenticate('jwt', { session: false }), obtenerUsuarios);
 router.post('/admin/verUsuario', passport.authenticate('jwt', { session: false }), verUsuario);
+router.post('/admin/verEstudiante', passport.authenticate('jwt', { session: false }), verEstudiante);
 
 router.post('/admin/agregarUsuario', passport.authenticate('jwt', { session: false }), agregarUsuario);
 router.post('/admin/sendEmail', passport.authenticate('jwt', { session: false }), sendEmail);

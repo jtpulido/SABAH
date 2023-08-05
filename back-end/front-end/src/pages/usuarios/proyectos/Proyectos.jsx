@@ -1,33 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
 import Tooltip from '@mui/material/Tooltip';
 
 import { Visibility } from '@mui/icons-material';
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
-import {
-    DataGrid,
-    GridToolbarContainer,
-    GridToolbarFilterButton,
-    GridToolbarExport
-} from '@mui/x-data-grid';
 
-function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <GridToolbarFilterButton />
-            <GridToolbarExport />
-        </GridToolbarContainer>
-    );
-}
+import CustomDataGrid from "../../layouts/DataGrid";
+
+
 
 export default function Proyectos() {
 
-    const idUsuario = sessionStorage.getItem('id_usuario');
+    const idUsuario = sessionStorage.getItem('user_id_usuario');
     const idRol = sessionStorage.getItem('id_rol');
     const navigate = useNavigate();
 
@@ -71,9 +59,6 @@ export default function Proyectos() {
         sessionStorage.setItem('id_proyecto', id);
         navigate(`/user/verProyecto`)
     }
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
     const [rowsEnCurso, setRowsEnCurso] = useState([]);
     const [rowsTerminados, setRowsTerminados] = useState([]);
@@ -130,107 +115,31 @@ export default function Proyectos() {
         llenarTablaCerrados();
     }, [llenarTablaEnCurso, llenarTablaCerrados]);
 
-    const CustomNoRowsMessage = (mensaje) => {
-        return (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                {mensaje}
-            </div>
-        );
-    }
+    
 
     return (
-        <div style={{ margin: "15px" }} >
-
-            <Typography
-                variant="h1"
-                color={colors.secundary[100]}
-                fontWeight="bold"
-            >
-                PROYECTOS
-            </Typography>
-
-            <Box
-                sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                        height: rowsEnCurso.length === 0 ? "200px" : "auto",
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        color: colors.primary[100],
-                        textAlign: "center",
-                        fontSize: 14
-                    },
-                    "& .MuiDataGrid-toolbarContainer": {
-                        justifyContent: 'flex-end',
-                        align: "right"
-                    }
-                }}
-            >
-                <Typography variant="h2" color={colors.primary[100]}
+        <div>
+            <AppBar position="static" color="transparent" variant="contained" >
+                <Toolbar>
+                    <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+                        PROYECTOS
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <Box sx={{ m: 3 }}>
+                <Typography variant="h2" color="primary"
                     sx={{ mt: "30px" }}>
                     En desarrollo
                 </Typography>
-                <DataGrid
-                    getRowHeight={() => 'auto'}
-                    rows={rowsEnCurso}
-                    columns={columns}
-                    initialState={{
-                        pagination: {
-                            paginationModel: {
-                                pageSize: 10,
-                            },
-                        },
-                    }}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    slots={{
-                        toolbar: CustomToolbar,
-                        noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-                    }}
-                    disableColumnSelector
-                />
-            </Box>
+                <CustomDataGrid rows={rowsEnCurso || []} columns={columns} mensaje="No hay proyectos" />
 
-            <Box
-                sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                        height: rowsTerminados.length === 0 ? "200px" : "auto",
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        color: colors.primary[100],
-                        textAlign: "center",
-                        fontSize: 14,
-                    },
-                    "& .MuiDataGrid-toolbarContainer": {
-                        justifyContent: "flex-end",
-                        align: "right",
-                    },
-                }}
-            >
-                <Typography variant="h2" color={colors.primary[100]}
+                <Typography variant="h2" color="primary"
                     sx={{ mt: "30px" }}>
                     Cerrados
                 </Typography>
-                <DataGrid
-                    getRowHeight={() => 'auto'}
-                    rows={rowsTerminados}
-                    columns={columns}
-                    initialState={{
-                        pagination: {
-                            paginationModel: {
-                                pageSize: 10,
-                            },
-                        },
-                    }}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    slots={{
-                        toolbar: CustomToolbar,
-                        noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-                    }}
-                    disableColumnSelector
-                />
-            </Box>
+                <CustomDataGrid rows={rowsTerminados || []} columns={columns} mensaje="No hay proyectos" />
 
+            </Box>
         </div>
     );
 }

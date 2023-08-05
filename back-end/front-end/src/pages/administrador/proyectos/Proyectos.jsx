@@ -1,38 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
 import Tooltip from '@mui/material/Tooltip';
 
 import { Visibility } from '@mui/icons-material';
 import "./Proyectos.css";
-import { tokens } from "../../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarFilterButton,
-  GridToolbarExport
-} from '@mui/x-data-grid';
 import { useSnackbar } from 'notistack';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
 
 export default function Proyectos() {
   const navigate = useNavigate();
   const columns = [
-    {
-      field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
-      headerAlign: "center"
-    },
+    { field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150, headerAlign: "center", align: "center" },
     { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
     { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
     { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
@@ -69,8 +52,6 @@ export default function Proyectos() {
     navigate(`/admin/verProyecto`)
   }
 
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);
@@ -125,106 +106,30 @@ export default function Proyectos() {
     llenarTablaCerrados()
   }, [llenarTablaEnCurso, llenarTablaCerrados]);
 
-  const CustomNoRowsMessage = (mensaje) => {
-    return (
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        {mensaje}
-      </div>
-    );
-  }
 
   return (
-    <div style={{ margin: "15px" }} >
-      <Typography
-        variant="h1"
-        color={colors.secundary[100]}
-        fontWeight="bold"
-      >
-        PROYECTOS
-      </Typography>
-
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-            height: rowsEnCurso.length === 0 ? "200px" : "auto",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: 'flex-end',
-            align: "right"
-          }
-        }}
-      >
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
-          En desarrollo
+    <div>
+    <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar>
+            <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+                PROYECTOS
+            </Typography>
+        </Toolbar>
+    </AppBar>
+    <Box sx={{ m: 3 }}>
+        <Typography variant="h2" color="primary"
+            sx={{ mt: "30px" }}>
+            En desarrollo
         </Typography>
-        <DataGrid
-          getRowHeight={() => 'auto'}
-          rows={rowsEnCurso}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          slots={{
-            toolbar: CustomToolbar,
-            noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-          }}
-          disableColumnSelector
-        />
-      </Box>
+        <CustomDataGrid rows={rowsEnCurso || []} columns={columns} mensaje="No hay proyectos" />
 
-      <Box
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-            height: rowsTerminados.length === 0 ? "200px" : "auto",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: colors.primary[100],
-            textAlign: "center",
-            fontSize: 14,
-          },
-          "& .MuiDataGrid-toolbarContainer": {
-            justifyContent: "flex-end",
-            align: "right",
-          },
-        }}
-      >
-        <Typography variant="h2" color={colors.primary[100]}
-          sx={{ mt: "30px" }}>
-          Cerrados
+        <Typography variant="h2" color="primary"
+            sx={{ mt: "30px" }}>
+            Cerrados
         </Typography>
-        <DataGrid
-          getRowHeight={() => 'auto'}
-          rows={rowsTerminados}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          slots={{
-            toolbar: CustomToolbar,
-            noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-          }}
-          disableColumnSelector
-        />
-      </Box>
+        <CustomDataGrid rows={rowsTerminados || []} columns={columns} mensaje="No hay proyectos" />
 
-    </div>
+    </Box>
+</div>
   );
 }

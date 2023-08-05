@@ -9,18 +9,16 @@ const crypto = require('crypto');
 const inicioSesion = async (req, res) => {
   const { username, password } = req.body;
   await pool.query('SELECT u.*, tu.tipo AS id_tipo_usuario FROM usuario u JOIN tipo_usuario tu ON u.id_tipo_usuario= tu.id WHERE LOWER(u.correo)=LOWER($1)', [username], (error, result) => {
-    
-    if (error) {
 
+    if (error) {
       return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
-    console.log(JSON.stringify(result))
     if (result.rowCount === 1) {
 
       const usuario = result.rows[0];
       bcrypt.compare(password, usuario.contrasena, (error, match) => {
         if (error) {
-          
+
           return res.status(401).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
         }
         if (match) {
@@ -448,6 +446,9 @@ const inscribirPropuesta = async (req, res) => {
   } catch (error) {
     // Deshacer transaccion
     await pool.query('ROLLBACK');
+    if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === estudiante_num_identificacion_key)) {
+      return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
+    }
     res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el proyecto. Por favor inténtelo más tarde.' });
   }
 

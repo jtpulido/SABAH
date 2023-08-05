@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Box, TextField, CssBaseline, Grid } from "@mui/material";
-import "./InicioPro.css";
 import { Button } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
@@ -131,7 +130,7 @@ useEffect(() => {
       <CssBaseline />
       <Typography
         variant="h4"
-        color={colors.secundary[100]}
+        color="secondary"
       >
         FORMATO REUNIONES REALIMENTACIÓN
       </Typography>
@@ -139,7 +138,7 @@ useEffect(() => {
       </br>
 
         <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Descripción de Objetivos * 
         </Typography>
         <Box >
@@ -160,7 +159,7 @@ useEffect(() => {
           </Box>  
         </Box>
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Resultados de Reunión * 
         </Typography>
         <Box >
@@ -180,7 +179,7 @@ useEffect(() => {
           </Box>  
         </Box> 
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Tareas Sesión Anterior * 
         </Typography>
         <Box >
@@ -200,7 +199,7 @@ useEffect(() => {
           </Box>  
         </Box>
       <Box >
-        <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
           Compromisos * 
         </Typography>
         <Box >

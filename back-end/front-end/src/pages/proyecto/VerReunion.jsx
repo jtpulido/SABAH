@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { TextField, Grid } from '@mui/material';
 import { Typography, useTheme} from "@mui/material";
-import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
 import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
@@ -50,7 +49,7 @@ export default function VerReunion() {
 
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
-       <Typography variant="h1" color={colors.secundary[100]} > VER REUNIÓN </Typography>
+       <Typography variant="h1" color="secondary" > VER REUNIÓN </Typography>
        <IconButton color="secondary" style={{ marginLeft: '20px' }} aria-label="delete" size="large" >
             <CreateIcon />
           </IconButton>

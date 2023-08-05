@@ -6,7 +6,6 @@ import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListI
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
-import "./InicioPro.css";
 import { Outlet } from 'react-router-dom';
 const drawerWidth = 240;
 

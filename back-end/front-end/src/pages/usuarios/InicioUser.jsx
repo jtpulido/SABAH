@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearSession, clearCookies } from '../../store/authSlice';
@@ -32,12 +32,16 @@ function InicioUser() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const idUsuario = sessionStorage.getItem('id_usuario');
+  const idUsuario = sessionStorage.getItem('user_id_usuario');
   const token = useSelector(selectToken);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  const [subMenuStates, setSubMenuStates] = useState({});
+  const [subMenuStates, setSubMenuStates] = useState({
+    proyectos: false,
+    reuniones: false,
+    solicitudes: false,
+  });
 
   const handleSubMenuClick = (button) => {
     setSubMenuStates((prevState) => ({
@@ -50,67 +54,65 @@ function InicioUser() {
   const [isLector, setIsLector] = useState(false);
   const [isJurado, setIsJurado] = useState(false);
 
-  const rolDirector = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:5000/admin/rolDirector', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id: idUsuario }),
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        setIsDirector(false);
-      } else {
-        setIsDirector(true);
-      }
-    } catch (error) { }
-  }, [idUsuario, token]);
-
-  const rolLector = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:5000/admin/rolLector', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id: idUsuario }),
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        setIsLector(false);
-      } else {
-        setIsLector(true);
-      }
-    } catch (error) { }
-  }, [idUsuario, token]);
-
-  const rolJurado = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:5000/admin/rolJurado', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id: idUsuario }),
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        setIsJurado(false);
-      } else {
-        setIsJurado(true);
-      }
-    } catch (error) { }
-  }, [idUsuario, token]);
-
   useEffect(() => {
-    rolDirector();
-    rolJurado();
-    rolLector();
-  }, [rolDirector, rolJurado, rolLector]);
+    const obtenerRoles = async () => {
+      try {
+        const responseDirector = await fetch('http://localhost:5000/usuario/rolDirector', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ id: idUsuario }),
+        });
+
+        const responseLector = await fetch('http://localhost:5000/usuario/rolLector', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ id: idUsuario }),
+        });
+
+        const responseJurado = await fetch('http://localhost:5000/usuario/rolJurado', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ id: idUsuario }),
+        });
+
+        const dataDirector = await responseDirector.json();
+        const dataLector = await responseLector.json();
+        const dataJurado = await responseJurado.json();
+
+        if (!dataDirector.success) {
+          sessionStorage.setItem('estadoRolDirector', false.toString());
+          setIsDirector(false);
+        } else {
+          sessionStorage.setItem('estadoRolDirector', true.toString());
+          setIsDirector(true);
+        }
+
+        if (!dataLector.success) {
+          sessionStorage.setItem('estadoRolLector', false.toString());
+          setIsLector(false);
+        } else {
+          sessionStorage.setItem('estadoRolLector', true.toString());
+          setIsLector(true);
+        }
+
+        if (!dataJurado.success) {
+          setIsJurado(false);
+          sessionStorage.setItem('estadoRolJurado', false.toString());
+        } else {
+          setIsJurado(true);
+          sessionStorage.setItem('estadoRolJurado', true.toString());
+        }
+      } catch (error) { }
+    };
+
+    obtenerRoles();
+  }, [idUsuario, token]);
 
   const cerrarSesion = () => {
     dispatch(clearSession());
     dispatch(clearCookies());
-    sessionStorage.removeItem('id_usuario');
+    sessionStorage.removeItem('user_id_usuario');
+    sessionStorage.removeItem('id_rol');
     navigate('/');
   };
 
@@ -118,16 +120,21 @@ function InicioUser() {
 
   const buttonColors = {
     menuInicio: activeButton === 'menuInicio' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
-    proyectos: activeButton === 'proyectos' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
-    reuniones: activeButton === 'reuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
-    solicitudes: activeButton === 'solicitudes' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    directorProyectos: activeButton === 'directorProyectos' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    lectorProyectos: activeButton === 'lectorProyectos' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    juradoProyectos: activeButton === 'juradoProyectos' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    directorReuniones: activeButton === 'directorReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    lectorReuniones: activeButton === 'lectorReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    juradoReuniones: activeButton === 'juradoReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    directorSolicitudes: activeButton === 'directorSolicitudes' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    juradoSolicitudes: activeButton === 'juradoSolicitudes' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     cerrarSesion: activeButton === 'cerrarSesion' ? '#ffffff' : '#ffffff',
   };
 
   const handleClick = (button) => {
-    setActiveButton(button);
-    
+
     if (button === 'menuInicio') {
+      setActiveButton('menuInicio');
       navigate('');
 
     } else if (button === 'reuniones') {
@@ -141,7 +148,6 @@ function InicioUser() {
 
     } else if (button === 'directorProyectos') {
       sessionStorage.setItem('id_rol', 1);
-      setActiveButton('directorProyectos');
       navigate('/user/proyectos');
 
     } else if (button === 'lectorProyectos') {
@@ -178,9 +184,7 @@ function InicioUser() {
       label: 'SOLICITUDES',
       button: 'solicitudes',
       subItems: [
-        { label: 'DIRECTOR', button: 'directorSolicitudes', show: isDirector },
-        { label: 'LECTOR', button: 'lectorSolicitudes', show: isLector },
-        { label: 'JURADO', button: 'juradoSolicitudes', show: isJurado },
+        { label: 'DIRECTOR', button: 'directorSolicitudes', show: isDirector }
       ],
     },
     { label: 'CERRAR SESIÓN', button: 'cerrarSesion', action: cerrarSesion, buttonColors: '#576A3D', onClick: cerrarSesion },
@@ -189,13 +193,47 @@ function InicioUser() {
   useEffect(() => {
     if (location.pathname === '/user') {
       setActiveButton('menuInicio');
-    } else if (location.pathname === '/user/proyectos') {
-      setActiveButton('proyectos');
+
     } else if (location.pathname === '/user/solicitudes') {
-      setActiveButton('solicitudes');
+      if (sessionStorage.getItem('id_rol') === '1') {
+        setActiveButton('directorSolicitudes');
+      } else if (sessionStorage.getItem('id_rol') === '2') {
+        setActiveButton('lectorSolicitudes');
+      } else if (sessionStorage.getItem('id_rol') === '3') {
+        setActiveButton('juradoSolicitudes');
+
+      }
+
+    } else if (location.pathname === '/user/proyectos') {
+      if (sessionStorage.getItem('id_rol') === '1') {
+        setActiveButton('directorProyectos');
+      } else if (sessionStorage.getItem('id_rol') === '2') {
+        setActiveButton('lectorProyectos');
+      } else if (sessionStorage.getItem('id_rol') === '3') {
+        setActiveButton('juradoProyectos');
+      }
+
+    } else if (location.pathname === '/user/reuniones') {
+      if (sessionStorage.getItem('id_rol') === '1') {
+        setActiveButton('directorReuniones');
+      } else if (sessionStorage.getItem('id_rol') === '2') {
+        setActiveButton('lectorReuniones');
+      } else if (sessionStorage.getItem('id_rol') === '3') {
+        setActiveButton('juradoReuniones');
+      }
     }
 
   }, [location.pathname]);
+
+  useEffect(() => {
+    const initialSubMenuStates = {
+      proyectos: activeButton === 'directorProyectos' || activeButton === 'lectorProyectos' || activeButton === 'juradoProyectos',
+      reuniones: activeButton === 'directorReuniones' || activeButton === 'lectorReuniones' || activeButton === 'juradoReuniones',
+      solicitudes: activeButton === 'directorSolicitudes' || activeButton === 'lectorSolicitudes' || activeButton === 'juradoSolicitudes',
+    };
+
+    setSubMenuStates(initialSubMenuStates);
+  }, [activeButton]);
 
   return (
     <div>

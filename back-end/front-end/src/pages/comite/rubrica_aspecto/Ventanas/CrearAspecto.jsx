@@ -21,13 +21,11 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearAspecto(props) {
-    const { onClose, open } = props;
+    const { onClose,onSubmit, open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [nombre, setNombre] = useState("");
     const [loading, setLoading] = useState(true);
 
@@ -59,7 +57,7 @@ function CrearAspecto(props) {
                 mostrarMensaje(data.message, "error");
             } else {
                 setNombre("");
-                handleCancel()
+                onSubmit()
                 mostrarMensaje(data.message, "success")
             }
         } catch (error) {
@@ -70,7 +68,7 @@ function CrearAspecto(props) {
         <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
             <CssBaseline />
 
-            <DialogTitle variant="h1" color={colors.primary[100]}>
+            <DialogTitle variant="h1" color="primary">
                 CREAR ASPECTO
             </DialogTitle>
             <form onSubmit={crearAspecto}>
@@ -81,7 +79,7 @@ function CrearAspecto(props) {
                         </Box>
                     ) : (
                         <>
-                            <Typography variant="h6" color={colors.primary[100]}>
+                            <Typography variant="h6" color="primary">
                                 Nombre del aspecto
                             </Typography>
                             <TextField
@@ -97,7 +95,9 @@ function CrearAspecto(props) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} >
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -109,6 +109,7 @@ function CrearAspecto(props) {
 CrearAspecto.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
 };
 
 export default CrearAspecto;

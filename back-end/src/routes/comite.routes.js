@@ -24,11 +24,13 @@ const {
     asignarNuevoCodigo,
     verAprobacionesSolicitud,
     verSolicitud,
-    agregarAprobacion
+    agregarAprobacion,
+    obtenerUsuarios,
+    cambioUsuarioRol
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
-    crearRubrica, obtenerRubricasConAspectos,
+    crearRubrica, obtenerRubricasConAspectos, eliminarRubrica,modificarRubrica,
     crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
     verEntregasPendientesProyecto,
@@ -38,7 +40,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     verEntregasRealizadasSinCalificar,
     verInfoDocEntregado,
     verAspectosEspacio,
-    guardarCalificacion
+    guardarCalificacion,validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
 } = require('../controllers/entregas.controller')
 
 const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
@@ -56,25 +58,30 @@ router.post('/comite/guardar', upload.single('file'), async (req, res) => {
     }
 });
 
+router.get('/comite/usuarios', passport.authenticate('jwt', { session: false }), obtenerUsuarios);
+router.post('/comite/cambiarUsuarioRol', passport.authenticate('jwt', { session: false }), cambioUsuarioRol);
+
+
 router.get('/comite/obtenerTerminados', passport.authenticate('jwt', { session: false }), obtenerProyectosTerminados);
 router.get('/comite/obtenerEnCurso', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrollo);
-router.post('/comite/verProyecto', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.get('/comite/verProyecto/:proyecto_id', passport.authenticate('jwt', { session: false }), obtenerProyecto);
 router.post('/comite/asignarCodigo', passport.authenticate('jwt', { session: false }), asignarCodigoProyecto);
 router.post('/comite/cambiarCodigo', passport.authenticate('jwt', { session: false }), asignarNuevoCodigo);
-router.post('/comite/directoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosActivos);
-router.post('/comite/directoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosCerrados);
-router.post('/comite/directoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosInactivos);
-router.post('/comite/juradosproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosActivos);
-router.post('/comite/juradosproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosCerrados);
-router.post('/comite/juradosproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosInactivos);
-router.post('/comite/lectoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosActivos);
-router.post('/comite/lectoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosCerrados);
-router.post('/comite/lectoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosInactivos);
-router.post('/comite/solicitudes/pendienteaprobacion', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesComite);
-router.post('/comite/solicitudes/aprobadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesAprobadasComite);
-router.post('/comite/solicitudes/rechazadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesRechazadasComite);
-router.post('/comite/solicitudes/verSolicitud', passport.authenticate('jwt', { session: false }), verSolicitud);
-router.post('/comite/solicitudes/verAprobaciones', passport.authenticate('jwt', { session: false }), verAprobacionesSolicitud);
+router.get('/comite/directoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosActivos);
+router.get('/comite/directoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosCerrados);
+router.get('/comite/directoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerDirectoresProyectosInactivos);
+router.get('/comite/juradosproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosActivos);
+router.get('/comite/juradosproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosCerrados);
+router.get('/comite/juradosproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerJuradosProyectosInactivos);
+router.get('/comite/lectoresproyectos/activos', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosActivos);
+router.get('/comite/lectoresproyectos/cerrados', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosCerrados);
+router.get('/comite/lectoresproyectos/inactivos', passport.authenticate('jwt', { session: false }), obtenerLectoresProyectosInactivos);
+
+router.get('/comite/solicitudes/pendienteaprobacion', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesComite);
+router.get('/comite/solicitudes/aprobadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesAprobadasComite);
+router.get('/comite/solicitudes/rechazadas', passport.authenticate('jwt', { session: false }), obtenerSolicitudesRechazadasComite);
+router.get('/comite/solicitudes/verSolicitud/:solicitud_id', passport.authenticate('jwt', { session: false }), verSolicitud);
+router.get('/comite/solicitudes/verAprobaciones/:solicitud_id', passport.authenticate('jwt', { session: false }), verAprobacionesSolicitud);
 router.post('/comite/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
 
 
@@ -85,12 +92,11 @@ router.delete('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { sessi
 router.put('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), modificarAspecto);
 router.get('/comite/aspecto', passport.authenticate('jwt', { session: false }), obtenerAspectos);
 router.get('/comite/aspecto/:aspectoId', passport.authenticate('jwt', { session: false }), obtenerAspectoPorId);
-router.post('/comite/crearRubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
-router.get('/comite/obtenerRubricasAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
 
 // Rutas para espacios
 router.post('/comite/espacio', passport.authenticate('jwt', { session: false }), crearEspacio);
 router.delete('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), eliminarEspacio);
+router.get('/comite/usoEspacio/:espacio_id', passport.authenticate('jwt', { session: false }), validarModificarEspacio);
 router.put('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), modificarEspacio);
 router.get('/comite/espacio', passport.authenticate('jwt', { session: false }), obtenerEspacio);
 router.get('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session: false }), obtenerEspacioPorId);
@@ -98,7 +104,15 @@ router.get('/comite/espacio/:espacio_id', passport.authenticate('jwt', { session
 router.get('/comite/etapas', passport.authenticate('jwt', { session: false }), obtenerEtapas);
 router.get('/comite/modalidades', passport.authenticate('jwt', { session: false }), obtenerModalidades);
 router.get('/comite/roles', passport.authenticate('jwt', { session: false }), obtenerRoles);
+
 router.get('/comite/rubricas', passport.authenticate('jwt', { session: false }), obtenerRubricas);
+router.post('/comite/crearRubrica', passport.authenticate('jwt', { session: false }), crearRubrica);
+router.delete('/comite/rubrica/:rubrica_id', passport.authenticate('jwt', { session: false }), eliminarRubrica);
+router.get('/comite/usoRubrica/:rubrica_id', passport.authenticate('jwt', { session: false }), validarModificarRubrica);
+router.put('/comite/rubrica/:rubrica_id', passport.authenticate('jwt', { session: false }), modificarRubrica);
+
+router.get('/comite/obtenerRubricasAspectos', passport.authenticate('jwt', { session: false }), obtenerRubricasConAspectos);
+
 
 //Entregas proyecto
 router.get('/comite/entrega/pendientes/:proyecto_id', passport.authenticate('jwt', { session: false }), verEntregasPendientesProyecto);
@@ -113,6 +127,7 @@ router.get('/comite/documento/aspectos/:id_esp_entrega', passport.authenticate('
 
 //calificación
 router.post('/comite/documento/guardarCalificacion', passport.authenticate('jwt', { session: false }), guardarCalificacion);
+router.get('/comite/calificacion/aspectos/:id_calificacion', passport.authenticate('jwt', { session: false }), verCalificacionAspectos);
 
 
 module.exports = router;

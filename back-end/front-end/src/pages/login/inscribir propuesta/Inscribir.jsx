@@ -393,7 +393,7 @@ export const Inscribir = () => {
 
                 <Typography
                     variant="h6"
-                    color={colors.secundary[100]}
+                    color="secondary"
                     sx={{ mt: "20px", mb: "20px" }}
                 >
                     Información General
@@ -402,7 +402,7 @@ export const Inscribir = () => {
                 <Grid container spacing={3}>
 
                     <Grid item xs={12} sm={6} md={6} lg={6}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Modalidad
                         </Typography>
                         <Select
@@ -424,7 +424,7 @@ export const Inscribir = () => {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={6} lg={6}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Director
                         </Typography>
                         <Select
@@ -446,7 +446,7 @@ export const Inscribir = () => {
                     </Grid>
 
                     <Grid item xs={12}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Nombre del Proyecto
                         </Typography>
                         <TextField value={nombre} onChange={handleNombre} fullWidth />
@@ -456,7 +456,7 @@ export const Inscribir = () => {
 
                 <Typography
                     variant="h6"
-                    color={colors.secundary[100]}
+                    color="secondary"
                     sx={{ mt: "30px", mb: "20px" }}
                 >
                     Integrantes
@@ -465,63 +465,63 @@ export const Inscribir = () => {
                 <Grid container spacing={3}>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Nombre Completo Integrante 1
                         </Typography>
                         <TextField value={estudiantes[0].nombre} onChange={(event) => handleEstudianteChange(0, 'nombre', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Número de Identificación Integrante 1
                         </Typography>
                         <TextField value={estudiantes[0].num_identificacion} onChange={(event) => handleEstudianteChange(0, 'num_identificacion', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Correo Electrónico Integrante 1
                         </Typography>
                         <TextField value={estudiantes[0].correo} onChange={(event) => handleEstudianteChange(0, 'correo', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Nombre Completo Integrante 2
                         </Typography>
                         <TextField value={estudiantes[1].nombre} onChange={(event) => handleEstudianteChange(1, 'nombre', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Número de Identificación Integrante 2
                         </Typography>
                         <TextField value={estudiantes[1].num_identificacion} onChange={(event) => handleEstudianteChange(1, 'num_identificacion', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Correo Electrónico Integrante 2
                         </Typography>
                         <TextField value={estudiantes[1].correo} onChange={(event) => handleEstudianteChange(1, 'correo', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Nombre Completo Integrante 3
                         </Typography>
                         <TextField value={estudiantes[2].nombre} onChange={(event) => handleEstudianteChange(2, 'nombre', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Número de Identificación Integrante 3
                         </Typography>
                         <TextField value={estudiantes[2].num_identificacion} onChange={(event) => handleEstudianteChange(2, 'num_identificacion', event.target.value)} fullWidth />
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color={colors.primary[100]}>
+                        <Typography variant="h6" color="primary">
                             Correo Electrónico Integrante 3
                         </Typography>
                         <TextField value={estudiantes[2].correo} onChange={(event) => handleEstudianteChange(2, 'correo', event.target.value)} fullWidth />

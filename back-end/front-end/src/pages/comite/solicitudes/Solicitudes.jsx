@@ -33,31 +33,35 @@ export default function Proyectos() {
   const generarColumnas = (extraColumns) => {
     const commonColumns = [
       {
-        field: "Acción", headerName: "", flex: 0.01, minWidth: 50,  
+        field: "Acción", headerName: "", flex: 0.01, minWidth: 50,
         renderCell: ({ row }) => {
           const { id, id_proyecto } = row;
           return (
             <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-              <Tooltip title="Ver Solicitud">
-                <IconButton color="secondary" onClick={() => abrirDialog(id)}>
-                  <Feed />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Ver proyecto">
-                <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
-                  <Source />
-                </IconButton>
-              </Tooltip>
+              <Box mr="5px">
+                <Tooltip title="Ver Solicitud" >
+                  <IconButton color="secondary" onClick={() => abrirDialog(id)}>
+                    <Feed />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Box ml="5px">
+                <Tooltip title="Ver proyecto">
+                  <IconButton color="secondary" onClick={() => verProyecto(id_proyecto)}>
+                    <Source />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           );
         },
       },
-      { field: 'creado_por', headerName: 'Creado por', flex: 0.2, minWidth: 150,   valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
-      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150,  align: "center" },
-      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.15, minWidth: 150,   valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
-      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.2, minWidth: 100,  align: "center" },
+      { field: 'creado_por', headerName: 'Creado por', flex: 0.1, valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
+      { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150 },
+      { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.1, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.1, minWidth: 100 },
       {
-        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,  
+        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,
         valueGetter: (params) =>
           `${params.row.etapa_proyecto || ''} - ${params.row.estado || ''}`,
       },
@@ -68,17 +72,15 @@ export default function Proyectos() {
   };
 
   const columnsPendientes = generarColumnas([{
-    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,   renderCell: (params) => {
-      return params.value || "N/A";
-    },
+    field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1
   }]);
   const columnsAprobadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,  align: "center" },
-    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.15, minWidth: 150,  align: "center" }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
+    { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.1 }
   ]);
   const columnsRechazadas = generarColumnas([
-    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.15, minWidth: 150,  align: "center" },
-    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.15, minWidth: 150,  align: "center" }
+    { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
+    { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1 }
   ]);
 
   const verProyecto = (id) => {
@@ -88,7 +90,7 @@ export default function Proyectos() {
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
       const response = await fetch(`http://localhost:5000/comite/solicitudes/${endpoint}`, {
-        method: "POST",
+        method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -121,36 +123,42 @@ export default function Proyectos() {
   const cerrarDialog = () => {
     setOpen(false);
   }
+  const recargarAprobacion = () => {
+    llenarTabla("pendienteaprobacion", setRowsEnCurso);
+    llenarTabla("rechazadas", setRowsRechazadas);
+    llenarTabla("aprobadas", setRowsAprobadas);
+  }
   return (
     <div style={{ margin: "15px" }} >
 
       <VerSolicitud
         open={open}
         onClose={cerrarDialog}
+        onSubmit={recargarAprobacion}
         id_solicitud={idSolicitud}
       />
       <Typography
         variant="h1"
-        color={colors.secundary[100]}
+        color="secondary"
         fontWeight="bold"
       >
         SOLICITUDES
       </Typography>
 
-      <Box   > 
-        <Typography variant="h2" color={colors.primary[100]}
-        sx={{ mt: "30px" }}>
+      <Box   >
+        <Typography variant="h2" color="primary"
+          sx={{ mt: "30px" }}>
           Pendientes
         </Typography>
         <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} mensaje="No hay solicitudes" />
 
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           Aprobadas
         </Typography>
         <CustomDataGrid rows={rowsAprobadas} columns={columnsAprobadas} mensaje="No hay solicitudes" />
 
-        <Typography variant="h2" color={colors.primary[100]}
+        <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           Rechazadas
         </Typography>

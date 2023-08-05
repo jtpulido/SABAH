@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import { Typography, useTheme, CssBaseline, DialogTitle, Dialog, Button, TextField, DialogActions, Divider, DialogContent } from "@mui/material";
+import { SaveOutlined } from '@mui/icons-material';
 
 function CambiarCodigo(props) {
 
@@ -11,6 +12,7 @@ function CambiarCodigo(props) {
     const { onClose, proyectoCodigo: valueProp, open, ...other } = props;
     const [proyectoCodigo, setProyectoCodigo] = useState(valueProp);
 
+    const [nuevoConsecutivo, setNuevoConsecutivo] = useState("");
 
     const [modalidad, setModalidad] = useState('');
     const [anio, setAnio] = useState('');
@@ -45,36 +47,35 @@ function CambiarCodigo(props) {
 
     const handleEntering = () => {
         if (textFieldRef.current != null) {
-            textFieldRef.current.value = parseInt(consecutivo);
+            textFieldRef.current.value = consecutivo !== null ? parseInt(consecutivo) : "";
         }
     };
 
     const handleCancel = () => {
         onClose();
-        setProyectoCodigo(null)
-        setModalidad(null)
-        setAnio(null)
-        setPeriodo(null)
-        setConsecutivo(null)
+        setProyectoCodigo('')
+        setModalidad('')
+        setAnio('')
+        setPeriodo('')
+        setConsecutivo('')
         setValido(false)
-        setHelperText(null)
+        setHelperText('')
+        setNuevoConsecutivo('')
     };
 
     const handleOk = () => {
         const nuevoCodigo = `${modalidad}_${anio}-${periodo}-${formatNumber(nuevoConsecutivo)}`;
         onClose(nuevoCodigo);
-        setProyectoCodigo(null)
-        setModalidad(null)
-        setAnio(null)
-        setPeriodo(null)
-        setConsecutivo(null)
+        setProyectoCodigo('')
+        setModalidad('')
+        setAnio('')
+        setPeriodo('')
+        setConsecutivo('')
         setValido(false)
-        setHelperText(null)
+        setHelperText('')
+        setNuevoConsecutivo('')
     };
 
-
-
-    const [nuevoConsecutivo, setNuevoConsecutivo] = useState(consecutivo);
 
     useEffect(() => {
         setNuevoConsecutivo(consecutivo);
@@ -102,10 +103,10 @@ function CambiarCodigo(props) {
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }}  {...other} >
             <CssBaseline />
 
-            <DialogTitle variant="h1" color={colors.secundary[100]}>Asignar código</DialogTitle>
+            <DialogTitle variant="h1" color="secondary">Asignar código</DialogTitle>
             <DialogContent dividers  >
 
-                <Typography variant="h4" color={colors.primary[100]}>
+                <Typography variant="h4" color="primary">
                     Código del proyecto:
                 </Typography>
                 <Typography variant="h5">
@@ -129,9 +130,13 @@ function CambiarCodigo(props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleCancel}>
-                    Cancelar
+                    Cerrar
                 </Button>
-                <Button onClick={handleOk} disabled={!valido}>Guardar</Button>
+                <Button onClick={handleOk} disabled={!valido} variant="contained" startIcon={<SaveOutlined />} sx={{
+                    width: 150,
+                }}>
+                    Guardar
+                </Button>
             </DialogActions>
 
         </Dialog>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, IconButton, useTheme, Box, TextField, Grid, CssBaseline, Checkbox, FormControlLabel } from "@mui/material";
-import { tokens } from "../../../theme";
+import { Typography, IconButton, Box, TextField, Grid, CssBaseline, Checkbox, FormControlLabel, AppBar, Toolbar } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -12,28 +11,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import { Visibility } from '@mui/icons-material';
 
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarFilterButton,
-  GridToolbarExport
-} from '@mui/x-data-grid';
+import CustomDataGrid from "../../layouts/DataGrid";
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarFilterButton />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
+
 
 export default function VerUsuario() {
 
   const id = sessionStorage.getItem('admin_id_usuario');
   const token = useSelector(selectToken);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [existe, setExiste] = useState([]);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -258,59 +243,49 @@ export default function VerUsuario() {
     navigate(`/admin/modificarUsuario`)
   };
 
-  const CustomNoRowsMessage = (mensaje) => {
-    return (
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        {mensaje}
-      </div>
-    );
-  }
 
   return (
-    <div style={{ margin: "15px" }} >
-
-      <div style={{ display: 'flex', marginBottom: "20px" }}>
-        <Typography
-          variant="h1"
-          color={colors.secundary[100]}
-          fontWeight="bold"
-        >
-          VER USUARIO
-        </Typography>
-        <Tooltip title="Modificar Usuario" sx={{ fontSize: '20px' }}>
-          <EditIcon sx={{ color: '#B8CF69', fontSize: 25, marginLeft: "5px", cursor: "pointer" }} onClick={handleModificarUsuario} />
-        </Tooltip>
-      </div>
+    <div >
+      <AppBar position="static" color="transparent" variant="contained" >
+        <Toolbar>
+          <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+            VER USUARIO
+          </Typography>
+          <Tooltip title="Modificar Usuario" sx={{ fontSize: '20px' }}>
+            <EditIcon color="secondary" sx={{ fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={handleModificarUsuario} />
+          </Tooltip>
+        </Toolbar>
+      </AppBar>
 
       {existe ? (
-        <Box >
+        <Box sx={{ m: 3 }}>
           <CssBaseline />
           <Box >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "20px", mb: "20px" }}>
+            <Typography variant="h3" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
               Información General
             </Typography>
 
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={6} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Nombre Completo
                 </Typography>
                 <TextField value={usuario.nombre || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={6} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Correo Electrónico
                 </Typography>
                 <TextField value={usuario.correo || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={6} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Estado
                 </Typography>
                 <TextField value={(usuario.estado === null ? '' : (usuario.estado ? 'Habilitado' : 'Inhabilitado')) || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={8} lg={6}>
-                <Typography variant="h6" color={colors.primary[100]}>
+                <Typography variant="h6" color="primary">
                   Roles
                 </Typography>
                 <FormControlLabel
@@ -329,129 +304,28 @@ export default function VerUsuario() {
             </Grid>
           </Box>
 
-          <Box
-            sx={{
-              "& .MuiDataGrid-root": {
-                border: "none",
-                height: rowsDirector.length === 0 ? "200px" : "auto",
-              },
-              "& .MuiDataGrid-columnHeaders": {
-                color: colors.primary[100],
-                textAlign: "center",
-                fontSize: 14
-              },
-              "& .MuiDataGrid-toolbarContainer": {
-                justifyContent: 'flex-end',
-                align: "right"
-              }
-            }}
-          >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
-              Proyectos Asociados - Rol Director
-            </Typography>
-            <DataGrid
-              getRowHeight={() => 'auto'}
-              rows={rowsDirector}
-              columns={columns}
-              initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 10,
-                  },
-                },
-              }}
-              pageSizeOptions={[10, 25, 50, 100]}
-              slots={{
-                toolbar: CustomToolbar,
-                noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-              }}
-              disableColumnSelector
-            />
-          </Box>
 
-          <Box
-            sx={{
-              "& .MuiDataGrid-root": {
-                border: "none",
-                height: rowsLector.length === 0 ? "200px" : "auto",
-              },
-              "& .MuiDataGrid-columnHeaders": {
-                color: colors.primary[100],
-                textAlign: "center",
-                fontSize: 14,
-              },
-              "& .MuiDataGrid-toolbarContainer": {
-                justifyContent: "flex-end",
-                align: "right",
-              },
-            }}
-          >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
-              Proyectos Asociados - Rol Lector
-            </Typography>
-            <DataGrid
-              getRowHeight={() => 'auto'}
-              rows={rowsLector}
-              columns={columns}
-              initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 10,
-                  },
-                },
-              }}
-              pageSizeOptions={[10, 25, 50, 100]}
-              slots={{
-                toolbar: CustomToolbar,
-                noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-              }}
-              disableColumnSelector
-            />
-          </Box>
+          <Typography variant="h3" color="secondary"
+            sx={{ mt: "30px" }}>
+            Proyectos Asociados - Rol Director
+          </Typography>
+          <CustomDataGrid rows={rowsDirector} columns={columns} mensaje="No hay proyectos" />
 
-          <Box
-            sx={{
-              "& .MuiDataGrid-root": {
-                border: "none",
-                height: rowsJurado.length === 0 ? "200px" : "auto",
-              },
-              "& .MuiDataGrid-columnHeaders": {
-                color: colors.primary[100],
-                textAlign: "center",
-                fontSize: 14
-              },
-              "& .MuiDataGrid-toolbarContainer": {
-                justifyContent: 'flex-end',
-                align: "right"
-              }
-            }}
-          >
-            <Typography variant="h6" color={colors.secundary[100]} sx={{ mt: "50px" }}>
-              Proyectos Asociados - Rol Jurado
-            </Typography>
-            <DataGrid
-              getRowHeight={() => 'auto'}
-              rows={rowsJurado}
-              columns={columns}
-              initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 10,
-                  },
-                },
-              }}
-              pageSizeOptions={[10, 25, 50, 100]}
-              slots={{
-                toolbar: CustomToolbar,
-                noRowsOverlay: () => CustomNoRowsMessage('No hay proyectos')
-              }}
-              disableColumnSelector
-            />
-          </Box>
 
+          <Typography variant="h3"  color="secondary"
+            sx={{ mt: "30px" }}>
+            Proyectos Asociados - Rol Lector
+          </Typography>
+          <CustomDataGrid rows={rowsLector} columns={columns} mensaje="No hay proyectos" />
+
+          <Typography variant="h3" color="secondary"
+            sx={{ mt: "30px" }}>
+            Proyectos Asociados - Rol Jurado
+          </Typography>
+          <CustomDataGrid rows={rowsJurado} columns={columns} mensaje="No hay proyectos" />
         </Box>
       ) : (
-        <Typography variant="h6" color={colors.primary[100]}>{mostrarMensaje.mensaje}</Typography>
+        <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
       )}
     </div>
   );

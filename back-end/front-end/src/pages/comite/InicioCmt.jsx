@@ -7,19 +7,14 @@ import {
   AppBar,
   Drawer,
   CssBaseline,
-  ListItemIcon,
   useTheme,
   List,
   ListItem,
-  Collapse,
   ListItemButton,
   ListItemText,
-  Toolbar,
-  Typography
+  Toolbar
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
 import { Outlet } from 'react-router-dom';
@@ -32,22 +27,10 @@ const menuItems = [
   { label: "DIRECTORES", button: "director" },
   { label: "LECTORES", button: "lector" },
   { label: "JURADOS", button: "jurado" },
-  {
-    label: "RUBRICAS Y ASPECTOS",
-    button: "rub",
-    subItems: [
-      { label: "ASPECTOS", button: "aspectos" },
-      { label: "RUBRICAS", button: "rubricas" }
-    ]
-  },
-  {
-    label: "ESPACIOS Y ENTREGAS",
-    button: "ent",
-    subItems: [
-      { label: "ESPACIOS", button: "espacio" },
-      { label: "ENTREGAS", button: "entregas" }
-    ]
-  },
+  { label: "ASPECTOS", button: "aspectos" },
+  { label: "RUBRICAS", button: "rubricas" },
+  { label: "ESPACIOS", button: "espacio" },
+  { label: "ENTREGAS", button: "entregas" },
   { label: "SOLICITUDES", button: "solicitudes" },
   { label: "CERRAR SESIÓN", button: "cerrarSesion" }
 ];
@@ -57,11 +40,7 @@ function InicioCmt() {
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [open, setOpen] = useState(false);
 
-  const desplegar = () => {
-    setOpen(!open);
-  };
 
   const cerrarSesion = () => {
     dispatch(clearSession());
@@ -117,11 +96,7 @@ function InicioCmt() {
                       <ListItem disablePadding>
                         <ListItemButton
                           onClick={() => {
-                            if (menuItem.subItems) {
-                              desplegar();
-                            } else {
-                              handleClick(menuItem.button);
-                            }
+                            handleClick(menuItem.button);
                           }}
                           sx={{
                             backgroundColor: activeButton === menuItem.button ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
@@ -131,28 +106,9 @@ function InicioCmt() {
                           }}
                         >
                           <ListItemText primary={menuItem.label} sx={{ color: colors.primary[100] }} />
-                          {menuItem.subItems && (open ? <ExpandLess sx={{ color: colors.naranja[100] }} /> : <ExpandMore sx={{ color: colors.primary[100] }} />)}
                         </ListItemButton>
                       </ListItem>
-                      {menuItem.subItems && (
-                        <Collapse in={open} timeout="auto" unmountOnExit sx={{ ml: '30px' }}>
-                          {menuItem.subItems.map((subItem, subIndex) => (
-                            <ListItem disablePadding key={subIndex}>
-                              <ListItemButton
-                                onClick={() => handleClick(subItem.button)}
-                                sx={{
-                                  backgroundColor: activeButton === subItem.button ? "rgb(184, 207, 105)" : "rgb(255, 255, 255)",
-                                  "&:hover": {
-                                    backgroundColor: "rgb(184, 207, 105)",
-                                  },
-                                }}
-                              >
-                                <ListItemText primary={subItem.label} sx={{ color: colors.primary[100] }} />
-                              </ListItemButton>
-                            </ListItem>
-                          ))}
-                        </Collapse>
-                      )}
+
                     </React.Fragment>
                   ))}
                 </List>
