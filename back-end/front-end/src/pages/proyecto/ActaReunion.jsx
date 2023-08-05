@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams } from 'react-router-dom';
 import { Typography, useTheme, Box, TextField, CssBaseline, Grid } from "@mui/material";
 import { Button } from "@mui/material";
@@ -6,7 +6,6 @@ import { tokens } from "../../theme";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import { useSnackbar } from 'notistack';
-import { saveAs } from 'file-saver';
 
 export default function ActaReunion() {
   const { id } = useParams();
@@ -19,13 +18,12 @@ export default function ActaReunion() {
   const [compromisos, setCompromisos] = useState("");
   const [info, setInfo] = useState("");
   const { enqueueSnackbar } = useSnackbar();
-  const [existe,setExiste] = useState("");
 
 const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-const traerInfo = async () => {
-  
+const traerInfo = async ( id) => {
+    
     try {
       const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${id}`, { 
         method: "GET",
@@ -35,64 +33,43 @@ const traerInfo = async () => {
       const data = await response.json();
 
       if (!data.success) {
-        setExiste(false)
-             }else {
-        setExiste(true)
-        setInfo(data);
-        setObjetivos(data.acta[0].descrip_obj);
-        setResultados(data.acta[0].resultados_reu);
-        setTareas(data.acta[0].tareas_ant);
-        setCompromisos(data.acta[0].compromisos);
+        mostrarMensaje(data.message,'error');
       }
-      
-      
+      await setInfo(data);
+      generarPDF();
       
       }catch(error){
-        mostrarMensaje('Error', 'error');
+        mostrarMensaje('Error al generar el PDF', 'error');
       }
     }
-  
-useEffect(() => {
-      traerInfo();
 
-    },[id] );
-  
-    const generarPDF = async () => {
-      try {
-        const data = {
-          fecha: info.acta[0].fecha,
-          invitados: info.acta[0].invitados,
-          compromisos: info.acta[0].compromisos,
-          objetivos: info.acta[0].descrip_obj,
-          tareas: info.acta[0].tareas_ant,
-          nombre: info.acta[0].nombre,
-        };
-        const response = await fetch('http://localhost:5000/proyecto/generarPDF', {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-        });
-    
-        const blob = await response.blob();
-        const fileName = `${data.nombre}.pdf`;
-        const url = URL.createObjectURL(blob);
-    
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = fileName;
-        downloadLink.style.display = 'none';
-        document.body.appendChild(downloadLink);
-    
-        downloadLink.click();
-    
-        document.body.removeChild(downloadLink);
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        mostrarMensaje('Error al generar el PDF:', 'error');
-      }
-    };
-    
-    
+const generarPDF = async () => {
+ 
+    try {
+      const data = {
+        fecha: info.acta[0].fecha,
+        invitados: info.acta[0].invitados,
+        comrpomisos: info.acta[0].compromisos,
+        objetivos: info.acta[0].descrip_obj,
+        tareas: info.acta[0].tareas_ant,
+        nombre: info.acta[0].nombre,  
+      };
+      const response = await fetch('http://localhost:5000/proyecto/generarPDF', { 
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+
+      const { outputPath } = await response.json();
+      const downloadLink = document.createElement('a');
+      downloadLink.href = outputPath;
+      downloadLink.download = 'mi-archivo.pdf';
+      downloadLink.click();
+    } catch (error) {
+      mostrarMensaje('Error al generar el PDF:','error');
+    }
+  }
+
   const guardarInfoActa = async (e) => {
     try {
       const data = {
@@ -147,13 +124,9 @@ useEffect(() => {
               <TextField 
               label="objetivos"
               value={objetivos}
-              fullWidth
-              onChange={(e) => {
-                if (!existe) {
-                  setObjetivos(e.target.value);
-                }
-              }}     
-              />     
+              onChange={(e) => setObjetivos(e.target.value)}
+              fullWidth />
+              
             </Grid>
           </Grid>
           </Box>  
@@ -168,11 +141,7 @@ useEffect(() => {
               <TextField 
               label="resultados"
               value={resultados}
-              onChange={(e) => {
-                if (!existe) {
-                  setResultados(e.target.value);
-                }
-              }}                 
+              onChange={(e) => setResultados(e.target.value)}
               fullWidth />
             </Grid>
           </Grid>
@@ -188,11 +157,7 @@ useEffect(() => {
               <TextField 
               label="tareas"
               value={tareas}
-              onChange={(e) => {
-                if (!existe) {
-                  setTareas(e.target.value);
-                }
-              }}   
+              onChange={(e) => setTareas(e.target.value)}
               fullWidth />
             </Grid>
           </Grid>
@@ -208,24 +173,17 @@ useEffect(() => {
               <TextField 
               label="compromisos"
               value={compromisos}
-              onChange={(e) => {
-                if (!existe) {
-                  setCompromisos(e.target.value);
-                }
-              }}   
+              onChange={(e) => setCompromisos(e.target.value)}
               fullWidth />
             </Grid>
           </Grid>
           </Box>  
         </Box>
-        {!existe && (
         <Box style={{ marginTop: '30px' }}>
           <Button variant="contained" color="secondary" onClick={() => guardarInfoActa()}>Guardar</Button>  </Box>
-        )}
-        {existe && (
         <Box style={{ marginTop: '30px' }}>
-          <Button variant="contained" color="secondary" onClick={() => generarPDF()}>PDF</Button>  </Box>
-         )}
+          <Button variant="contained" color="secondary" onClick={() => traerInfo(id)}>Enviar</Button>  </Box>
+        
       </div>
 
   );
