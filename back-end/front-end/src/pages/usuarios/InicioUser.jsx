@@ -139,7 +139,7 @@ function InicioUser() {
     } else if (button === 'reuniones') {
       navigate('/user/reuniones');
 
-    } else if (button === 'solicitudes') {
+    } else if (button === 'directorSolicitudes') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/solicitudes');
 
