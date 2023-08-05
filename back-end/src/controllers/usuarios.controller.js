@@ -123,4 +123,159 @@ const verUsuario = async (req, res) => {
     }
 };
 
-module.exports = { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario }
+const obtenerSolicitudesPendientesResponderDirector = async (req, res) => {
+
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+        WHERE s.creado_proyecto = true AND 
+        ad.id IS NULL AND s.creado_proyecto = true AND
+        ur.id_rol = 1 AND ur.id_usuario = $1`, [id]);
+        const solicitudes = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, solicitudes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay solicitudes pendientes por aprobación del comité' })
+        }
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+
+};
+const obtenerSolicitudesPendientesResponderComite = async (req, res) => {
+
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+        SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE ad.aprobado = true AND ac.id IS NULL AND
+        ur.id_rol = 1 AND ur.id_usuario = $1
+        UNION 
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto  
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE s.creado_proyecto = false AND ac.id IS NULL AND
+        ur.id_rol = 1 AND ur.id_usuario = $1
+        `, [id]);
+        const solicitudes = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, solicitudes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay solicitudes pendientes por aprobación del comité' })
+        }
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+
+};
+
+const obtenerSolicitudesCerradasAprobadas = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+        SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto  
+        WHERE ad.aprobado = true AND ac.aprobado = true AND 
+        ur.id_rol = 1 AND ur.id_usuario = $1
+    
+        UNION 
+    
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto  
+        WHERE s.creado_proyecto = false AND ac.aprobado = true AND 
+        ur.id_rol = 1 AND ur.id_usuario = $1`, [id]);
+        const solicitudes = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, solicitudes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay solicitudes aprobadas por el comité' })
+        }
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerSolicitudesCerradasRechazadas = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+        SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto  
+        WHERE ad.aprobado = true AND ac.aprobado = false AND
+        ur.id_rol = 1 AND ur.id_usuario = $1
+        UNION 
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+        WHERE s.creado_proyecto = false AND ac.aprobado = false AND
+        ur.id_rol = 1 AND ur.id_usuario = $1
+        UNION 
+        SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_director, NULL AS fecha_rechazado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto
+        WHERE ad.aprobado = false AND
+        ur.id_rol = 1 AND ur.id_usuario = $1`, [id]);
+        const solicitudes = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, solicitudes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay solicitudes rechazadas por el comité' })
+        }
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+
+module.exports = { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
+obtenerSolicitudesPendientesResponderDirector,obtenerSolicitudesPendientesResponderComite,obtenerSolicitudesCerradasAprobadas,obtenerSolicitudesCerradasRechazadas }

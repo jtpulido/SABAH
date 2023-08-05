@@ -276,7 +276,24 @@ const obtenerLectoresProyectosInactivos = async (req, res) => {
 
 const obtenerSolicitudesPendientesComite = async (req, res) => {
     try {
-        const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.id IS NULL UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.id IS NULL")
+        const result = await pool.query(`SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE ad.aprobado = true AND ac.id IS NULL 
+        UNION 
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE s.creado_proyecto = false AND ac.id IS NULL`)
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -289,7 +306,24 @@ const obtenerSolicitudesPendientesComite = async (req, res) => {
 };
 const obtenerSolicitudesAprobadasComite = async (req, res) => {
     try {
-        const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.aprobado = true UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.aprobado = true")
+        const result = await pool.query(`SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE ad.aprobado = true AND ac.aprobado = true 
+        UNION 
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE s.creado_proyecto = false AND ac.aprobado = true`)
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -302,7 +336,24 @@ const obtenerSolicitudesAprobadasComite = async (req, res) => {
 };
 const obtenerSolicitudesRechazadasComite = async (req, res) => {
     try {
-        const result = await pool.query("SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  WHERE ad.aprobado = true AND ac.aprobado = false UNION SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id JOIN proyecto p ON s.id_proyecto = p.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud WHERE s.creado_proyecto = false AND ac.aprobado = false")
+        const result = await pool.query(`SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE ad.aprobado = true AND ac.aprobado = false 
+        UNION 
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
+        FROM solicitud s 
+        JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
+        JOIN proyecto p ON s.id_proyecto = p.id 
+        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
+        WHERE s.creado_proyecto = false AND ac.aprobado = false`)
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
