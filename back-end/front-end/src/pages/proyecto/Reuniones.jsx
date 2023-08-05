@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { Box, CssBaseline, TextField, Grid } from '@mui/material';
 import { Typography, useTheme} from "@mui/material";
 import "./InicioPro.css";
 import {  Button, IconButton, Tooltip } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
 import { tokens } from "../../theme";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
@@ -21,7 +21,6 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-
 
 function CustomToolbar() {
   return (
@@ -93,7 +92,6 @@ export default function Reuniones() {
   const handleRoleChange = (event) => {
     setSelectedRoles(event.target.value);
   };
-
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -248,7 +246,7 @@ export default function Reuniones() {
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message,'error');
+        mostrarMensaje(data.message,'info');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -271,7 +269,6 @@ export default function Reuniones() {
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
-
       if (!data.success) {
         mostrarMensaje(data.message, 'error');
       } else {
@@ -310,7 +307,7 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.",'error');
     }
   };
-
+  
   useEffect(() => {
     llenarTablaPendientes();
     llenarTablaCompletas();
@@ -388,13 +385,17 @@ const columnsCompletas = generarColumnas([
     align: "center",
     renderCell: ({ row }) => {
     const id = row && row.id; 
-      const ruta = `/proyecto/ActaReunion/${id}`; 
-
+    const {has_acta} = row;
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Tooltip title="">
-            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`}>
+            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
               <DescriptionIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="">
+            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
+              <PictureAsPdfIcon />
             </IconButton>
           </Tooltip>
         </Box>
@@ -402,6 +403,7 @@ const columnsCompletas = generarColumnas([
     },
   },
 ]);
+
 const { enqueueSnackbar } = useSnackbar();
 
 const mostrarMensaje = (mensaje, variante) => {

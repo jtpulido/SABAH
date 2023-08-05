@@ -212,54 +212,8 @@ function VerSolicitud(props) {
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
-                        {!solicitud.finalizado ? (
-
-                            <>
-                                <Accordion>
-                                    <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
-                                        <Typography variant="h2" color={colors.secundary[100]}>
-                                            Responder solicitud
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        <FormControl fullWidth>
-                                            <Stack spacing={1} >
-                                                <Typography variant="h6" color={colors.secundary[100]}>
-                                                    Aprobado
-                                                </Typography>
-                                                <RadioGroup row value={approval} onChange={handleApprovalChange}>
-                                                    <FormControlLabel value="false" control={<Radio />} label="No" />
-                                                    <FormControlLabel value="true" control={<Radio />} label="Sí" />
-                                                </RadioGroup>
-                                                <Typography variant="h6" color={colors.secundary[100]}>
-                                                    Comentarios
-                                                </Typography>
-                                                <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
-                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} >
-                                                    Guardar
-                                                </Button>
-                                            </Stack>
-                                        </FormControl>
-
-                                    </AccordionDetails>
-                                </Accordion>
-
-                            </>
-                        ) : (
-                            <>
-                                <Divider />
-                            </>
-                        )
-                        }
-                        <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Typography variant="h2" color={colors.secundary[100]}>
-                            Aprobaciones
-                        </Typography>
-                        <Divider sx={{ mt: 1, mb: 1 }} />
-                        <CustomDataGrid rows={aprobaciones} columns={columns} mensaje="No hay aprobaciones" />
-
-
-                    </>
+                       
+                           </>
                 )}
             </DialogContent>
             <DialogActions>

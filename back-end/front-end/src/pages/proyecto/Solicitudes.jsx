@@ -15,6 +15,7 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useSnackbar } from 'notistack';
+import VerSolicitud from './VerSolicitud';
 
 function CustomToolbar() {
   return (
@@ -201,7 +202,9 @@ export default function Solicitudes() {
       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
   };
-
+  const cerrarDialog = () => {
+    setOpen(false);
+  }
   useEffect(() => {
     llenarTablaPendientes();
     llenarTablaCompletas();
@@ -264,7 +267,11 @@ const rowsWithIdsc = completadas.map((row) => ({
 
   return (
     <div style={{ margin: "15px" }} >
-      
+      <VerSolicitud
+        open={open}
+        onClose={cerrarDialog}
+        id_solicitud={idSolicitud}
+      />
       <CssBaseline />
 
       <div style={{ display: 'flex', justifyContent: 'space-between'}}>
