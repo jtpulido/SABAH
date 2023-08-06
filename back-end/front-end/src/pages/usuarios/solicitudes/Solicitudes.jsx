@@ -23,7 +23,6 @@ export default function Proyectos() {
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-  const [solicitud, setSolicitud] = useState({});
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsComite, setRowsComite] = useState([]);
   const [rowsAprobadas, setRowsAprobadas] = useState([]);
@@ -125,7 +124,13 @@ export default function Proyectos() {
   const cerrarDialog = () => {
     setOpen(false);
   }
-
+  const cerrarSolicitudAprobada = () => {
+  
+    llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
+    llenarTabla("obtenerSolicitudesPendientesComite", setRowsComite, id);
+    llenarTabla("obtenerSolicitudesCerradasAprobadas", setRowsAprobadas, id);
+    llenarTabla("obtenerSolicitudesCerradasRechazadas", setRowsRechazadas, id);
+  };
   const [abrirCrear, setAbrirCrear] = useState(false);
 
   const abrirCrearSolicitud = () => {
@@ -136,7 +141,11 @@ export default function Proyectos() {
     setAbrirCrear(false);
   }
   const cerrarSolicitudAgregada = () => {
+  
     llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
+    llenarTabla("obtenerSolicitudesPendientesComite", setRowsComite, id);
+    llenarTabla("obtenerSolicitudesCerradasAprobadas", setRowsAprobadas, id);
+    llenarTabla("obtenerSolicitudesCerradasRechazadas", setRowsRechazadas, id);
     setAbrirCrear(false);
   };
 
@@ -158,6 +167,7 @@ export default function Proyectos() {
         open={open}
         onClose={cerrarDialog}
         id_solicitud={idSolicitud}
+        onSubmit={cerrarSolicitudAprobada}
       />
       <CrearSolicitud
         open={abrirCrear}

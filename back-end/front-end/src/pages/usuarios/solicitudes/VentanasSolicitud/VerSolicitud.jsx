@@ -56,8 +56,6 @@ function VerSolicitud(props) {
             const data = await response.json();
             if (response.status === 200) {
                 setSolicitud(data.solicitud)
-                console.log(data.solicitud)
-                console.log((!data.solicitud.finalizado) && data.solicitud.creado_por_proyecto)
     
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
@@ -89,10 +87,10 @@ function VerSolicitud(props) {
         }
     };
 
-    const handleSave = async () => {
+    const guardarAprobacion = async () => {
         setLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/agregarAprobacion", {
+            const response = await fetch("http://localhost:5000/usuario/solicitudes/agregarAprobacion", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ aprobado: approval, comentario: comments, id_solicitud })
@@ -235,7 +233,7 @@ function VerSolicitud(props) {
                                                     Comentarios
                                                 </Typography>
                                                 <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
-                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} sx={{
+                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={guardarAprobacion} sx={{
                                                     width: 150,
                                                 }}>
                                                     Guardar

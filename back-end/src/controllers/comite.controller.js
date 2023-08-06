@@ -413,6 +413,7 @@ const agregarAprobacion = async (req, res) => {
             [aprobado, comentario, id_solicitud],
             (error, result) => {
                 if (error) {
+                    console.log(error)
                     if (error.code === "23505") {
                         return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
                     }
@@ -438,6 +439,7 @@ const agregarAprobacion = async (req, res) => {
 
         return res.status(203).json({ success: true, message: 'No se pudo aprobar la solicitud' });
     } catch (error) {
+        console.log(error)
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };

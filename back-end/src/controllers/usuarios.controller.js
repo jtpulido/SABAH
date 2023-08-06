@@ -1,7 +1,5 @@
-const bcrypt = require('bcrypt');
 const pool = require('../database')
 
-const nodemailer = require('nodemailer');
 
 const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
@@ -276,6 +274,72 @@ const obtenerSolicitudesCerradasRechazadas = async (req, res) => {
     }
 };
 
+const guardarSolicitud = async (req, res) => {
+    try {
+        const { id_tipo_solicitud, justificacion, id_proyecto, creado_proyecto } = req.body;
 
-module.exports = { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
-obtenerSolicitudesPendientesResponderDirector,obtenerSolicitudesPendientesResponderComite,obtenerSolicitudesCerradasAprobadas,obtenerSolicitudesCerradasRechazadas }
+        const query = 'INSERT INTO solicitud (justificacion, id_tipo_solicitud, id_proyecto, creado_proyecto) VALUES ($1, $2, $3, $4) RETURNING id';
+        const values = [justificacion, id_tipo_solicitud, id_proyecto, creado_proyecto];
+        await pool.query(query, values, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al obtener la información de los tipos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+            }
+            if (result.rowCount > 0) {
+                return res.status(200).json({ success: true, message: 'Solicitud creada correctamente.' });
+            } else {
+                return res.status(203).json({ success: true, message: 'No pudo crear la solicitud.' })
+            }
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error en la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+    }
+};
+
+const agregarAprobacion = async (req, res) => {
+    try {
+        const { aprobado, comentario, id_solicitud } = req.body;
+        await pool.query(
+            "INSERT INTO public.aprobado_solicitud_director (aprobado, comentario, id_solicitud) VALUES ($1, $2, $3)",
+            [aprobado, comentario, id_solicitud],
+            (error, result) => {
+                if (error) {
+                    if (error.code === "23505") {
+                        return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
+                    }
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+                }
+
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, message: 'Aprobación guardada correctamente.' });
+                } 
+            }
+        );
+
+        return res.status(203).json({ success: true, message: 'No se pudo aprobar la solicitud' });
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerListaProyectos = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = 'SELECT p.id, nombre FROM proyecto p JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.estado=true AND ur.id_usuario=$1';
+        await pool.query(query, [id], (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message });
+            }
+            const proyectos = result.rows;
+            if (proyectos.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay proyectos.' });
+            }
+            return res.status(200).json({ success: true, message: 'Proyectos obtenidos correctamente', proyectos });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+module.exports = {
+    obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
+    obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos
+}

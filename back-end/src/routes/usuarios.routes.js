@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesDirector, obtenerSolicitudesRechazadasDirector, obtenerSolicitudesAprobadasDirector, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas } = require('../controllers/usuarios.controller');
+const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos } = require('../controllers/usuarios.controller');
 
 router.post('/usuario/obtenerProyectosDesarrolloRol', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrolloRol);
 router.post('/usuario/obtenerProyectosCerradosRol', passport.authenticate('jwt', { session: false }), obtenerProyectosCerradosRol);
@@ -16,6 +16,9 @@ router.get('/usuario/obtenerSolicitudesPendientes/:id', passport.authenticate('j
 router.get('/usuario/obtenerSolicitudesPendientesComite/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesResponderComite);
 router.get('/usuario/obtenerSolicitudesCerradasAprobadas/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesCerradasAprobadas);
 router.get('/usuario/obtenerSolicitudesCerradasRechazadas/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesCerradasRechazadas);
+router.post('/usuario/guardarSolicitud', passport.authenticate('jwt', {session: false}), guardarSolicitud);
+router.post('/usuario/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
+router.get('/usuario/obtenerProyectos/:id',  passport.authenticate('jwt', {session: false}), obtenerListaProyectos);
 
 router.post('/usuario/verUsuario', passport.authenticate('jwt', { session: false }), verUsuario);
 

@@ -369,6 +369,7 @@ const obtenerTipoSolicitud = async (req, res) => {
     return res.status(502).json({ success: false, message });
   }
 };
+
 const guardarSolicitud = async (req, res) => {
   try {
     const { id_tipo_solicitud, justificacion, id_proyecto, creado_proyecto } = req.body;
