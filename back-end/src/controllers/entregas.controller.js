@@ -486,7 +486,6 @@ const obtenerEtapas = async (req, res) => {
     }
 };
 
-
 const verEntregasPendientesProyecto = async (req, res) => {
     try {
         const proyecto_id = req.params.proyecto_id;
@@ -667,36 +666,145 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
-const verInfoDocEntregado = async (req, res) => {
-    try {
 
-        const id = req.params.id_doc_entrega;
+const verEntregasPendientesUsuarioRol = async (req, res) => {
+    const { id_usuario, id_rol } = req.params;
+    try {
         const query =
             `SELECT 
-            de.id,
-            d.nombre AS nombre_documento,
-            d.id AS id_doc,
-            d.uuid,
-            de.fecha_entrega
+            ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
+            ee.id AS id_espacio_entrega,
+            ee.nombre AS nombre_espacio_entrega,
+            p.id AS id_proyecto,
+            p.nombre AS nombre_proyecto,
+            r.nombre AS nombre_rol,
+            ee.fecha_apertura,
+            ee.fecha_cierre
         FROM 
-            documento_entrega de
-            INNER JOIN documento d ON de.id_documento = d.id
-        WHERE de.id = $1  
-    `;
-        await pool.query(query, [id], (error, result) => {
+            proyecto p
+        INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
+        INNER JOIN rol r ON ee.id_rol = r.id
+        INNER JOIN usuario_rol ur ON p.id=ur.id_proyecto AND ur.id_usuario=$1 AND ur.id_rol=$2
+        WHERE 
+            NOT EXISTS (
+                SELECT 1
+                FROM documento_entrega de
+                WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+            )
+        ORDER BY 
+            ee.fecha_cierre;
+        `;
+
+        await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
+                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
             if (result.rows.length === 0) {
-                return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+                return res.status(203).json({ success: true, message: 'No hay entregas pendientes por realizar' });
             }
-            return res.status(200).json({ success: true, documento: result.rows[0] });
+            return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
+        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
+const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
+    try {
+        const { id_usuario, id_rol } = req.params;
+        const query =
+            `SELECT 
+            ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
+            de.id AS id_doc_entrega,
+            ee.id AS id_espacio_entrega,
+            ee.nombre AS nombre_espacio_entrega,
+            r.nombre AS nombre_rol,
+            ee.fecha_apertura,
+            ee.fecha_cierre,
+            p.nombre AS nombre_proyecto,
+            ur.id AS id_usuario_rol,
+            u.nombre AS evaluador,
+            de.fecha_entrega,
+            de.id AS id_doc_entrega
+        FROM 
+            documento_entrega de
+        INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+        INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol 
+        INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
+        INNER JOIN rol r ON ur.id_rol = r.id AND r.id=$2
+        WHERE 
+            de.id NOT IN (
+                SELECT id_doc_entrega 
+                FROM calificacion 
+                WHERE id_usuario_rol = ur.id
+            )
+        ORDER BY 
+            de.fecha_entrega`;
+
+        await pool.query(query, [id_usuario, id_rol], (error, result) => {
+            if (error) {
+                console.log(error)
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay entregas pendientes por calificar' });
+            }
+            return res.status(200).json({ success: true, entregas: result.rows });
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message });
+    }
+};
+const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
+    try {
+        const { id_usuario, id_rol } = req.params;
+        const query =
+            `SELECT 
+        c.id,
+        ee.nombre AS nombre_espacio_entrega,
+        ee.fecha_apertura,
+        ee.fecha_cierre,
+        r.nombre AS nombre_rol,
+        p.nombre AS nombre_proyecto,
+        u.nombre AS evaluador,
+        de.fecha_entrega,
+        de.id AS id_doc_entrega,
+        c.fecha_evaluacion,
+        c.nota_final
+    FROM 
+        documento_entrega de
+        INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+        INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+        INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
+        INNER JOIN rol r ON ur.id_rol = r.id AND r.id=$2
+        INNER JOIN calificacion c ON de.id = c.id_doc_entrega AND ur.id = c.id_usuario_rol
+    ORDER BY 
+        de.fecha_entrega;
+    `;
+
+        await pool.query(query, [id_usuario, id_rol], (error, result) => {
+            if (error) {
+                console.log(error)
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay entregas calificadas' });
+            }
+            return res.status(200).json({ success: true, entregas: result.rows });
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(502).json({ success: false, message });
+    }
+};
+
 const verAspectosEspacio = async (req, res) => {
     try {
         const id = req.params.id_esp_entrega;
@@ -788,5 +896,6 @@ module.exports = {
     obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas, validarModificarRubrica,
     verEntregasPendientesProyecto, verEntregasRealizadasProyecto, validarModificarEspacio,
     verEntregasPendientes, verEntregasRealizadasSinCalificar, verEntregasRealizadasCalificadas,
-    verInfoDocEntregado, verAspectosEspacio, guardarCalificacion, verCalificacionAspectos
+    verEntregasPendientesUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol,
+   verAspectosEspacio, guardarCalificacion, verCalificacionAspectos
 }

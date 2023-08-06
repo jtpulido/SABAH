@@ -2,6 +2,53 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
 const pool = require('../database')
+const verInfoDocEntregado = async (req, res) => {
+  try {
+
+    const id = req.params.id_doc_entrega;
+    const query =
+      `SELECT 
+          de.id,
+          d.nombre AS nombre_documento,
+          d.id AS id_doc,
+          d.uuid,
+          de.fecha_entrega
+      FROM 
+          documento_entrega de
+          INNER JOIN documento d ON de.id_documento = d.id
+      WHERE de.id = $1  
+  `;
+    await pool.query(query, [id], (error, result) => {
+      if (error) {
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+      }
+
+      if (result.rows.length === 0) {
+        return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+      }
+      const documento = result.rows[0];
+      if (!documento) {
+        return res.status(404).json({ success: false, message: 'Documento no encontrado' });
+      }
+
+      // Construye la ruta completa del archivo en el servidor.
+      const filePath = path.join('uploads/', documento.uuid + path.extname(documento.nombre));
+      console.log(filePath)
+      // Verifica que el archivo exista en el servidor.
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ success: false, message: 'Archivo no encontrado' });
+      }
+
+      // Envía el archivo para descargar al front-end.
+      res.download(filePath, documento.nombre);
+    })
+    return res.status(500).json({ success: false, message: 'Error al descargar el archivo' });
+
+  } catch (error) {
+    console.error('Error al descargar el archivo:', error);
+    return res.status(500).json({ success: false, message: 'Error al descargar el archivo' });
+  }
+};
 
 const guardarDocumentoYEntrega = async (req, res, file) => {
 
@@ -46,6 +93,5 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
   }
 };
 
-module.exports = {
-  guardarDocumentoYEntrega
-};
+
+module.exports = { guardarDocumentoYEntrega, verInfoDocEntregado };

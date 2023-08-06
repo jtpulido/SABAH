@@ -1,6 +1,5 @@
 const { Router } = require('express');
 const passport = require('passport');
-const { subirArchivo } = require('../controllers/entregas.controller')
 const { obtenerProyecto, obtenerEntregasPendientes , obtenerEntregasCompletadas, 
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
   obtenerSolicitudesPendientes,    obtenerSolicitudesAprobadas,  obtenerSolicitudesRechazadas,
@@ -10,14 +9,21 @@ const { obtenerProyecto, obtenerEntregasPendientes , obtenerEntregasCompletadas,
 const router = Router()
 const multer = require('multer');
 
-const upload = multer({
-    dest: './back-end/Documentos/',
-    limits: {
-      fileSize: 1024 * 1024 * 1024, // 1 GB (tamaño en bytes)
-    },
-  });
+const { guardarDocumentoYEntrega } = require('../controllers/documento.controller');
+
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/entrega/guardar', upload.single('file'), async (req, res) => {
+    try {
+        const file = req.file;
+        await guardarDocumentoYEntrega(req, res, file);
+
+    } catch (error) {
+        console.error('Error al subir el archivo y guardar el documento y la entrega:', error);
+        res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
+    }
+});
 router.get('/proyecto/obtenerProyecto/:id', passport.authenticate('jwt', { session: false }), obtenerProyecto);
-//router.post('/proyecto/subirArchivo', passport.authenticate('jwt', { session: false }), upload.single('file'),subirArchivo);
 router.get('/proyecto/obtenerEntregasPendientes/:id', passport.authenticate('jwt', { session: false }), obtenerEntregasPendientes);
 router.get('/proyecto/obtenerEntregasCompletadas/:id', passport.authenticate('jwt', { session: false }), obtenerEntregasCompletadas);
 router.get('/proyecto/obtenerReunionesPendientes/:id', passport.authenticate('jwt', { session: false }), obtenerReunionesPendientes);

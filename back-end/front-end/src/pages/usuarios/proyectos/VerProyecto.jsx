@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline } from "@mui/material";
-import { tokens } from "../../../theme";
+import { Typography, Box, TextField, Grid, CssBaseline } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
+import CustomDataGrid from "../../layouts/DataGrid";
 
 export default function VerProyectos() {
 
     const id = sessionStorage.getItem('id_proyecto');
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [existe, setExiste] = useState([]);
     const [proyecto, setProyecto] = useState([]);
     const [estudiantes, setEstudiantes] = useState([]);
@@ -21,7 +19,9 @@ export default function VerProyectos() {
     const [existeLector, setExisteLector] = useState([]);
     const [existeJurados, setExisteJurados] = useState([]);
     const [listaJurado, setListaJurado] = useState([]);
-
+    const [rowsPendientes, setRowsPendientes] = useState([]);
+    const [rowsRealizadas, setRowsRealizadas] = useState([]);
+    
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = useCallback((mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -39,6 +39,7 @@ export default function VerProyectos() {
                 mostrarMensaje(data.message, "error");
                 setExiste(false);
             } else {
+                console.log(data.proyecto)
                 setProyecto(data.proyecto);
                 setEstudiantes(data.estudiantes);
                 setDirector(data.director);
@@ -54,11 +55,46 @@ export default function VerProyectos() {
             setExiste(false);
         }
     }, [id, token, mostrarMensaje]);
-
-    useEffect(() => {
+    const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
+        try {
+          const response = await fetch(`http://localhost:5000/comite/entrega/${endpoint}/${proyecto_id}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          if (!data.success) {
+            mostrarMensaje(data.message, "error")
+          } else if (response.status === 203) {
+            mostrarMensaje(data.message, "warning")
+          } else if (response.status === 200) {
+            setRowsFunc(data.espacios);
+          }
+        } catch (error) {
+          mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+      }
+    
+    
+      useEffect(() => {
         infoProyecto()
-    }, [infoProyecto]);
-
+        llenarTabla("pendientes", id, setRowsPendientes);
+        llenarTabla("realizadas", id, setRowsRealizadas);
+      }, [id]);
+      const generarColumnas = (extraColumns) => {
+        const columns = [
+          { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150   },
+          { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150},
+          { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+          { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+          { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100 }
+        ];
+        return [...columns, ...extraColumns];
+      };
+    
+      const columnasPendientes = generarColumnas([]);
+    
+      const columnas = generarColumnas([ { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    ]);
     return (
         <div style={{ margin: "15px" }} >
 
@@ -229,6 +265,21 @@ export default function VerProyectos() {
             ) : (
                 <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
             )}
+             <Box mt={4}>
+      <Typography variant="h1" color="secondary" fontWeight="bold">
+        ENTREGAS
+      </Typography>
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
+          Entregas pendientes
+        </Typography>
+        <CustomDataGrid rows={rowsPendientes} columns={columnasPendientes} mensaje="No hay entregas pendientes" />
+      
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
+          Entregas realizadas
+        </Typography>
+        <CustomDataGrid rows={rowsRealizadas} columns={columnas} mensaje="No hay entregas realizadas" />
+
+      </Box>
         </div>
     );
 }

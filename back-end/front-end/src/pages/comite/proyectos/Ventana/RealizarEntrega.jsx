@@ -41,7 +41,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 formData.append('file', selectedFile);
                 formData.append('entrega', JSON.stringify(entrega));
 
-                const response = await fetch("http://localhost:5000/comite/guardar", {
+                const response = await fetch("http://localhost:5000/entrega/guardar", {
                     method: "POST",
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData

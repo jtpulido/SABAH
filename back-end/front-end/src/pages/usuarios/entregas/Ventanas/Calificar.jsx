@@ -43,6 +43,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const [docEntregado, setDocEntregado] = useState(null);
     const [titulo, setTitulo] = useState("");
     const handleEntering = async () => {
+        console.log(entrega)
         setTitulo(
             tipo === "pendiente" ? "Ver Entrega" :
                 tipo === "calificar" ? "Ver/Calificar Entrega" :
@@ -55,7 +56,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             await obtenerAspectos(entrega.id_espacio_entrega);
         }
         if (tipo === "calificado") {
-            await obtenerCalificacionAspectos(entrega.id_doc_entrega);
+            await obtenerCalificacionAspectos(entrega.id);
         }
         setLoading(false);
     };

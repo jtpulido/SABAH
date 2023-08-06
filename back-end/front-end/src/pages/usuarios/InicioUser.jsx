@@ -126,6 +126,9 @@ function InicioUser() {
     directorReuniones: activeButton === 'directorReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     lectorReuniones: activeButton === 'lectorReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     juradoReuniones: activeButton === 'juradoReuniones' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    directorEntregas: activeButton === 'directorEntregas' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    lectorEntregas: activeButton === 'lectorEntregas' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
+    juradoEntregas: activeButton === 'juradoEntregas' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     directorSolicitudes: activeButton === 'directorSolicitudes' ? 'rgb(184, 207, 105)' : 'rgb(255, 255, 255)',
     cerrarSesion: activeButton === 'cerrarSesion' ? '#ffffff' : '#ffffff',
   };
@@ -142,7 +145,15 @@ function InicioUser() {
     } else if (button === 'directorSolicitudes') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/solicitudes');
-
+    } else if (button === 'directorEntregas') {
+      sessionStorage.setItem('id_rol', 1);
+      navigate('/user/entregas');
+    } else if (button === 'lectorEntregas') {
+      sessionStorage.setItem('id_rol', 2);
+      navigate('/user/entregas');
+    } else if (button === 'juradoEntregas') {
+      sessionStorage.setItem('id_rol', 3);
+      navigate('/user/entregas');
     } else if (button === 'cerrarSesion') {
       cerrarSesion();
 
@@ -187,6 +198,15 @@ function InicioUser() {
         { label: 'DIRECTOR', button: 'directorSolicitudes', show: isDirector }
       ],
     },
+    {
+      label: 'ENTREGAS',
+      button: 'entregas',
+      subItems: [
+        { label: 'DIRECTOR', button: 'directorEntregas', show: isDirector },
+        { label: 'LECTOR', button: 'lectorEntregas', show: isLector },
+        { label: 'JURADO', button: 'juradoEntregas', show: isJurado },
+      ],
+    },
     { label: 'CERRAR SESIÓN', button: 'cerrarSesion', action: cerrarSesion, buttonColors: '#576A3D', onClick: cerrarSesion },
   ];
 
@@ -216,6 +236,14 @@ function InicioUser() {
       } else if (sessionStorage.getItem('id_rol') === '3') {
         setActiveButton('juradoReuniones');
       }
+    } else if (location.pathname === '/user/entregas') {
+      if (sessionStorage.getItem('id_rol') === '1') {
+        setActiveButton('directorEntregas');
+      } else if (sessionStorage.getItem('id_rol') === '2') {
+        setActiveButton('lectorEntregas');
+      } else if (sessionStorage.getItem('id_rol') === '3') {
+        setActiveButton('juradoEntregas');
+      }
     }
 
   }, [location.pathname]);
@@ -224,6 +252,7 @@ function InicioUser() {
     const initialSubMenuStates = {
       proyectos: activeButton === 'directorProyectos' || activeButton === 'lectorProyectos' || activeButton === 'juradoProyectos',
       reuniones: activeButton === 'directorReuniones' || activeButton === 'lectorReuniones' || activeButton === 'juradoReuniones',
+      entregas: activeButton === 'directorEntregas' || activeButton === 'lectorEntregas' || activeButton === 'juradoEntregas',
       solicitudes: activeButton === 'directorSolicitudes',
     };
 
