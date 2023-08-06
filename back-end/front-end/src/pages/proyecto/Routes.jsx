@@ -9,7 +9,6 @@ import VerProyecto from "./VerProyecto";
 import Reuniones from "./Reuniones";
 import Solicitudes from "./Solicitudes";
 import VerReunion from "./VerReunion";
-import ActaSolicitud from "./ActaSolicitud";
 
 export default function RoutesPro() {
 
@@ -19,7 +18,6 @@ export default function RoutesPro() {
                 <Route index element={<VerProyecto />} />
                 <Route path="Entregas" element={<Entregas />} />
                 <Route path="ActaReunion/:id" element={<ActaReunion />} />
-                <Route path="ActaSolicitud" element={<ActaSolicitud />} />
                 <Route path="Reuniones" element={<Reuniones />} />
                 <Route path="Solicitudes" element={<Solicitudes />} />
                 <Route path="VerReunion" element={<VerReunion />} />
