@@ -31,25 +31,33 @@ const verInfoDocEntregado = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Documento no encontrado' });
       }
 
-      // Construye la ruta completa del archivo en el servidor.
-      const filePath = path.join('uploads/', documento.uuid + path.extname(documento.nombre));
-      console.log(filePath)
+
+      const filePath = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\", documento.uuid + path.extname(documento.nombre_documento));
+
       // Verifica que el archivo exista en el servidor.
       if (!fs.existsSync(filePath)) {
         return res.status(404).json({ success: false, message: 'Archivo no encontrado' });
       }
-
+      const nombreArchivo = documento.uuid + path.extname(documento.nombre_documento)
       // Envía el archivo para descargar al front-end.
-      res.download(filePath, documento.nombre);
+      res.json({ success: true, filePath, documento, nombreArchivo });
     })
     return res.status(500).json({ success: false, message: 'Error al descargar el archivo' });
 
   } catch (error) {
-    console.error('Error al descargar el archivo:', error);
     return res.status(500).json({ success: false, message: 'Error al descargar el archivo' });
   }
 };
+const descargarDocumento = async (req, res) => {
+  const nombreArchivo = req.params.nombreArchivo;
+  const rutaArchivo = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\", nombreArchivo);
 
+  if (fs.existsSync(rutaArchivo)) {
+    res.sendFile(rutaArchivo);
+  } else {
+    res.status(404).json({ success: false, message: 'Archivo no encontrado' });
+  }
+};
 const guardarDocumentoYEntrega = async (req, res, file) => {
 
   const entrega = JSON.parse(req.body.entrega);
@@ -62,7 +70,6 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
 
     const newPath = path.join('uploads/', fileName);
     fs.renameSync(file.path, newPath);
-
     const documentoQuery = `
       INSERT INTO documento (nombre, uuid)
       VALUES ($1, $2)
@@ -94,4 +101,4 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
 };
 
 
-module.exports = { guardarDocumentoYEntrega, verInfoDocEntregado };
+module.exports = { guardarDocumentoYEntrega, verInfoDocEntregado, descargarDocumento };

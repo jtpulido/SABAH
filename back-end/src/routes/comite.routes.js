@@ -40,7 +40,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
     guardarCalificacion, validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
 } = require('../controllers/entregas.controller')
 
-const { verInfoDocEntregado } = require('../controllers/documento.controller');
+const { verInfoDocEntregado, descargarDocumento } = require('../controllers/documento.controller');
 router.get('/comite/usuarios', passport.authenticate('jwt', { session: false }), obtenerUsuarios);
 router.post('/comite/cambiarUsuarioRol', passport.authenticate('jwt', { session: false }), cambioUsuarioRol);
 
@@ -105,6 +105,7 @@ router.get('/comite/entregas/pendientes', passport.authenticate('jwt', { session
 router.get('/comite/entregas/realizadas/calificadas', passport.authenticate('jwt', { session: false }), verEntregasRealizadasCalificadas);
 router.get('/comite/entregas/realizadas/porCalificar', passport.authenticate('jwt', { session: false }), verEntregasRealizadasSinCalificar);
 router.get('/comite/documento/:id_doc_entrega', passport.authenticate('jwt', { session: false }), verInfoDocEntregado);
+router.get('/descargar/:nombreArchivo',  descargarDocumento);
 router.get('/comite/documento/aspectos/:id_esp_entrega', passport.authenticate('jwt', { session: false }), verAspectosEspacio);
 
 //calificación

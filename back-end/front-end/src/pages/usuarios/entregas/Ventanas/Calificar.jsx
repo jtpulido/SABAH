@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { saveAs } from 'file-saver';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
@@ -41,9 +42,11 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const [aspectos, setAspectos] = useState([]);
     const [aspectosCalificados, setAspectosCalificados] = useState([]);
     const [docEntregado, setDocEntregado] = useState(null);
+    const [linkDocEntregado, setLinkDocEntregado] = useState(null);
+
     const [titulo, setTitulo] = useState("");
     const handleEntering = async () => {
-        console.log(entrega)
+        infoDocEntrega(entrega.id_doc_entrega)
         setTitulo(
             tipo === "pendiente" ? "Ver Entrega" :
                 tipo === "calificar" ? "Ver/Calificar Entrega" :
@@ -92,6 +95,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             });
             const data = await response.json();
             if (response.status === 200) {
+                setLinkDocEntregado(data.nombreArchivo)
                 setDocEntregado(data.documento);
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
@@ -197,6 +201,8 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         }
         setLoading(false);
     };
+    
+
     const columnas = [
         { field: 'nombre_aspecto', headerName: 'Aspecto', flex: 0.3, minWidth: 200 },
         { field: 'puntaje_aspecto', headerName: 'Puntaje', flex: 0.1, minWidth: 100 },
@@ -208,6 +214,25 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         }
         return dayjs(fecha).format('DD-MM-YYYY HH:mm:ss');
     };
+
+    const handleDescargarArchivo = () => {
+        const url = `http://localhost:5000/descargar/${linkDocEntregado}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((response) => response.blob())
+            .then((blob) => {
+                saveAs(blob, docEntregado.nombre_documento);
+            })
+            .catch((error) => {
+                console.error('Error al descargar el archivo:', error);
+            });
+    };
+
     return (
         <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <CssBaseline />
@@ -280,6 +305,15 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                             Fecha de entrega
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Documento entregado
+                                        </Typography>
+
+                                        <Button type="submit" startIcon={<SaveOutlined />} sx={{
+                                            width: 150,
+                                        }} onClick={handleDescargarArchivo}> Descargar Archivo</Button>
                                     </Grid>
                                     {tipo === "calificado" && (
                                         <>

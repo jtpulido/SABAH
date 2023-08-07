@@ -50,7 +50,7 @@ const modificarAspecto = async (req, res) => {
 
 const obtenerAspectos = async (req, res) => {
     try {
-        const query = 'SELECT * FROM aspecto';
+        const query = 'SELECT * FROM aspecto ORDER BY nombre ASC';
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message });
@@ -79,7 +79,7 @@ const eliminarAspecto = async (req, res) => {
                 }
                 return res.status(502).json({ success: false, message });
             }
-            return res.status(200).json({ success: true, message: 'aspecto eliminado correctamente' });
+            return res.status(200).json({ success: true, message: 'Aspecto eliminado correctamente' });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Error en el servidor' });
@@ -217,7 +217,7 @@ const obtenerRubricasConAspectos = async (req, res) => {
                i.id AS id_aspecto, i.nombre AS aspecto_nombre, ri.puntaje AS aspecto_puntaje
         FROM rubrica AS r
         LEFT JOIN rubrica_aspecto AS ri ON r.id = ri.id_rubrica
-        LEFT JOIN aspecto AS i ON ri.id_aspecto = i.id
+        LEFT JOIN aspecto AS i ON ri.id_aspecto = i.id ORDER BY r.nombre ASC, i.nombre ASC
       `;
 
         const result = await pool.query(query);
@@ -345,7 +345,7 @@ const obtenerEspacio = async (req, res) => {
         INNER JOIN rol r ON e.id_rol = r.id
         INNER JOIN modalidad m ON e.id_modalidad = m.id
         INNER JOIN etapa et ON e.id_etapa = et.id
-        INNER JOIN rubrica rb ON e.id_rubrica = rb.id
+        INNER JOIN rubrica rb ON e.id_rubrica = rb.id ORDER BY e.fecha_creacion
       `;
         await pool.query(query, (error, result) => {
             if (error) {
@@ -416,7 +416,7 @@ const obtenerRubricas = async (req, res) => {
     try {
         const query = `
         SELECT id,nombre
-        FROM rubrica`;
+        FROM rubrica ORDER BY nombre ASC`;
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las rubricas. Por favor, intente de nuevo más tarde.' });
@@ -435,7 +435,7 @@ const obtenerRoles = async (req, res) => {
     try {
         const query = `
         SELECT id,nombre
-        FROM rol`;
+        FROM rol ORDER BY nombre ASC`;
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los roles. Por favor, intente de nuevo más tarde.' });
@@ -453,7 +453,7 @@ const obtenerModalidades = async (req, res) => {
     try {
         const query = `
         SELECT id,nombre
-        FROM modalidad`;
+        FROM modalidad ORDER BY nombre ASC`;
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las modalidades. Por favor, intente de nuevo más tarde.' });
@@ -471,7 +471,7 @@ const obtenerEtapas = async (req, res) => {
     try {
         const query = `
         SELECT id,nombre
-        FROM etapa`;
+        FROM etapa ORDER BY nombre ASC`;
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las etapa. Por favor, intente de nuevo más tarde.' });
@@ -495,7 +495,7 @@ const verEntregasPendientesProyecto = async (req, res) => {
         INNER JOIN rol r ON e.id_rol = r.id
         LEFT JOIN documento_entrega d ON e.id = d.id_espacio_entrega
         JOIN proyecto p ON p.id_modalidad = e.id_modalidad AND p.id_etapa = e.id_etapa
-        WHERE d.id_proyecto IS NULL AND p.id = $1
+        WHERE d.id_proyecto IS NULL AND p.id = $1 ORDER BY e.fecha_cierre
         `;
 
         await pool.query(query, [proyecto_id], (error, result) => {
@@ -524,7 +524,7 @@ const verEntregasRealizadasProyecto = async (req, res) => {
         INNER JOIN rol r ON e.id_rol = r.id
         INNER JOIN documento_entrega d ON e.id = d.id_espacio_entrega
         JOIN proyecto p ON p.id_modalidad = e.id_modalidad AND p.id_etapa = e.id_etapa
-        WHERE p.id = $1        
+        WHERE p.id = $1 ORDER BY d.fecha_entrega      
         `;
 
         await pool.query(query, [proyecto_id], (error, result) => {
@@ -649,7 +649,7 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
         INNER JOIN rol r ON ur.id_rol = r.id
         INNER JOIN calificacion c ON de.id = c.id_doc_entrega AND ur.id = c.id_usuario_rol
     ORDER BY 
-        de.fecha_entrega;
+        c.fecha_evaluacion;
     `;
 
         await pool.query(query, (error, result) => {
@@ -697,7 +697,6 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -707,7 +706,6 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -746,7 +744,6 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -756,7 +753,6 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -790,7 +786,6 @@ const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -800,7 +795,6 @@ const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message });
     }
 };
@@ -845,7 +839,7 @@ const verCalificacionAspectos = async (req, res) => {
      FROM calificacion_aspecto ca
      JOIN rubrica_aspecto ra ON ca.id_rubrica_aspecto = ra.id
      JOIN aspecto a ON ra.id_aspecto = a.id
-     WHERE ca.id_calificacion = $1  
+     WHERE ca.id_calificacion = $1 ORDER BY a.nombre ASC
     `;
         await pool.query(query, [id], (error, result) => {
             if (error) {
