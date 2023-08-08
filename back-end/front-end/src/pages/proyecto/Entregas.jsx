@@ -14,18 +14,18 @@ import CustomDataGrid from "../layouts/DataGrid";
 import { selectToken } from "../../store/authSlice";
 import "./Entregas.css";
 import RealizarEntrega from "./VentanasEntregas/RealizarEntrega";
-import VerEntrega from "../comite/entregas/Ventanas/VerEntrega";
+import VerEntrega from "./VentanasEntregas/VerEntrega";
 
 export default function Entregas() {
 
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
-  const [pendientes, setPendientes] = useState([]);
+  
   const [entrega, setEntrega] = useState({});
   const [tipo, setTipo] = useState("");
+  const [pendientes, setPendientes] = useState([]);
   const [rowsCalificadas, setRowsCalificadas] = useState([]);
   const [rowsPorCalificar, setRowsPorCalificar] = useState([]);
-
   const [abrirArtefactos, setAbrirModalArtefactos] = useState(false);
   const [abrirDocumentos, setAbrirModalDocumentos] = useState(false);
   const [link, setLink] = useState('');
@@ -201,9 +201,7 @@ export default function Entregas() {
     },
   }], [
     { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+   { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
   ]);
   const columnaCalificadas = generarColumnas([{

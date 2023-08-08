@@ -41,6 +41,7 @@ function InicioUser() {
     proyectos: false,
     reuniones: false,
     solicitudes: false,
+    entregas: false,
   });
 
   const handleSubMenuClick = (button) => {
@@ -134,14 +135,11 @@ function InicioUser() {
   };
 
   const handleClick = (button) => {
-
     if (button === 'menuInicio') {
       setActiveButton('menuInicio');
       navigate('');
-
     } else if (button === 'reuniones') {
       navigate('/user/reuniones');
-
     } else if (button === 'directorSolicitudes') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/solicitudes');
@@ -156,20 +154,20 @@ function InicioUser() {
       navigate('/user/entregas');
     } else if (button === 'cerrarSesion') {
       cerrarSesion();
-
     } else if (button === 'directorProyectos') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/proyectos');
-
     } else if (button === 'lectorProyectos') {
       sessionStorage.setItem('id_rol', 2);
       navigate('/user/proyectos');
-
     } else if (button === 'juradoProyectos') {
       sessionStorage.setItem('id_rol', 3);
       navigate('/user/proyectos');
     }
+    window.location.reload();
   };
+
+
 
   const menuItems = [
     { label: 'INICIO', button: 'menuInicio' },
@@ -238,6 +236,7 @@ function InicioUser() {
       }
     } else if (location.pathname === '/user/entregas') {
       if (sessionStorage.getItem('id_rol') === '1') {
+
         setActiveButton('directorEntregas');
       } else if (sessionStorage.getItem('id_rol') === '2') {
         setActiveButton('lectorEntregas');

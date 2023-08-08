@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../../../../store/authSlice';
+import { saveAs } from 'file-saver';
 import {
     Typography,
     CircularProgress,
@@ -21,8 +21,9 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
-import { ExpandMore } from '@mui/icons-material';
-import CustomDataGrid from '../../../layouts/DataGrid';
+import { ExpandMore, SaveOutlined } from '@mui/icons-material';
+import { selectToken } from '../../../store/authSlice';
+import CustomDataGrid from '../../layouts/DataGrid';
 
 function VerEntrega({ open, onClose, entrega = {}, tipo }) {
 
@@ -38,13 +39,16 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
     const [aspectosCalificados, setAspectosCalificados] = useState([]);
     const [docEntregado, setDocEntregado] = useState(null);
     const [titulo, setTitulo] = useState("");
+    const [linkDocEntregado, setLinkDocEntregado] = useState(null);
+
     const handleEntering = async () => {
+    
         setTitulo(
                 tipo === "calificado" ? "Ver Entrega y Calificación" :
                     "Ver Entrega"
         );
         if (tipo !== "pendiente") {
-            await infoDocEntrega(entrega.id);
+            await infoDocEntrega(entrega.id_doc_entrega);
         }
         if (tipo === "calificado") {
             await obtenerCalificacionAspectos(entrega.id);
@@ -66,6 +70,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
             });
             const data = await response.json();
             if (response.status === 200) {
+                setLinkDocEntregado(data.nombreArchivo)
                 setDocEntregado(data.documento);
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
@@ -114,6 +119,24 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
             return 'Fecha inválida';
         }
         return dayjs(fecha).format('DD-MM-YYYY HH:mm:ss');
+    };
+    
+    const handleDescargarArchivo = () => {
+        const url = `http://localhost:5000/descargar/${linkDocEntregado}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((response) => response.blob())
+            .then((blob) => {
+                saveAs(blob, docEntregado.nombre_documento);
+            })
+            .catch((error) => {
+                mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
+            });
     };
     return (
         <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
@@ -188,6 +211,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
                                     </Grid>
+                                   
                                     {tipo === "calificado" && (
                                         <>
                                             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -204,6 +228,13 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                                             </Grid>
                                         </>
                                     )}
+                                     <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Documento entregado
+                                        </Typography>
+
+                                        <Button type="submit" variant='outlined' startIcon={<SaveOutlined />} fullWidth onClick={handleDescargarArchivo}> Descargar Archivo</Button>
+                                    </Grid>
                                 </>
                             )}
                         </Grid>

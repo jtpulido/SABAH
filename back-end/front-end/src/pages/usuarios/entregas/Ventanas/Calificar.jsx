@@ -46,7 +46,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
 
     const [titulo, setTitulo] = useState("");
     const handleEntering = async () => {
-        infoDocEntrega(entrega.id_doc_entrega)
         setTitulo(
             tipo === "pendiente" ? "Ver Entrega" :
                 tipo === "calificar" ? "Ver/Calificar Entrega" :
@@ -201,7 +200,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         }
         setLoading(false);
     };
-    
+
 
     const columnas = [
         { field: 'nombre_aspecto', headerName: 'Aspecto', flex: 0.3, minWidth: 200 },
@@ -229,7 +228,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 saveAs(blob, docEntregado.nombre_documento);
             })
             .catch((error) => {
-                console.error('Error al descargar el archivo:', error);
+                mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
             });
     };
 
@@ -306,15 +305,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
                                     </Grid>
-                                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                                        <Typography variant="h6" color="primary">
-                                            Documento entregado
-                                        </Typography>
 
-                                        <Button type="submit" startIcon={<SaveOutlined />} sx={{
-                                            width: 150,
-                                        }} onClick={handleDescargarArchivo}> Descargar Archivo</Button>
-                                    </Grid>
                                     {tipo === "calificado" && (
                                         <>
                                             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -331,6 +322,13 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                             </Grid>
                                         </>
                                     )}
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Documento entregado
+                                        </Typography>
+
+                                        <Button type="submit" startIcon={<SaveOutlined />} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
+                                    </Grid>
                                 </>
                             )}
                         </Grid>

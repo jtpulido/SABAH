@@ -70,7 +70,7 @@ export default function Entregas() {
     llenarTabla("pendientes", setRowsPendientes);
     llenarTabla("realizadas/calificadas", setRowsCalificadas);
     llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
-  }, []);
+  }, [id_rol,id_usuario]);
 
   const generarColumnas = (inicio, extraColumns) => {
     const columns = [

@@ -21,7 +21,7 @@ export default function Proyectos() {
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-  const [solicitud, setSolicitud] = useState({});
+
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsAprobadas, setRowsAprobadas] = useState([]);
   const [rowsRechazadas, setRowsRechazadas] = useState([]);

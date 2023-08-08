@@ -31,7 +31,6 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
         setSelectedFile(event.target.files[0]);
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -74,7 +73,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 <DialogTitle variant="h1" color="primary">Entrega de Documento</DialogTitle>
                 <DialogContent dividers>
                     <Typography variant="h2" color="secondary">
-                        Información del proyecto
+                    Información general de la entrega
                     </Typography>
 
                     <Divider sx={{ mt: 1, mb: 1 }} />
@@ -83,7 +82,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                             <Typography variant="h6" color="primary">
                                 Nombre
                             </Typography>
-                            <TextField value={entrega.nombre || ''} fullWidth />
+                            <TextField value={entrega.nombre_espacio_entrega || ''} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
                             <Typography variant="h6" color="primary">

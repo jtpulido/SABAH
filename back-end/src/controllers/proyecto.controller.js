@@ -41,6 +41,9 @@ const obtenerEntregasPendientes = async (req, res) => {
     ee.id AS id_espacio_entrega,
     ee.nombre AS nombre_espacio_entrega,
     r.nombre AS nombre_rol,
+    p.id AS id_proyecto,
+    p.nombre AS nombre_proyecto,
+    ee.descripcion,
     ee.fecha_apertura,
     ee.fecha_cierre
 FROM 

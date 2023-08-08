@@ -15,7 +15,6 @@ import CrearSolicitud from "./VentanasSolicitud/CrearSolicitud";
 export default function Proyectos() {
 
   const id = sessionStorage.getItem('user_id_usuario');
-  const idRol = sessionStorage.getItem('id_rol');
 
   const token = useSelector(selectToken);
   const { enqueueSnackbar } = useSnackbar();

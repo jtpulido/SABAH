@@ -22,7 +22,6 @@ const verInfoDocEntregado = async (req, res) => {
       if (error) {
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
       }
-
       if (result.rows.length === 0) {
         return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
       }
@@ -30,8 +29,6 @@ const verInfoDocEntregado = async (req, res) => {
       if (!documento) {
         return res.status(404).json({ success: false, message: 'Documento no encontrado' });
       }
-
-
       const filePath = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\", documento.uuid + path.extname(documento.nombre_documento));
 
       // Verifica que el archivo exista en el servidor.
@@ -84,7 +81,7 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
       INSERT INTO documento_entrega (id_documento, id_proyecto, id_espacio_entrega)
       VALUES ($1, $2, $3)
     `;
-    const entregaValues = [documentoId, entrega.id_proyecto, entrega.id];
+    const entregaValues = [documentoId, entrega.id_proyecto, entrega.id_espacio_entrega];
 
     await pool.query(entregaQuery, entregaValues)
 
