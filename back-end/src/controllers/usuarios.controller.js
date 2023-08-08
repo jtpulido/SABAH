@@ -11,7 +11,7 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(404).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -26,7 +26,7 @@ const obtenerProyectosCerradosRol = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(404).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -69,7 +69,7 @@ const rolDirector = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(401).json({ success: false });
+            return res.status(200).json({ success: false, message: 'El usuario no tiene el rol de director.' });
         }
 
     } catch (error) {
@@ -84,7 +84,7 @@ const rolLector = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(401).json({ success: false });
+            return res.status(200).json({ success: false, message: 'El usuario no tiene el rol de lector.' });
         }
 
     } catch (error) {
@@ -99,10 +99,11 @@ const rolJurado = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(401).json({ success: false });
+            return res.status(200).json({ success: false, message: 'El usuario no tiene el rol de jurado.' });
         }
 
     } catch (error) {
+        console.log(error);
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -123,4 +124,22 @@ const verUsuario = async (req, res) => {
     }
 };
 
-module.exports = { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario }
+const obtenerReunion = async (req, res) => {
+    const { id } = req.params;
+    const id_reunion = req.headers['id_reunion'];
+    try {
+
+        const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
+        const reunion = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, reunion })
+        } else {
+            return res.status(200).json({ success: false, message: 'No hay reuniones' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+
+};
+
+module.exports = { obtenerReunion, obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario }

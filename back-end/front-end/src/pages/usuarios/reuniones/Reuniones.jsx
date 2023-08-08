@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { HighlightOff, Create, Description, Visibility, AddCircleOutline } from '@mui/icons-material';
 
-import { selectToken } from "../../store/authSlice";
+import { selectToken } from "../../../store/authSlice";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
@@ -14,13 +14,14 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
-import CustomDataGrid from "../layouts/DataGrid";
-
+import CustomDataGrid from "../../layouts/DataGrid";
 
 
 export default function Reuniones() {
 
   const id = sessionStorage.getItem('id_proyecto');
+  const id_rol = sessionStorage.getItem('id_rol');
+
   const token = useSelector(selectToken);
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
@@ -41,7 +42,6 @@ export default function Reuniones() {
     setSelectedRoles(event.target.value);
   };
 
-
   const handleOpenModal = () => {
     setShowModal(true);
   };
@@ -58,7 +58,6 @@ export default function Reuniones() {
 
   const handleOpenModal1 = (reunionId) => {
     handleEditarClick(reunionId)
-
   };
 
   const handleCloseModal1 = () => {
@@ -72,9 +71,7 @@ export default function Reuniones() {
   };
 
   const handleEditarClick = async (reunionId) => {
-
     try {
-
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}`, 'id_reunion': `${reunionId}` }
@@ -88,17 +85,15 @@ export default function Reuniones() {
           ...row,
           fecha: dayjs(row.fecha)
         }));
-        await setReunionSeleccionada(formattedReunion);
+        setReunionSeleccionada(formattedReunion);
       }
     }
     catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", 'error');
     }
-
   };
 
   const editarReunion = async () => {
-
     const data = {
       fecha: fecha,
       hora: hora,
@@ -157,8 +152,8 @@ export default function Reuniones() {
       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
   };
-  const generarColumnas = (extraColumns) => {
 
+  const generarColumnas = (extraColumns) => {
     const commonColumns = [
       {
         field: 'fecha',
@@ -180,19 +175,20 @@ export default function Reuniones() {
     ];
 
     return [...commonColumns, ...extraColumns];
-  }
+  };
+
   const llenarTablaPendientes = async () => {
 
     try {
-
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
+
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message, 'info');
+        mostrarMensaje(data.message, 'error');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -206,18 +202,18 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
+
   const llenarTablaCompletas = async () => {
-
     try {
-
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
+
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message, 'info');
+        mostrarMensaje(data.message, 'error');
       } else {
         const formattedCompletadas = data.completas.map(row => ({
           ...row,
@@ -230,18 +226,18 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", 'error');
     }
   };
+
   const llenarTablaCanceladas = async () => {
-
     try {
-
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
+
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message, 'info');
+        mostrarMensaje(data.message, 'error');
       } else {
         const formattedCanceladas = data.canceladas.map(row => ({
           ...row,
