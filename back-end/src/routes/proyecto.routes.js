@@ -30,6 +30,7 @@ router.post('/entrega/guardar', upload.single('file'), async (req, res) => {
         await guardarDocumentoYEntrega(req, res, file);
 
     } catch (error) {
+      console.log(error);
         res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
     }
 });

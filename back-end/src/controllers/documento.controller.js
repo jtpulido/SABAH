@@ -4,7 +4,6 @@ const path = require('path');
 const pool = require('../database')
 const verInfoDocEntregado = async (req, res) => {
   try {
-
     const id = req.params.id_doc_entrega;
     const query =
       `SELECT 
@@ -23,15 +22,16 @@ const verInfoDocEntregado = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
       }
       if (result.rows.length === 0) {
+
         return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
       }
       const documento = result.rows[0];
+
       if (!documento) {
+
         return res.status(404).json({ success: false, message: 'Documento no encontrado' });
       }
       const filePath = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\", documento.uuid + path.extname(documento.nombre_documento));
-
-      // Verifica que el archivo exista en el servidor.
       if (!fs.existsSync(filePath)) {
         return res.status(404).json({ success: false, message: 'Archivo no encontrado' });
       }
@@ -58,7 +58,7 @@ const descargarDocumento = async (req, res) => {
 const guardarDocumentoYEntrega = async (req, res, file) => {
 
   const entrega = JSON.parse(req.body.entrega);
-
+  const nombre = JSON.parse(req.body.nombreArchivo);
   try {
     await pool.query('BEGIN');
     const uuid = uuidv4();
@@ -72,7 +72,7 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
       VALUES ($1, $2)
       RETURNING id
     `;
-    const documentoValues = [file.originalname, uuid];
+    const documentoValues = [nombre, uuid];
 
     const documentoResult = await pool.query(documentoQuery, documentoValues);
     const documentoId = documentoResult.rows[0].id;
