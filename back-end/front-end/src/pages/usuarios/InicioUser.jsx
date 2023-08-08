@@ -226,6 +226,15 @@ function InicioUser() {
         setActiveButton('juradoProyectos');
       }
 
+    } else if (location.pathname === '/user/verProyecto') {
+      if (idRol === 1) {
+        setActiveButton('directorProyectos');
+      } else if (idRol === 2) {
+        setActiveButton('lectorProyectos');
+      } else if (idRol === 3) {
+        setActiveButton('juradoProyectos');
+      }
+
     } else if (location.pathname === '/user/reuniones') {
       if (idRol === 1) {
         setActiveButton('directorReuniones');

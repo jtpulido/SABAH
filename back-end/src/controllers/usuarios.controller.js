@@ -49,7 +49,7 @@ const obtenerProyecto = async (req, res) => {
             const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
 
             if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
-                return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
+                return res.json({ success: true, proyecto: proyecto, director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
             } else {
                 return res.status(203).json({ success: true, message: error })
             }

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { useSelector } from "react-redux";
 import {
   Box, Grid, TextField, FormControl, InputLabel, MenuItem, Select, Typography, Button, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions, Toolbar, AppBar,
 } from '@mui/material';
-import { HighlightOff, Create, Description, Visibility, AddCircleOutline } from '@mui/icons-material';
+import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 import { selectToken } from "../../../store/authSlice";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -16,12 +19,56 @@ import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
 import CustomDataGrid from "../../layouts/DataGrid";
 
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarFilterButton />
+      <GridToolbarExport />
+    </GridToolbarContainer>
+  );
+}
+
+function CustomDataGridWrapper({ rows, columns }) {
+  const [height, setHeight] = useState('300px');
+
+  useEffect(() => {
+    setHeight(rows.length > 0 ? 'auto' : '300px');
+  }, [rows]);
+
+  return (
+    <Box sx={{ height }}>
+      <DataGrid
+        getRowHeight={() => 'auto'}
+        rows={rows}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 10,
+            },
+          },
+        }}
+        pageSizeOptions={[10, 25, 50, 100]}
+        slots={{
+          toolbar: CustomToolbar,
+          noRowsOverlay: CustomNoRowsMessage
+        }}
+        disableColumnSelector
+      />
+    </Box>
+  );
+}
+const CustomNoRowsMessage = () => {
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      No hay reuniones
+    </div>
+  );
+};
 
 export default function Reuniones() {
 
   const id = sessionStorage.getItem('id_proyecto');
-  const id_rol = sessionStorage.getItem('id_rol');
-
   const token = useSelector(selectToken);
   const [pendientes, setPendientes] = useState([]);
   const [completadas, setCompletadas] = useState([]);
@@ -58,6 +105,7 @@ export default function Reuniones() {
 
   const handleOpenModal1 = (reunionId) => {
     handleEditarClick(reunionId)
+
   };
 
   const handleCloseModal1 = () => {
@@ -71,7 +119,9 @@ export default function Reuniones() {
   };
 
   const handleEditarClick = async (reunionId) => {
+
     try {
+
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}`, 'id_reunion': `${reunionId}` }
@@ -85,15 +135,17 @@ export default function Reuniones() {
           ...row,
           fecha: dayjs(row.fecha)
         }));
-        setReunionSeleccionada(formattedReunion);
+        await setReunionSeleccionada(formattedReunion);
       }
     }
     catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", 'error');
     }
+
   };
 
   const editarReunion = async () => {
+
     const data = {
       fecha: fecha,
       hora: hora,
@@ -152,8 +204,8 @@ export default function Reuniones() {
       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
   };
-
   const generarColumnas = (extraColumns) => {
+
     const commonColumns = [
       {
         field: 'fecha',
@@ -175,20 +227,19 @@ export default function Reuniones() {
     ];
 
     return [...commonColumns, ...extraColumns];
-  };
-
+  }
   const llenarTablaPendientes = async () => {
 
     try {
+
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
-
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message, 'error');
+        mostrarMensaje(data.message, 'info');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -202,16 +253,15 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.");
     }
   };
-
   const llenarTablaCompletas = async () => {
+
     try {
+
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
-
       const data = await response.json();
-
       if (!data.success) {
         mostrarMensaje(data.message, 'error');
       } else {
@@ -226,14 +276,14 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", 'error');
     }
   };
-
   const llenarTablaCanceladas = async () => {
+
     try {
+
       const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
-
       const data = await response.json();
 
       if (!data.success) {
@@ -263,7 +313,7 @@ export default function Reuniones() {
       setShowModal1(true);
     }
   }, [reunionSeleccionada]);
-  
+
   const handleCancelReunion = (row, token) => {
     if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
       fetch('http://localhost:5000/proyecto/cancelarReunion', {
@@ -302,9 +352,36 @@ export default function Reuniones() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Cancelar">
-              <IconButton color="secondary" onClick={() => handleCancelReunion(row, token)}>
-                <HighlightOff />
-              </IconButton>
+              <IconButton color="secondary"
+                onClick={() => {
+                  if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
+
+                    fetch('http://localhost:5000/proyecto/cancelarReunion', {
+                      method: 'POST',
+                      headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                      body: JSON.stringify({ id: row.id })
+
+                    })
+
+                      .then(response => {
+                        if (response.ok) {
+
+                          llenarTablaCanceladas();
+
+                          mostrarMensaje('La reunión se canceló correctamente', 'success');
+                        } else {
+
+                          mostrarMensaje('Ocurrió un error al cancelar la reunión', 'error');
+                        }
+                      })
+                      .catch(error => {
+                        mostrarMensaje('Ocurrió un error al cancelar la reunión', 'error');
+
+                      });
+                  }
+                }}>
+                <Close />
+              </IconButton >
             </Tooltip>
           </Box>
         );
@@ -322,13 +399,17 @@ export default function Reuniones() {
       align: "center",
       renderCell: ({ row }) => {
         const id = row && row.id;
-        const ruta = `/proyecto/ActaReunion/${id}`;
-
+        const { has_acta } = row;
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Tooltip title="">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`}>
-                <Description />
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
+                <DescriptionIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="">
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
+                <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
           </Box>
@@ -336,6 +417,7 @@ export default function Reuniones() {
       },
     },
   ]);
+
   const { enqueueSnackbar } = useSnackbar();
 
   const mostrarMensaje = (mensaje, variante) => {
@@ -397,7 +479,7 @@ export default function Reuniones() {
         <Dialog open={showModal} onClose={handleCloseModal}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <DialogTitle variant="h5">Crear Reunión</DialogTitle>
-            <Button onClick={handleCloseModal} startIcon={<HighlightOff />} />
+            <Button onClick={handleCloseModal} startIcon={<Close />} />
           </div>
 
           <DialogContent>
@@ -475,7 +557,7 @@ export default function Reuniones() {
           <Dialog open={showModal1} onClose={handleCloseModal1}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <DialogTitle variant="h5">Editar Reunión</DialogTitle>
-              <Button onClick={handleCloseModal1} startIcon={<HighlightOff />} />
+              <Button onClick={handleCloseModal1} startIcon={<Close />} />
             </div>
 
             <DialogContent>

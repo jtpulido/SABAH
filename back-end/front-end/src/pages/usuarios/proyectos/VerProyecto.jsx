@@ -50,6 +50,7 @@ export default function VerProyectos() {
             }
         }
         catch (error) {
+            alert(error)
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
             setExiste(false);
         }
