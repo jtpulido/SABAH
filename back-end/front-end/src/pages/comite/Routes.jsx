@@ -28,7 +28,7 @@ export default function RoutesCmt() {
                 <Route path="rubricas" element={<Rubricas />} />
                 <Route path="aspectos" element={<Aspectos />} />
                 <Route path="espacio" element={<Espacios />} />
-                <Route path="verProyecto/:id" element={<VerProyecto />} />
+                <Route path="verProyecto" element={<VerProyecto />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes></div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import { selectToken } from '../../../../store/authSlice';
+import { saveAs } from 'file-saver';
 import {
     Typography,
     CircularProgress,
@@ -19,13 +19,13 @@ import {
     AccordionSummary,
     AccordionDetails,
 } from '@mui/material';
-import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
 import { ExpandMore, SaveOutlined } from '@mui/icons-material';
-import CustomDataGrid from '../../../layouts/DataGrid';
+import { selectToken } from '../../store/authSlice';
+import CustomDataGrid from './DataGrid';
 
-function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
+function VistaGeneralEntrega({ open, onClose, entrega = {}, tipo }) {
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -38,15 +38,17 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
     const [loading, setLoading] = useState(true);
     const [aspectosCalificados, setAspectosCalificados] = useState([]);
     const [docEntregado, setDocEntregado] = useState(null);
-    const [linkDocEntregado, setLinkDocEntregado] = useState(null);
     const [titulo, setTitulo] = useState("");
+    const [linkDocEntregado, setLinkDocEntregado] = useState(null);
+
     const handleEntering = async () => {
+    
         setTitulo(
-            tipo === "calificado" ? "Ver Entrega y Calificación" :
-                "Ver Entrega"
+                tipo === "calificado" ? "Ver Entrega y Calificación" :
+                    "Ver Entrega"
         );
         if (tipo !== "pendiente") {
-            await infoDocEntrega(entrega.id);
+            await infoDocEntrega(entrega.id_doc_entrega);
         }
         if (tipo === "calificado") {
             await obtenerCalificacionAspectos(entrega.id);
@@ -81,7 +83,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
                 'error'
             );
         }
-    }
+    };
 
 
     const obtenerCalificacionAspectos = async (id) => {
@@ -118,6 +120,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
         }
         return dayjs(fecha).format('DD-MM-YYYY HH:mm:ss');
     };
+    
     const handleDescargarArchivo = () => {
         const url = `http://localhost:5000/descargar/${linkDocEntregado}`;
         fetch(url, {
@@ -208,6 +211,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
                                     </Grid>
+                                   
                                     {tipo === "calificado" && (
                                         <>
                                             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -224,10 +228,11 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
                                             </Grid>
                                         </>
                                     )}
-                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                     <Grid item xs={12} sm={6} md={4} lg={4}>
                                         <Typography variant="h6" color="primary">
                                             Documento entregado
                                         </Typography>
+
                                         <Button type="submit" variant='outlined' startIcon={<SaveOutlined />} fullWidth onClick={handleDescargarArchivo}> Descargar Archivo</Button>
                                     </Grid>
                                 </>
@@ -258,11 +263,11 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
     )
 }
 
-VerEntrega.propTypes = {
+VistaGeneralEntrega.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
     entrega: PropTypes.object.isRequired,
     tipo: PropTypes.string.isRequired
 };
 
-export default VerEntrega;
+export default VistaGeneralEntrega;

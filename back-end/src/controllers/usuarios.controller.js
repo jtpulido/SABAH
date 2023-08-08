@@ -9,7 +9,7 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -24,7 +24,7 @@ const obtenerProyectosCerradosRol = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -68,7 +68,7 @@ const rolDirector = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(401).json({ success: false });
+            return res.status(203).json({ success: false });
         }
 
     } catch (error) {
@@ -83,7 +83,7 @@ const rolLector = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(401).json({ success: false });
+            return res.status(203).json({ success: false });
         }
 
     } catch (error) {
@@ -98,7 +98,7 @@ const rolJurado = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(401).json({ success: false });
+            return res.status(203).json({ success: false });
         }
 
     } catch (error) {
@@ -114,7 +114,7 @@ const verUsuario = async (req, res) => {
         if (result.rowCount === 1) {
             return res.json({ success: true, infoUsuario });
         } else {
-            return res.status(401).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+            return res.status(203).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
         }
 
     } catch (error) {

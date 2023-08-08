@@ -14,6 +14,7 @@ const app = express();
 require('./config/passport')(passport);
 app.use(express.json());
 app.use(passport.initialize());
+
 app.use('/archivos', express.static(path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\", 'uploads')));
 app.use(cors({
   origin: 'http://localhost:3000'

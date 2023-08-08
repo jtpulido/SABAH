@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
-
-import { useParams } from 'react-router-dom';
 import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
-
+import VerEntrega from "../entregas/Ventanas/VerEntrega";
 import CustomDataGrid from "../../layouts/DataGrid";
-import RealizarEntrega from './Ventana/RealizarEntrega';
-
 import CambiarCodigo from './Ventana/CambiarCodigo';
-import { PostAdd } from "@mui/icons-material";
+import { PostAdd, Source } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 export default function VerProyectos() {
-  const { id } = useParams();
+
+  const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -23,7 +20,7 @@ export default function VerProyectos() {
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-  
+
   const [existe, setExiste] = useState([]);
   const [proyecto, setProyecto] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -32,11 +29,12 @@ export default function VerProyectos() {
   const [existeLector, setExisteLector] = useState([]);
   const [existeJurados, setExisteJurados] = useState([]);
   const [listaJurado, setListaJurado] = useState([]);
-
-  const [rowsPendientes, setRowsPendientes] = useState([]);
-  const [rowsRealizadas, setRowsRealizadas] = useState([]);
+  const [entregasPendientes, setEntregasPendientes] = useState([]);
+  const [entregasCalificadas, setEntregasCalificadas] = useState([]);
+  const [entregasPorCalificar, setEntregasPorCalificar] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [entrega, setEntrega] = useState({});
+  const [tipo, setTipo] = useState("");
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
@@ -121,7 +119,7 @@ export default function VerProyectos() {
   };
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/entrega/${endpoint}/${proyecto_id}`, {
+      const response = await fetch(`http://localhost:5000/comite/entregasProyecto/${endpoint}/${proyecto_id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -139,10 +137,12 @@ export default function VerProyectos() {
   }
 
 
+
   useEffect(() => {
     infoProyecto()
-    llenarTabla("pendientes", id, setRowsPendientes);
-    llenarTabla("realizadas", id, setRowsRealizadas);
+    llenarTabla("pendientes", id, setEntregasPendientes);
+    llenarTabla("realizadas/calificadas", id,setEntregasCalificadas);
+    llenarTabla("realizadas/porCalificar", id,setEntregasPorCalificar);
   }, [id]);
 
   const [open, setOpen] = useState(false);
@@ -157,58 +157,92 @@ export default function VerProyectos() {
       modificarCodigo(newValue)
     };
   }
-  const abrirDialogAgregarEntrega = (row) => {
-    setSelectedRow(row);
+  const abrirVentanaVerEntrega = (row,tipo) => {
+    setEntrega(row);
+    setTipo(tipo)
     setOpenDialog(true);
   };
 
-  const cerrarDialogAgregarEntrega = () => {
+  const generacerrarDialogVerEntrega = () => {
     setOpenDialog(false);
   };
 
-  const cerrarEntregaAgregada = () => {
-    setRowsPendientes([])
-    setRowsRealizadas([])
-    llenarTabla("pendientes", id, setRowsPendientes);
-    llenarTabla("realizadas", id, setRowsRealizadas);
-    setOpenDialog(false);
-  };
-
-
-  const generarColumnas = (extraColumns) => {
+  const generarColumnasEntregas = (inicio, extraColumns) => {
     const columns = [
-      { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150   },
-      { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150},
-      { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-      { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-      { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100 }
-    ];
-    return [...columns, ...extraColumns];
+      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
+      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
+      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
+    ]
+    return [...inicio, ...columns, ...extraColumns];
   };
+  const columnaPendientes = generarColumnasEntregas([{
+    field: "ver",
+    headerName: "",
+    flex: 0.1,
+    minWidth: 50,
+    renderCell: ({ row }) => {
+      return (
+        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+          <Tooltip title="Ver Entrega">
+            <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "pendiente")}>
+              <Source />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  }], [
+    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
-  const columnasPendientes = generarColumnas([
+  ]);
+  const columnaPorCalificar = generarColumnasEntregas([
     {
-      field: "Acción",
+      field: "calificar",
+      headerName: "",
       flex: 0.1,
       minWidth: 50,
-      
-      
       renderCell: ({ row }) => {
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title="Añadir entrega">
-              <IconButton color="secondary" onClick={() => abrirDialogAgregarEntrega(row)}>
-                <PostAdd />
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "")}>
+                <Source />
               </IconButton>
             </Tooltip>
           </Box>
         );
       },
-    },
-  ]);
+    }], [
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
-  const columnas = generarColumnas([ { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.15, minWidth: 100,   valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-]);
+  ]);
+  const columnaCalificadas = generarColumnasEntregas([{
+    field: "calificado",
+    headerName: "",
+    flex: 0.1,
+    minWidth: 50,
+    renderCell: ({ row }) => {
+      return (
+        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+          <Tooltip title="Calificar">
+            <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "calificado")}>
+              <Source />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  }], [
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
+
+  ]);
 
   return (
     <div style={{ margin: "15px" }} >
@@ -241,7 +275,7 @@ export default function VerProyectos() {
           ) : (
             <Button variant="outlined" disableElevation onClick={abrirDialogCambiarCodigo} sx={{
               width: 200,
-          }}>
+            }}>
               Modificar código
             </Button>
           )}
@@ -382,25 +416,31 @@ export default function VerProyectos() {
       ) : (
         <Typography variant="h6" color="primary">Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
       )}
-      
+
       <Box mt={4}>
-      <Typography variant="h1" color="secondary" fontWeight="bold">
-        ENTREGAS
-      </Typography>
-        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
+        <Typography variant="h4" color="secondary" fontWeight="bold">
+          ENTREGAS
+        </Typography>
+        <VerEntrega
+          open={openDialog}
+          onClose={generacerrarDialogVerEntrega}
+          entrega={entrega}
+          tipo={tipo}
+        />
+        <Typography variant="h5" color="primary" sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>
-        <CustomDataGrid rows={rowsPendientes} columns={columnasPendientes} mensaje="No hay entregas pendientes" />
-        <RealizarEntrega
-          open={openDialog}
-          onClose={cerrarDialogAgregarEntrega}
-          onSubmit={cerrarEntregaAgregada}
-          entrega={selectedRow || {}}
-        />
-        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
-          Entregas realizadas
+        <CustomDataGrid rows={entregasPendientes} columns={columnaPendientes} mensaje="No hay entregas pendientes" />
+
+        <Typography variant="h5" color="primary" sx={{ mt: "30px" }}>
+          Entregas sin calificar
         </Typography>
-        <CustomDataGrid rows={rowsRealizadas} columns={columnas} mensaje="No hay entregas realizadas" />
+        <CustomDataGrid rows={entregasPorCalificar} columns={columnaPorCalificar} mensaje="No hay entregas sin calificar" />
+
+        <Typography variant="h5" color="primary" sx={{ mt: "30px" }}>
+          Entregas calificadas
+        </Typography>
+        <CustomDataGrid rows={entregasCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />
 
       </Box>
     </div>
