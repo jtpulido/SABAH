@@ -3,64 +3,67 @@ let proyectos = "";
 let director = "";
 let jurados = "";
 let estudiantes = ""
-let lector ="";
+let lector = "";
 
 const obtenerProyecto = async (req, res) => {
   const id = req.params.proyecto_id;
-  try {
-      const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
-      const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
-      const proyecto = result.rows
-      if (result.rowCount === 1) {
-          const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
-          const usuario_director = result_director.rows[0]
-          const result_lector = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('lector') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
-          const info_lector = result_lector.rowCount > 0 ? { "existe_lector": true, "nombre": result_lector.rows[0].nombre } : { "existe_lector": false };
-          const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
-          const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
-          const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
-
-  const { id } = req.params;
-
   try {
     const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
     const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
     const proyecto = result.rows
     if (result.rowCount === 1) {
-
-      const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1", [id])
+      const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
       const usuario_director = result_director.rows[0]
-      const result_lector = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('lector') AND ur.id_proyecto = $1", [id])
+      const result_lector = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('lector') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
       const info_lector = result_lector.rowCount > 0 ? { "existe_lector": true, "nombre": result_lector.rows[0].nombre } : { "existe_lector": false };
-      const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1", [id])
+      const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
       const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
-      const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1', [id])
+      const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
 
-      if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
-        proyectos = proyecto[0];
-        director = usuario_director;
-        jurados = info_jurado;
-        estudiantes = result_estudiantes.rows;
-        lector = info_lector;
-        return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
-      } else {
-        return res.status(401).json({ success: false, message: error })
+      const { id } = req.params;
+
+      try {
+        const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
+        const proyecto = result.rows
+        if (result.rowCount === 1) {
+
+          const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1", [id])
+          const usuario_director = result_director.rows[0]
+          const result_lector = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('lector') AND ur.id_proyecto = $1", [id])
+          const info_lector = result_lector.rowCount > 0 ? { "existe_lector": true, "nombre": result_lector.rows[0].nombre } : { "existe_lector": false };
+          const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1", [id])
+          const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
+          const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1', [id])
+
+          if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
+            proyectos = proyecto[0];
+            director = usuario_director;
+            jurados = info_jurado;
+            estudiantes = result_estudiantes.rows;
+            lector = info_lector;
+            return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
+          } else {
+            return res.status(401).json({ success: false, message: error })
+          }
+
+        } else {
+          return res.status(401).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
+        }
+      } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
       }
-
-    } else {
-      return res.status(401).json({ success: false, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
     }
+
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
+
 };
 
 const obtenerEntregasPendientes = async (req, res) => {
-
   const { id } = req.params;
-
   try {
-
     const result = await pool.query('SELECT e.id AS entrega_id, e.nombre AS nombre_entrega, e.fecha_limite AS fecha_limite, ed.fecha_entrega AS fecha_entrega, es.nombre AS estado_entrega FROM entregas e INNER JOIN entregadocumento ed ON e.id = ed.id_entrega INNER JOIN estadoEntrega es ON es.nombre = $1 WHERE ed.id_proyecto = $2 AND es.id = ed.id_estado', ['Pendiente', id])
     const pendientes = result.rowCount > 0 ? { "existe_pendientes": true, "pendientes": result.rows } : { "existe": false };
     if (result.rowCount > 0) {
@@ -74,8 +77,6 @@ const obtenerEntregasPendientes = async (req, res) => {
 };
 
 const obtenerEntregasCompletadas = async (req, res) => {
-
-
   try {
     const result = await pool.query('SELECT e.id AS entrega_id, e.nombre AS nombre_entrega, e.fecha_limite AS fecha_limite, ed.fecha_entrega AS fecha_entrega, es.nombre AS estado_entrega FROM entregas e INNER JOIN entregadocumento ed ON e.id = ed.id_entrega INNER JOIN estadoEntrega es ON es.nombre = $1 WHERE ed.id_proyecto = $2 AND es.id = ed.id_estado', ['Completa', id])
     const completas = result.rows
@@ -90,9 +91,7 @@ const obtenerEntregasCompletadas = async (req, res) => {
 };
 
 const obtenerReunionesPendientes = async (req, res) => {
-
   const { id } = req.params;
-
   try {
     const updateQuery = `
         UPDATE reuniones
@@ -123,22 +122,19 @@ const obtenerReunionesPendientes = async (req, res) => {
 };
 
 const obtenerReunionesCompletas = async (req, res) => {
-
   const { id } = req.params;
-
   try {
     const result = await pool.query(`SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace, CASE WHEN ar.id IS NOT NULL THEN true ELSE false END AS has_acta FROM reuniones r JOIN estadoReunion e ON r.id_estado = e.id LEFT JOIN actasreunion ar ON r.id = ar.id WHERE r.id_proyecto = $2 AND e.nombre = $1;`, ['Completa', id])
     const completas = result.rows
     if (result.rowCount > 0) {
-  }} catch (error) {
+    }
+  } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
 
 const obtenerReunionesCanceladas = async (req, res) => {
-
   const { id } = req.params;
-
   try {
     const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reuniones r JOIN estadoReunion e ON r.id_estado = e.id WHERE r.id_proyecto = $2 AND e.nombre = $1;', ['Cancelada', id])
     const canceladas = result.rows
@@ -153,9 +149,7 @@ const obtenerReunionesCanceladas = async (req, res) => {
 };
 
 const obtenerSolicitudesPendientes = async (req, res) => {
-
   const { id } = req.params;
-
   try {
     const result = await pool.query('SELECT s.*, ts.nombre AS nombre_tipo_solicitud FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id WHERE s.finalizado = false AND s.id_proyecto = $1; ', [id])
     const pendientes = result.rows
@@ -170,9 +164,7 @@ const obtenerSolicitudesPendientes = async (req, res) => {
 };
 
 const obtenerSolicitudesCompletas = async (req, res) => {
-
   const { id } = req.params;
-
   try {
     const result = await pool.query('SELECT s.*, ts.nombre AS nombre_tipo_solicitud FROM solicitud s JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id WHERE s.finalizado = true AND s.id_proyecto = $1; ', [id])
     const completas = result.rows
@@ -187,10 +179,7 @@ const obtenerSolicitudesCompletas = async (req, res) => {
 };
 
 const guardarReunion = async (req, res) => {
-
   const { nombre, fecha, invitados, enlace, id_proyecto, id_estado } = req.body;
-
-
   try {
     const query = `
         INSERT INTO public.reuniones(nombre, fecha, invitados, enlace, id_proyecto, id_estado)
@@ -221,13 +210,10 @@ const obtenerReunion = async (req, res) => {
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
-
-}
+};
 
 const cancelarReunion = async (req, res) => {
-
   const { id } = req.body;
-
   try {
     const query = `
       UPDATE public.reuniones
@@ -262,9 +248,7 @@ const editarReunion = async (req, res) => {
 };
 
 const guardarSolicitud = async (req, res) => {
-
   const { tipo_solicitud, justificacion, id_proyecto } = req.body;
-
 
   try {
     const id_tipo_solicitud = await pool.query('SELECT id FROM tipo_solicitud WHERE nombre = $1;', [id_proyecto])
@@ -324,8 +308,6 @@ const guardarInfoActa = async (req, res) => {
 
 
 const generarPDF = async (req, res) => {
-
-
   try {
     const { fecha, invitados, compromisos, objetivos, tareas, nombre } = req.body;
     const PDFDocument = require('pdfkit');
@@ -351,8 +333,8 @@ const generarPDF = async (req, res) => {
       .text(tituloParte3, { align: 'center' })
       .moveDown(1);
 
-   
-    const asistentes =[];
+
+    const asistentes = [];
 
 
     doc.font('Helvetica-Bold').fontSize(10).text('TÍTULO PROPUESTA: ', { continued: true })
@@ -377,72 +359,68 @@ const generarPDF = async (req, res) => {
 
     doc.font('Helvetica-Bold').fontSize(11).text(nombre, { continued: false, align: 'center' })
       .moveDown(1);
-      
-      const tableData = [
-        [{ text: '1.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'FECHA Y HORA', font: 'Helvetica-Bold', fontSize: 10 }],
-        [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: fecha, font: 'Helvetica', fontSize: 10 }],
-        [{ text: '2.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'DESCRIPCIÓN DE OBJETIVOS', font: 'Helvetica-Bold', fontSize: 10 }],
-        [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: objetivos, font: 'Helvetica', fontSize: 10 }],
-        [{ text: '3.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'RESULTADOS DE REUNIÓN', font: 'Helvetica-Bold', fontSize: 10 }],
-        [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'resultados', font: 'Helvetica', fontSize: 10 }],
-        [{ text: '4.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'TAREAS SESION ANTERIOR', font: 'Helvetica-Bold', fontSize: 10 }],
-        [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: tareas, font: 'Helvetica', fontSize: 10 }],
-        [{ text: '5.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'COMPROMISOS', font: 'Helvetica-Bold', fontSize: 10 }],
-        [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: compromisos, font: 'Helvetica', fontSize: 10 }],
-        // Agregar más filas de datos aquí...
-      ];
-    
-      const tableSettings = {
-        x: 80,
-        y: doc.y, // La posición Y actual del cursor, para que la tabla comience desde este punto
-        col1Width: 50, // Ancho de la columna uno (números tipo 1.)
-        col2Width: 400, // Ancho de la columna dos (títulos formales)
-        rowHeight: 40,
-        cellMargin: 5,
-      };
-    
-      drawTable(doc, tableData, tableSettings);
-      doc.moveDown(1);
-      doc.addPage();
 
+    const tableData = [
+      [{ text: '1.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'FECHA Y HORA', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: fecha, font: 'Helvetica', fontSize: 10 }],
+      [{ text: '2.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'DESCRIPCIÓN DE OBJETIVOS', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: objetivos, font: 'Helvetica', fontSize: 10 }],
+      [{ text: '3.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'RESULTADOS DE REUNIÓN', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'resultados', font: 'Helvetica', fontSize: 10 }],
+      [{ text: '4.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'TAREAS SESION ANTERIOR', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: tareas, font: 'Helvetica', fontSize: 10 }],
+      [{ text: '5.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'COMPROMISOS', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: compromisos, font: 'Helvetica', fontSize: 10 }],
+      // Agregar más filas de datos aquí...
+    ];
 
+    const tableSettings = {
+      x: 80,
+      y: doc.y, // La posición Y actual del cursor, para que la tabla comience desde este punto
+      col1Width: 50, // Ancho de la columna uno (números tipo 1.)
+      col2Width: 400, // Ancho de la columna dos (títulos formales)
+      rowHeight: 40,
+      cellMargin: 5,
+    };
 
-
-  
-    doc.font('Helvetica-Bold').fontSize(11).text('FIRMAS ASISTENTES', { continued: false, align: 'center' })
-    .moveDown(1);
-    doc.font('Helvetica-Bold').fontSize(11).text(invitados, { continued: false, align: 'center' })
-    .moveDown(1);
+    drawTable(doc, tableData, tableSettings);
     doc.moveDown(1);
-    
+    doc.addPage();
+
+    doc.font('Helvetica-Bold').fontSize(11).text('FIRMAS ASISTENTES', { continued: false, align: 'center' })
+      .moveDown(1);
+    doc.font('Helvetica-Bold').fontSize(11).text(invitados, { continued: false, align: 'center' })
+      .moveDown(1);
+    doc.moveDown(1);
+
 
     // Llamamos a la función para agregar las firmas después del contenido previo
-     // Llamamos a la función para agregar las firmas después del contenido previo
-  const signatureSettings = {
-    x: 50,
-    y: doc.y, // La posición Y actual del cursor, para que las firmas comiencen desde este punto
-    width: 165, // Width of the signature field
-    rowHeight: 100, // Height of each row for signatures
-    signatureHeight: 40, // Height of the signature field (adjust as needed)
-    fontSize: 10,
-    signaturesPerRow: 3, // Number of signatures per row
-  };
+    // Llamamos a la función para agregar las firmas después del contenido previo
+    const signatureSettings = {
+      x: 50,
+      y: doc.y, // La posición Y actual del cursor, para que las firmas comiencen desde este punto
+      width: 165, // Width of the signature field
+      rowHeight: 100, // Height of each row for signatures
+      signatureHeight: 40, // Height of the signature field (adjust as needed)
+      fontSize: 10,
+      signaturesPerRow: 3, // Number of signatures per row
+    };
 
-  if(invitados.includes("director")){
-    asistentes.push(director.nombre);
-  }
+    if (invitados.includes("director")) {
+      asistentes.push(director.nombre);
+    }
 
-  if(invitados.includes("lector")){
-    asistentes.push(lector);
-  }
+    if (invitados.includes("lector")) {
+      asistentes.push(lector);
+    }
 
-  //if(invitados.includes("cliente")){
-   // asistentes.push(cliente.nombre);
-  //}
+    //if(invitados.includes("cliente")){
+    // asistentes.push(cliente.nombre);
+    //}
 
 
-  const numberOfSignatureFields = asistentes; // Number of signature fields you want to have
-  drawSignatureFields(doc, numberOfSignatureFields, signatureSettings);
+    const numberOfSignatureFields = asistentes; // Number of signature fields you want to have
+    drawSignatureFields(doc, numberOfSignatureFields, signatureSettings);
 
     doc.end();
     const buffer = await new Promise((resolve, reject) => {
@@ -462,8 +440,6 @@ const generarPDF = async (req, res) => {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
-
-
 
 function drawTable(doc, table, settings) {
   const { x, y, col1Width, col2Width, rowHeight, cellMargin } = settings;
@@ -530,9 +506,7 @@ function drawSignatureFields(doc, numberOfFields, settings) {
       .lineTo(lineXPos + lineLength, lineYPos)
       .stroke();
   }
-}
-
-
+};
 
 const guardarLink = async (req, res) => {
 
@@ -589,9 +563,20 @@ const guardarLink = async (req, res) => {
   }
 };
 
-  }catch (error) {
-    res.status(500).json({ message: 'Error al guardar el link' });
-  }
+const obtenerSolicitudesAprobadas = async (req, res) => {
+
+};
+
+const obtenerSolicitudesRechazadas = async (req, res) => {
+
+};
+
+const obtenerTipoSolicitud = async (req, res) => {
+
+};
+
+const obtenerInfoActa = async (req, res) => {
+
 };
 
 module.exports = {
@@ -600,5 +585,5 @@ module.exports = {
   obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas, guardarReunion, obtenerReunion,
   cancelarReunion, editarReunion,
   obtenerTipoSolicitud, guardarSolicitud,
-  guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink
+  guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink, obtenerSolicitudesCompletas
 }

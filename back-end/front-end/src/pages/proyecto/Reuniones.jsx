@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from "react";
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
-import { Box, CssBaseline, TextField, Grid } from '@mui/material';
-import { Typography, useTheme} from "@mui/material";
-import "./InicioPro.css";
-import {  Button, IconButton, Tooltip } from "@mui/material";
-import { tokens } from "../../theme";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useSelector } from "react-redux";
 import {
   Box, Grid, TextField, FormControl, InputLabel, MenuItem, Select, Typography, Button, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions, Toolbar, AppBar,
 } from '@mui/material';
-import { HighlightOff, Create, Description, Visibility, AddCircleOutline } from '@mui/icons-material';
+import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 import { selectToken } from "../../store/authSlice";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -32,13 +27,14 @@ function CustomToolbar() {
     </GridToolbarContainer>
   );
 }
-function CustomDataGrid({ rows, columns }) {
+
+function CustomDataGridWrapper({ rows, columns }) {
   const [height, setHeight] = useState('300px');
 
   useEffect(() => {
     setHeight(rows.length > 0 ? 'auto' : '300px');
   }, [rows]);
-  
+
   return (
     <Box sx={{ height }}>
       <DataGrid
@@ -61,7 +57,7 @@ function CustomDataGrid({ rows, columns }) {
       />
     </Box>
   );
-} 
+}
 const CustomNoRowsMessage = () => {
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -243,7 +239,7 @@ export default function Reuniones() {
       const data = await response.json();
 
       if (!data.success) {
-        mostrarMensaje(data.message,'info');
+        mostrarMensaje(data.message, 'info');
       } else {
         const formattedPendientes = data.pendientes.map(row => ({
           ...row,
@@ -304,7 +300,7 @@ export default function Reuniones() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", 'error');
     }
   };
-  
+
   useEffect(() => {
     llenarTablaPendientes();
     llenarTablaCompletas();
@@ -317,7 +313,7 @@ export default function Reuniones() {
       setShowModal1(true);
     }
   }, [reunionSeleccionada]);
-  
+
   const handleCancelReunion = (row, token) => {
     if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
       fetch('http://localhost:5000/proyecto/cancelarReunion', {
@@ -354,73 +350,73 @@ export default function Reuniones() {
               <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => handleOpenModal1(row.id)}>
                 <Create />
               </IconButton>
-          </Tooltip>
-          <Tooltip title="Cancelar">
-           <IconButton color="secondary"
-              onClick={() => {
-                if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
-                 
-                  fetch('http://localhost:5000/proyecto/cancelarReunion', {
-                    method: 'POST',
-                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ id: row.id })
-                    
-                  })
-                  
-                    .then(response => {
-                      if (response.ok) {
-                        
-                        llenarTablaCanceladas();
-                        
-                        mostrarMensaje('La reunión se canceló correctamente','success');
-                      } else {
-                        
-                        mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
-                      }
-                    })
-                    .catch(error => {
-                      mostrarMensaje('Ocurrió un error al cancelar la reunión','error');
-                     
-                    });
-                }
-              }}>
-                <HighlightOffIcon />
-              </IconButton >
-          </Tooltip>
-        </Box>
-      );
-    },
-  },
-]);
+            </Tooltip>
+            <Tooltip title="Cancelar">
+              <IconButton color="secondary"
+                onClick={() => {
+                  if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
 
-const columnsCompletas = generarColumnas([
-  {
-    field: "Acción",
-    headerName: "Acción",
-    flex: 0.01,
-    minWidth: 150,
-    headerAlign: "center",
-    align: "center",
-    renderCell: ({ row }) => {
-    const id = row && row.id; 
-    const {has_acta} = row;
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Tooltip title="">
-            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
-              <DescriptionIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="">
-            <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
-              <PictureAsPdfIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      );
+                    fetch('http://localhost:5000/proyecto/cancelarReunion', {
+                      method: 'POST',
+                      headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                      body: JSON.stringify({ id: row.id })
+
+                    })
+
+                      .then(response => {
+                        if (response.ok) {
+
+                          llenarTablaCanceladas();
+
+                          mostrarMensaje('La reunión se canceló correctamente', 'success');
+                        } else {
+
+                          mostrarMensaje('Ocurrió un error al cancelar la reunión', 'error');
+                        }
+                      })
+                      .catch(error => {
+                        mostrarMensaje('Ocurrió un error al cancelar la reunión', 'error');
+
+                      });
+                  }
+                }}>
+                <Close />
+              </IconButton >
+            </Tooltip>
+          </Box>
+        );
+      },
     },
-  },
-]);
+  ]);
+
+  const columnsCompletas = generarColumnas([
+    {
+      field: "Acción",
+      headerName: "Acción",
+      flex: 0.01,
+      minWidth: 150,
+      headerAlign: "center",
+      align: "center",
+      renderCell: ({ row }) => {
+        const id = row && row.id;
+        const { has_acta } = row;
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Tooltip title="">
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
+                <DescriptionIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="">
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
+                <PictureAsPdfIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    },
+  ]);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -483,7 +479,7 @@ const columnsCompletas = generarColumnas([
         <Dialog open={showModal} onClose={handleCloseModal}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <DialogTitle variant="h5">Crear Reunión</DialogTitle>
-            <Button onClick={handleCloseModal} startIcon={<HighlightOff />} />
+            <Button onClick={handleCloseModal} startIcon={<Close />} />
           </div>
 
           <DialogContent>
@@ -561,7 +557,7 @@ const columnsCompletas = generarColumnas([
           <Dialog open={showModal1} onClose={handleCloseModal1}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <DialogTitle variant="h5">Editar Reunión</DialogTitle>
-              <Button onClick={handleCloseModal1} startIcon={<HighlightOff />} />
+              <Button onClick={handleCloseModal1} startIcon={<Close />} />
             </div>
 
             <DialogContent>

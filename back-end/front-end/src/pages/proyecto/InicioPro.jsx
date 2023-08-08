@@ -7,6 +7,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
 import { Outlet } from 'react-router-dom';
+
 const drawerWidth = 240;
 
 function InicioPro() {
