@@ -8,10 +8,11 @@ import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
 
-import VerEntrega from './Ventanas/VerEntrega';
+import CalificarEntrega from './Ventanas/Calificar';
 
 export default function Entregas() {
-
+  const id_usuario = sessionStorage.getItem('user_id_usuario');
+  const id_rol = sessionStorage.getItem('id_rol');
   const token = useSelector(selectToken);
   const [entrega, setEntrega] = useState({});
   const [tipo, setTipo] = useState("");
@@ -28,7 +29,7 @@ export default function Entregas() {
 
   const llenarTabla = async (url, setData) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/entregas/${url}`, {
+      const response = await fetch(`http://localhost:5000/usuario/entregas/${url}/${id_usuario}/${id_rol}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -47,12 +48,20 @@ export default function Entregas() {
   };
   const [openCalificar, setOpenCalificar] = useState(false);
 
-  const abrirDialogCalificar = (row, tipo = "") => {
+  const abrirDialogCalificar = (row, tipo) => {
     setEntrega(row)
     setTipo(tipo)
     setOpenCalificar(true);
   };
-
+  const cerrarDialogCalificado = () => {
+    setEntrega({})
+    setRowsCalificadas([])
+    setRowsPorCalificar([])
+    llenarTabla("pendientes", setRowsPendientes);
+    llenarTabla("realizadas/calificadas", setRowsCalificadas);
+    llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
+    setOpenCalificar(false);
+  }
   const cerrarDialogCalificar = () => {
     setEntrega({})
     setOpenCalificar(false);
@@ -61,7 +70,7 @@ export default function Entregas() {
     llenarTabla("pendientes", setRowsPendientes);
     llenarTabla("realizadas/calificadas", setRowsCalificadas);
     llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
-  }, []);
+  }, [id_rol,id_usuario]);
 
   const generarColumnas = (inicio, extraColumns) => {
     const columns = [
@@ -93,23 +102,24 @@ export default function Entregas() {
     { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
   ]);
-  const columnaPorCalificar = generarColumnas([{
-    field: "calificar",
-    headerName: "",
-    flex: 0.1,
-    minWidth: 50,
-    renderCell: ({ row }) => {
-      return (
-        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-          <Tooltip title="Calificar">
-            <IconButton color="secondary" onClick={() => abrirDialogCalificar(row)}>
-              <Source />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      );
-    },
-  }], [
+  const columnaPorCalificar = generarColumnas([
+    {
+      field: "calificar",
+      headerName: "",
+      flex: 0.1,
+      minWidth: 50,
+      renderCell: ({ row }) => {
+        return (
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificar")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    }], [
     { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
     { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
@@ -138,7 +148,6 @@ export default function Entregas() {
     { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
 
-
   ]);
   return (
     <div>
@@ -149,9 +158,10 @@ export default function Entregas() {
           </Typography>
         </Toolbar>
       </AppBar>
-      <VerEntrega
+      <CalificarEntrega
         open={openCalificar}
         onClose={cerrarDialogCalificar}
+        onSubmit={cerrarDialogCalificado}
         entrega={entrega}
         tipo={tipo}
       />

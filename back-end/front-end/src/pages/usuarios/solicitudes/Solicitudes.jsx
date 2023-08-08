@@ -14,18 +14,16 @@ import CrearSolicitud from "./VentanasSolicitud/CrearSolicitud";
 
 export default function Proyectos() {
 
-  const idUsuario = sessionStorage.getItem('user_id_usuario');
-  const idRol = sessionStorage.getItem('id_rol');
+  const id = sessionStorage.getItem('user_id_usuario');
 
   const token = useSelector(selectToken);
-  const id = 3;
   const { enqueueSnackbar } = useSnackbar();
 
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-  const [solicitud, setSolicitud] = useState({});
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
+  const [rowsComite, setRowsComite] = useState([]);
   const [rowsAprobadas, setRowsAprobadas] = useState([]);
   const [rowsRechazadas, setRowsRechazadas] = useState([]);
   const [idSolicitud, setIdSolicitud] = useState(null);
@@ -60,12 +58,18 @@ export default function Proyectos() {
       { field: 'creado_por', headerName: 'Creado por', flex: 0.1, valueFormatter: ({ value }) => (value ? 'Proyecto' : 'Director') },
       { field: 'tipo_solicitud', headerName: 'Tipo de solicitud', flex: 0.2, minWidth: 150 },
       { field: 'fecha_solicitud', headerName: 'Fecha de solicitud', flex: 0.1, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
+      { field: 'codigo_proyecto', headerName: 'Código', flex: 0.1, minWidth: 100 },
+      {
+        field: 'etapa_estado', headerName: 'Estado Proyecto', flex: 0.2, minWidth: 100,
+        valueGetter: (params) =>
+          `${params.row.etapa_proyecto || ''} - ${params.row.estado || ''}`,
+      }
     ];
 
     return [...commonColumns, ...extraColumns];
   };
-
-  const columnsPendientes = generarColumnas([{
+  const columnsPendientes = generarColumnas([]);
+  const columnsComite = generarColumnas([{
     field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1
   }]);
   const columnsAprobadas = generarColumnas([
@@ -83,7 +87,7 @@ export default function Proyectos() {
 
   const llenarTabla = async (endpoint, setRowsFunc, id) => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${id}`, {
+      const response = await fetch(`http://localhost:5000/usuario/${endpoint}/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -103,8 +107,10 @@ export default function Proyectos() {
 
   useEffect(() => {
     llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
-    llenarTabla("obtenerSolicitudesRechazadas", setRowsRechazadas, id);
-    llenarTabla("obtenerSolicitudesAprobadas", setRowsAprobadas, id);
+    llenarTabla("obtenerSolicitudesPendientesComite", setRowsComite, id);
+    llenarTabla("obtenerSolicitudesCerradasAprobadas", setRowsAprobadas, id);
+    llenarTabla("obtenerSolicitudesCerradasRechazadas", setRowsRechazadas, id);
+
   }, []);
 
   const [open, setOpen] = useState(false);
@@ -117,7 +123,13 @@ export default function Proyectos() {
   const cerrarDialog = () => {
     setOpen(false);
   }
-
+  const cerrarSolicitudAprobada = () => {
+  
+    llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
+    llenarTabla("obtenerSolicitudesPendientesComite", setRowsComite, id);
+    llenarTabla("obtenerSolicitudesCerradasAprobadas", setRowsAprobadas, id);
+    llenarTabla("obtenerSolicitudesCerradasRechazadas", setRowsRechazadas, id);
+  };
   const [abrirCrear, setAbrirCrear] = useState(false);
 
   const abrirCrearSolicitud = () => {
@@ -128,7 +140,11 @@ export default function Proyectos() {
     setAbrirCrear(false);
   }
   const cerrarSolicitudAgregada = () => {
+  
     llenarTabla("obtenerSolicitudesPendientes", setRowsEnCurso, id);
+    llenarTabla("obtenerSolicitudesPendientesComite", setRowsComite, id);
+    llenarTabla("obtenerSolicitudesCerradasAprobadas", setRowsAprobadas, id);
+    llenarTabla("obtenerSolicitudesCerradasRechazadas", setRowsRechazadas, id);
     setAbrirCrear(false);
   };
 
@@ -150,6 +166,7 @@ export default function Proyectos() {
         open={open}
         onClose={cerrarDialog}
         id_solicitud={idSolicitud}
+        onSubmit={cerrarSolicitudAprobada}
       />
       <CrearSolicitud
         open={abrirCrear}
@@ -160,9 +177,15 @@ export default function Proyectos() {
       <Box sx={{ m: 3 }}>
         <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
-          Pendientes
+          Pendientes por responder
         </Typography>
         <CustomDataGrid rows={rowsEnCurso} columns={columnsPendientes} mensaje="No hay solicitudes pendientes." />
+
+        <Typography variant="h2" color="primary"
+          sx={{ mt: "30px" }}>
+          Pendientes por respuesta del comite
+        </Typography>
+        <CustomDataGrid rows={rowsComite} columns={columnsComite} mensaje="No hay solicitudes pendientes." />
 
         <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>

@@ -36,13 +36,30 @@ const obtenerEntregasPendientes = async (req, res) => {
 
   try {
 
-    const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, r.nombre AS nombre_rol, p.id AS id_proyecto
-      FROM espacio_entrega e
-      INNER JOIN rol r ON e.id_rol = r.id
-      LEFT JOIN documento_entrega d ON e.id = d.id_espacio_entrega
-      JOIN proyecto p ON p.id_modalidad = e.id_modalidad AND p.id_etapa = e.id_etapa
-      WHERE d.id_proyecto IS NULL AND p.id = $1
-      `;
+    const query = `SELECT 
+    ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
+    ee.id AS id_espacio_entrega,
+    ee.nombre AS nombre_espacio_entrega,
+    r.nombre AS nombre_rol,
+    p.id AS id_proyecto,
+    p.nombre AS nombre_proyecto,
+    ee.descripcion,
+    ee.fecha_apertura,
+    ee.fecha_cierre
+FROM 
+    proyecto p
+INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
+INNER JOIN rol r ON ee.id_rol = r.id
+WHERE 
+    NOT EXISTS (
+        SELECT 1
+        FROM documento_entrega de
+        WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+    )
+    AND p.id = $1
+ORDER BY 
+    ee.fecha_cierre;
+`
 
     await pool.query(query, [id], (error, result) => {
 
@@ -60,18 +77,110 @@ const obtenerEntregasPendientes = async (req, res) => {
     return res.status(502).json({ success: false, message });
   }
 };
+const obtenerLinkProyecto = async (req, res) => {
 
-const obtenerEntregasCompletadas = async (req, res) => {
+
+  const { id } = req.params;
+
+  try {
+
+    const query = `SELECT id, artefactos, documentos FROM link WHERE id = $1`;
+
+    await pool.query(query, [id], (error, result) => {
+
+      if (error) {
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los links de acceso a los repositorio. Por favor, intente de nuevo más tarde.' });
+      }
+      if (result.rows.length === 0) {
+
+        return res.status(203).json({ success: true, message: 'No se encontraron los links, debe agregarlos.' });
+      }
+      return res.status(200).json({ success: true, link_artefacto: result.rows[0].artefactos, link_documento: result.rows[0].documentos });
+    });
+  } catch (error) {
+    return res.status(502).json({ success: false, message });
+  }
+};
+
+const obtenerEntregasRealizadasSinCalificar = async (req, res) => {
   try {
     const proyecto_id = req.params.id;
 
-    const query = `SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura, e.fecha_cierre, d.fecha_entrega, r.nombre AS nombre_rol
-    FROM espacio_entrega e
-    INNER JOIN rol r ON e.id_rol = r.id
-    INNER JOIN documento_entrega d ON e.id = d.id_espacio_entrega
-    JOIN proyecto p ON p.id_modalidad = e.id_modalidad AND p.id_etapa = e.id_etapa
-    WHERE p.id = $1        
+    const query = `SELECT 
+    ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
+    de.id AS id_doc_entrega,
+    ee.id AS id_espacio_entrega,
+    ee.nombre AS nombre_espacio_entrega,
+    r.nombre AS nombre_rol,
+    ee.fecha_apertura,
+    ee.fecha_cierre,
+    p.nombre AS nombre_proyecto,
+    ee.descripcion,
+    ur.id AS id_usuario_rol,
+    u.nombre AS evaluador,
+    de.fecha_entrega,
+    de.id AS id_doc_entrega
+FROM 
+    documento_entrega de
+INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+INNER JOIN proyecto p ON de.id_proyecto = p.id
+INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol 
+INNER JOIN usuario u ON ur.id_usuario = u.id 
+INNER JOIN rol r ON ur.id_rol = r.id 
+WHERE 
+    de.id NOT IN (
+        SELECT id_doc_entrega 
+        FROM calificacion 
+        WHERE id_usuario_rol = ur.id
+    )
+    AND p.id = $1 
+ORDER BY 
+    de.fecha_entrega       
     `;
+
+    await pool.query(query, [proyecto_id], (error, result) => {
+      if (error) {
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+      }
+
+      if (result.rows.length === 0) {
+        return res.status(203).json({ success: true, message: 'No se han realizado entregas.' });
+      }
+      return res.status(200).json({ success: true, espacios: result.rows });
+    });
+  } catch (error) {
+    return res.status(502).json({ success: false, message });
+  }
+};
+const obtenerEntregasRealizadasCalificadas = async (req, res) => {
+  try {
+    const proyecto_id = req.params.id;
+
+    const query = `SELECT 
+    c.id,
+    ee.nombre AS nombre_espacio_entrega,
+    ee.fecha_apertura,
+    ee.fecha_cierre,
+    r.nombre AS nombre_rol,
+    p.nombre AS nombre_proyecto,
+    ee.descripcion,
+    u.nombre AS evaluador,
+    de.fecha_entrega,
+    de.id AS id_doc_entrega,
+    c.fecha_evaluacion,
+    c.nota_final
+FROM 
+    documento_entrega de
+    INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+    INNER JOIN proyecto p ON de.id_proyecto = p.id
+    INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+    INNER JOIN usuario u ON ur.id_usuario = u.id
+    INNER JOIN rol r ON ur.id_rol = r.id 
+    INNER JOIN calificacion c ON de.id = c.id_doc_entrega AND ur.id = c.id_usuario_rol
+WHERE p.id = $1   
+ORDER BY 
+    de.fecha_entrega
+     `;
 
     await pool.query(query, [proyecto_id], (error, result) => {
       if (error) {
@@ -118,7 +227,6 @@ const obtenerReunionesPendientes = async (req, res) => {
       return res.status(203).json({ success: false, message: 'No hay reuniones pendientes' });
     }
   } catch (error) {
-    console.log(error)
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -388,7 +496,6 @@ const guardarSolicitud = async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error)
     return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error en la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
   }
 };
@@ -558,10 +665,10 @@ const guardarLink = async (req, res) => {
 
 
 module.exports = {
-  obtenerProyecto, obtenerEntregasCompletadas, obtenerEntregasPendientes,
+  obtenerProyecto, obtenerEntregasRealizadasCalificadas, obtenerEntregasRealizadasSinCalificar, obtenerEntregasPendientes,
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
   obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas, guardarReunion, obtenerReunion,
   cancelarReunion, editarReunion,
   obtenerTipoSolicitud, guardarSolicitud,
-  guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink
+  guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink, obtenerLinkProyecto
 }

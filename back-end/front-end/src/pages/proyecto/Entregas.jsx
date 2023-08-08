@@ -2,57 +2,65 @@ import React, { useState, useEffect } from "react";
 import {
   Typography, Box, TextField, Dialog,
   DialogTitle, DialogContent, DialogActions,
-  IconButton, Tooltip, Button, AppBar, Toolbar
+  IconButton, Tooltip, Button, AppBar, Toolbar, Link
 } from "@mui/material";
 
-import { PostAdd, InsertLink, HighlightOff, Upload } from '@mui/icons-material';
+import { PostAdd, InsertLink, HighlightOff, Upload, Source } from '@mui/icons-material';
 
 import { useSelector } from "react-redux";
 
 import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../layouts/DataGrid";
-import RealizarEntrega from "./RealizarEntrega";
 import { selectToken } from "../../store/authSlice";
 import "./Entregas.css";
+import RealizarEntrega from "./VentanasEntregas/RealizarEntrega";
+import VerEntrega from "./VentanasEntregas/VerEntrega";
 
 export default function Entregas() {
 
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
+  
+  const [entrega, setEntrega] = useState({});
+  const [tipo, setTipo] = useState("");
   const [pendientes, setPendientes] = useState([]);
-  const [completadas, setCompletadas] = useState([]);
-
-  const [showModal, setShowModal] = useState(false);
-  const [showModal1, setShowModal1] = useState(false);
+  const [rowsCalificadas, setRowsCalificadas] = useState([]);
+  const [rowsPorCalificar, setRowsPorCalificar] = useState([]);
+  const [abrirArtefactos, setAbrirModalArtefactos] = useState(false);
+  const [abrirDocumentos, setAbrirModalDocumentos] = useState(false);
   const [link, setLink] = useState('');
   const { enqueueSnackbar } = useSnackbar();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [link_artefacto, setLink_Artefacto] = useState(null);
+  const [link_documento, setLink_Documento] = useState(null);
 
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
-  const handleOpenModal = () => {
-    setShowModal(true);
+  const abrirModalArtefactos = () => {
+    setLink(link_artefacto || '')
+    setAbrirModalArtefactos(true);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
+  const cerrarModalLinkArtefacto = () => {
+    setAbrirModalArtefactos(false);
     setLink("");
   };
 
-  const handleOpenModal1 = () => {
-    setShowModal1(true);
+  const abrirModalDocumentos = () => {
+    setLink(link_documento || '')
+    setAbrirModalDocumentos(true);
   };
 
-  const handleCloseModal1 = () => {
-    setShowModal1(false);
+  const cerrarModalLinkDocumento = () => {
+    setAbrirModalDocumentos(false);
     setLink("");
   };
 
 
 
-  const handleSave = async () => {
+  const guardarLinkArtefacto = async () => {
     try {
       const data = {
         link: link,
@@ -60,12 +68,8 @@ export default function Entregas() {
         id: id
       };
 
-      // Realiza la solicitud POST al backend
       const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -76,15 +80,17 @@ export default function Entregas() {
       } else {
         mostrarMensaje("Ocurrió un error.", "error");
       }
-      handleCloseModal()
     } catch (error) {
       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
-    handleCloseModal();
+    cerrarModalLinkArtefacto();
   };
-  const handleSaveProyecto = async () => {
+
+  const guardarLinkDocumento = async () => {
 
     try {
+
+
       const data = {
         link: link,
         tipol: 'D',
@@ -93,9 +99,6 @@ export default function Entregas() {
 
       const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -105,11 +108,10 @@ export default function Entregas() {
       } else {
         mostrarMensaje("Ocurrió un error.", "error");
       }
-      handleCloseModal()
     } catch (error) {
       mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
     }
-    handleCloseModal();
+    cerrarModalLinkDocumento();
   };
 
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
@@ -130,15 +132,34 @@ export default function Entregas() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   }
-  const generarColumnas = (extraColumns) => {
+  const obtenerlinks = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerLink/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 203) {
+        mostrarMensaje(data.message, "warning")
+      } else if (response.status === 200) {
+        setLink_Artefacto(data.link_artefacto);
+        setLink_Documento(data.link_documento);
+      }
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+    }
+  }
+  const generarColumnas = (inicio, extraColumns) => {
     const columns = [
-      { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150 },
+      { field: 'nombre_espacio_entrega', headerName: 'Nombre', flex: 0.2, minWidth: 150 },
       { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150 },
       { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100 }
     ];
-    return [...columns, ...extraColumns];
+    return [...inicio, ...columns, ...extraColumns];
   };
 
   const columnasPendientes = generarColumnas([
@@ -160,12 +181,65 @@ export default function Entregas() {
         );
       },
     },
-  ]);
+  ], []);
 
-  const columnas = generarColumnas([
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.15, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-  ]);
+  const columnaPorCalificar = generarColumnas([{
+    field: "calificar",
+    headerName: "",
+    flex: 0.1,
+    minWidth: 50,
+    renderCell: ({ row }) => {
+      return (
+        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+          <Tooltip title="Calificar">
+            <IconButton color="secondary" onClick={() => abrirDialogCalificar(row)}>
+              <Source />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  }], [
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+   { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
+  ]);
+  const columnaCalificadas = generarColumnas([{
+    field: "calificado",
+    headerName: "",
+    flex: 0.1,
+    minWidth: 50,
+    renderCell: ({ row }) => {
+      return (
+        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+          <Tooltip title="Calificar">
+            <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificado")}>
+              <Source />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  }], [
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
+
+
+  ]);
+  const [openCalificar, setOpenCalificar] = useState(false);
+
+  const abrirDialogCalificar = (row, tipo = "") => {
+    setEntrega(row)
+    setTipo(tipo)
+    setOpenCalificar(true);
+  };
+
+  const cerrarDialogCalificar = () => {
+    setEntrega({})
+    setOpenCalificar(false);
+  }
   const abrirDialogAgregarEntrega = (row) => {
     setSelectedRow(row);
     setOpenDialog(true);
@@ -177,20 +251,24 @@ export default function Entregas() {
 
   const cerrarEntregaAgregada = () => {
     setPendientes([])
-    setCompletadas([])
+    setRowsCalificadas([])
     llenarTabla("obtenerEntregasPendientes", id, setPendientes);
-    llenarTabla("obtenerEntregasCompletadas", id, setCompletadas);
+    llenarTabla("obtenerEntregasCalificadas", id, setRowsCalificadas);
+    llenarTabla("obtenerEntregasSinCalificar", id, setRowsPorCalificar);
     setOpenDialog(false);
   };
   useEffect(() => {
+    obtenerlinks()
     llenarTabla("obtenerEntregasPendientes", id, setPendientes);
-    llenarTabla("obtenerEntregasCompletadas", id, setCompletadas);
+    llenarTabla("obtenerEntregasCalificadas", id, setRowsCalificadas);
+    llenarTabla("obtenerEntregasSinCalificar", id, setRowsPorCalificar);
   }, [id]);
 
   const handleLinkChange = (value) => {
     const isOnlyWhitespace = /^\s*$/.test(value);
     setLink(isOnlyWhitespace ? "" : value);
-  };
+  }
+  const urlPattern = /^(ftp|http|https):\/\/[^ "]+$/;
   return (
     <div>
       <AppBar position="static" color="transparent" variant="contained" >
@@ -201,14 +279,13 @@ export default function Entregas() {
         </Toolbar>
       </AppBar>
       <Box sx={{ m: 3 }}>
-        <div style={{ display: 'flex', justifyContent: 'flex'}}>
+        <div style={{ display: 'flex', justifyContent: 'flex' }}>
           <Box sx={{ border: '1px solid rgba(100, 128, 128, 0.5)', borderRadius: '10px', p: 2, marginRight: '10px', flexGrow: 1, backgroundColor: '#f2f2f2', height: '50px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
-              <Typography variant="h5" style={{ textAlign: 'center', flex: '1', marginTop: 'auto', marginBottom: 'auto' }}>Artefactos De Control</Typography>
-
+              <Link href={link_artefacto} variant="h5" style={{ textAlign: 'center', flex: '1', marginTop: 'auto', marginBottom: 'auto' }} target="_blank">Artefactos De Control</Link>
               <IconButton
                 aria-label="Artefactos De Control"
-                onClick={handleOpenModal}
+                onClick={abrirModalArtefactos}
                 color="secondary"
               >
                 <InsertLink />
@@ -217,11 +294,11 @@ export default function Entregas() {
           </Box>
           <Box sx={{ border: '1px solid rgba(100, 128, 128, 0.5)', borderRadius: '10px', p: 2, marginRight: '10px', flexGrow: 1, backgroundColor: '#f2f2f2', height: '50px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
-              <Typography variant="h5" style={{ textAlign: 'center', flex: '1', marginTop: 'auto', marginBottom: 'auto' }}>Documentos Del Proyecto</Typography>
+              <Link href={link_documento} variant="h5" style={{ textAlign: 'center', flex: '1', marginTop: 'auto', marginBottom: 'auto' }} target="_blank">Documentos del proyecto</Link>
 
               <IconButton
                 aria-label="Documentos del proyecto"
-                onClick={handleOpenModal1}
+                onClick={abrirModalDocumentos}
                 color="secondary"
               >
                 <InsertLink />
@@ -230,41 +307,58 @@ export default function Entregas() {
             </div>
           </Box>
         </div >
-        <Dialog open={showModal} onClose={handleCloseModal}>
-          <DialogTitle variant='h3' color="primary">
+        <Dialog open={abrirArtefactos} maxWidth="md" onClose={cerrarModalLinkArtefacto}>
+          <DialogTitle variant='h3' color="primary" >
             Artefactos de control
-            <IconButton onClick={handleCloseModal} color="secondary" >
+            <IconButton onClick={cerrarModalLinkArtefacto} color="secondary" >
               <HighlightOff />
             </IconButton>
           </DialogTitle>
-          <form onSubmit={handleSave}>
+          <form onSubmit={guardarLinkArtefacto}>
             <DialogContent>
-              <TextField label="Link carpeta drive" required value={link} onChange={(e) => handleLinkChange(e.target.value)} />
+              <TextField
+                label="Link carpeta drive" required value={link} onChange={(e) => handleLinkChange(e.target.value)}
+                error={!urlPattern.test(link) && link !== ''}
+                helperText={!urlPattern.test(link) && link !== '' ? 'La URL ingresada no es válida.' : ''}
+                fullWidth
+                multiline
+                InputProps={{
+                  inputProps: {
+                    pattern: urlPattern.source,
+                    title: 'Debe ingresar una URL válida que comience con ftp, http o https.',
+                  },
+                }}
+              />
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-              <Button type="submit" variant="contained" startIcon={<Upload />} sx={{
-                width: 150,
-              }}>
+              <Button type="submit" variant="contained" startIcon={<Upload />} sx={{ width: 150, }} disabled={link === link_artefacto}>
                 Guardar
               </Button>
             </DialogActions>
           </form>
         </Dialog>
-        <Dialog open={showModal1} onClose={handleCloseModal1}>
+        <Dialog open={abrirDocumentos} maxWidth="md" onClose={cerrarModalLinkDocumento}>
           <DialogTitle variant='h3' color="primary">
             Documentos del proyecto
-            <IconButton onClick={handleCloseModal1} color="secondary" >
+            <IconButton onClick={cerrarModalLinkDocumento} color="secondary" >
               <HighlightOff />
             </IconButton>
           </DialogTitle>
-          <form onSubmit={handleSaveProyecto}>
+          <form onSubmit={guardarLinkDocumento}>
             <DialogContent>
-              <TextField label="Link carpeta drive" required value={link} onChange={(e) => handleLinkChange(e.target.value)} />
+              <TextField label="Link carpeta drive" required value={link} onChange={(e) => handleLinkChange(e.target.value)} error={!urlPattern.test(link) && link !== ''}
+                helperText={!urlPattern.test(link) && link !== '' ? 'La URL ingresada no es válida.' : ''}
+                fullWidth
+                multiline
+                InputProps={{
+                  inputProps: {
+                    pattern: urlPattern.source,
+                    title: 'Debe ingresar una URL válida que comience con ftp, http o https.',
+                  },
+                }} />
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-              <Button type="submit" variant="contained" startIcon={<Upload />} sx={{
-                width: 150,
-              }}>
+              <Button type="submit" variant="contained" startIcon={<Upload />} sx={{ width: 150, }} disabled={link === link_documento}>
                 Guardar
               </Button>
             </DialogActions>
@@ -278,15 +372,26 @@ export default function Entregas() {
           onSubmit={cerrarEntregaAgregada}
           entrega={selectedRow || {}}
         />
+        <VerEntrega
+          open={openCalificar}
+          onClose={cerrarDialogCalificar}
+          entrega={entrega}
+          tipo={tipo}
+        />
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
           Entregas pendientes
         </Typography>
         <CustomDataGrid rows={pendientes} columns={columnasPendientes} mensaje="No hay entregas pendientes" />
 
         <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
-          Entregas realizadas
+          Entregas sin calificar
         </Typography>
-        <CustomDataGrid rows={completadas} columns={columnas} mensaje="No hay entregas realizadas" />
+        <CustomDataGrid rows={rowsPorCalificar} columns={columnaPorCalificar} mensaje="No hay entregas sin calificar" />
+
+        <Typography variant="h2" color="primary" sx={{ mt: "30px" }}>
+          Entregas calificadas
+        </Typography>
+        <CustomDataGrid rows={rowsCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />
 
       </Box>
 

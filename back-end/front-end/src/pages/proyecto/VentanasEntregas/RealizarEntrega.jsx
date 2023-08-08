@@ -13,7 +13,7 @@ import {
 
 import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
-import { selectToken } from '../../store/authSlice';
+import { selectToken } from '../../../store/authSlice';
 
 function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
 
@@ -31,7 +31,6 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
         setSelectedFile(event.target.files[0]);
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -41,7 +40,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 formData.append('file', selectedFile);
                 formData.append('entrega', JSON.stringify(entrega));
 
-                const response = await fetch("http://localhost:5000/comite/guardar", {
+                const response = await fetch("http://localhost:5000/entrega/guardar", {
                     method: "POST",
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -74,7 +73,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 <DialogTitle variant="h1" color="primary">Entrega de Documento</DialogTitle>
                 <DialogContent dividers>
                     <Typography variant="h2" color="secondary">
-                        Información del proyecto
+                    Información general de la entrega
                     </Typography>
 
                     <Divider sx={{ mt: 1, mb: 1 }} />
@@ -83,7 +82,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                             <Typography variant="h6" color="primary">
                                 Nombre
                             </Typography>
-                            <TextField value={entrega.nombre || ''} fullWidth />
+                            <TextField value={entrega.nombre_espacio_entrega || ''} fullWidth />
                         </Grid>
                         <Grid item xs={12} sm={6} md={4} lg={4}>
                             <Typography variant="h6" color="primary">
@@ -116,7 +115,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                         Agregar entrega
                     </Typography>
 
-                    <Typography variant="h6" color="secondary">
+                    <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
                         Documento
                     </Typography>
                     <TextField fullWidth required placeholder="Agregue el documento" type='file' onChange={handleInputChange} />

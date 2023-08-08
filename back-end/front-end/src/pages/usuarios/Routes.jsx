@@ -8,6 +8,7 @@ import VerProyecto from './proyectos/VerProyecto';
 import Solicitudes from './solicitudes/Solicitudes';
 import Inicio from './inicio/Inicio';
 import Reuniones from './reuniones/Reuniones';
+import Entregas from "./entregas/Entregas";
 
 export default function RoutesUsers() {
 
@@ -20,6 +21,7 @@ export default function RoutesUsers() {
                 <Route path="verProyecto" element={<VerProyecto />} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="reuniones" element={<Reuniones />} />
+                <Route path="entregas" element={<Entregas />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes>

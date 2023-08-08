@@ -82,8 +82,6 @@ function CrearRubrica(props) {
         const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
         if (puntajesSum === 100) {
             try {
-                console.log("Crear")
-                console.log(selectedAspectos)
                 const rubricaData = {
                     nombre: rubricaNombre,
                     descripcion: rubricaDescripcion,

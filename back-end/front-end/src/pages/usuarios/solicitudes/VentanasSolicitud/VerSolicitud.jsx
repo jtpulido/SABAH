@@ -3,25 +3,31 @@ import PropTypes from 'prop-types';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import {
-    Typography,     CircularProgress, Box, TextField, Grid, CssBaseline, 
-    Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent
+    Typography, CircularProgress, Box, TextField, Grid, CssBaseline,
+    Button, DialogTitle, Dialog, DialogActions, Divider, DialogContent, Accordion, AccordionSummary, AccordionDetails, FormControl, Stack, RadioGroup, FormControlLabel, Radio
 } from "@mui/material";
 
 import CustomDataGrid from "../../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
+import { ExpandMore } from '@mui/icons-material';
 
 function VerSolicitud(props) {
 
-    const { onClose, id_solicitud, open } = props;
+    const { onClose, id_solicitud, onSubmit, open } = props;
 
+    const token = useSelector(selectToken);
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
-    const token = useSelector(selectToken);
 
     const [loading, setLoading] = useState(true);
+    const [isFormValid, setIsFormValid] = useState(false);
+
+    const [comments, setComments] = useState('');
+    const [approval, setApproval] = useState('');
+
     const [solicitud, setSolicitud] = useState(null);
 
     const [aprobaciones, setAprobaciones] = useState([]);
@@ -30,13 +36,15 @@ function VerSolicitud(props) {
         obtenerInfoSolicitud(id_solicitud)
         obtenerAprobacionesSolicitud(id_solicitud)
         setLoading(false);
-    };
+     };
 
     const handleCancel = () => {
         onClose();
         setSolicitud(null)
         setAprobaciones([])
         setLoading(true)
+        setApproval('')
+        setComments('')
     };
 
     const obtenerInfoSolicitud = async (id) => {
@@ -48,6 +56,7 @@ function VerSolicitud(props) {
             const data = await response.json();
             if (response.status === 200) {
                 setSolicitud(data.solicitud)
+    
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
@@ -77,7 +86,37 @@ function VerSolicitud(props) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
-   
+
+    const guardarAprobacion = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch("http://localhost:5000/usuario/solicitudes/agregarAprobacion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ aprobado: approval, comentario: comments, id_solicitud })
+            });
+            const data = await response.json();
+
+            setIsFormValid(false)
+            if (response.status === 200) {
+                mostrarMensaje("Se ha guardado su respuesta!", "success")
+                obtenerInfoSolicitud(id_solicitud)
+                obtenerAprobacionesSolicitud(id_solicitud)
+                onSubmit()
+            } else if (response.status === 502) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 203 || response.status === 400) {
+                mostrarMensaje(data.message, "warning")
+            } else {
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+
+            }
+        } catch (error) {
+            handleCancel()
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+        }
+        setLoading(false);
+    };
 
     const columns = [
         { field: 'aprobado', headerName: 'Aprobado', flex: 0.1, minWidth: 80, align: "center" },
@@ -85,7 +124,19 @@ function VerSolicitud(props) {
         { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, align: "center" },
         { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, align: "center" }
     ];
-  
+    const handleApprovalChange = (event) => {
+        setApproval(event.target.value);
+        checkFormValidity(event.target.value, comments);
+    };
+
+    const handleCommentsChange = (event) => {
+        setComments(event.target.value);
+        checkFormValidity(approval, event.target.value);
+    };
+
+    const checkFormValidity = (approvalValue, commentsValue) => {
+        setIsFormValid(approvalValue !== '' && commentsValue !== '');
+    };
 
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} fullWidth maxWidth='md' onClose={handleCancel}>
@@ -157,7 +208,49 @@ function VerSolicitud(props) {
                                 <TextField fullWidth multiline value={solicitud.justificacion || ''} />
 
                             </Grid>
-                        </Grid>                        
+                        </Grid>
+                        <Divider sx={{ mt: 1, mb: 1 }} />
+                        {(!solicitud.finalizado) && solicitud.creado_por_proyecto? (
+
+                            <>
+                                <Accordion>
+                                    <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
+                                        <Typography variant="h2" color="secondary">
+                                            Responder solicitud
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <FormControl fullWidth>
+                                            <Stack spacing={1} >
+                                                <Typography variant="h6" color="secondary">
+                                                    Aprobado
+                                                </Typography>
+                                                <RadioGroup row value={approval} onChange={handleApprovalChange}>
+                                                    <FormControlLabel value="false" control={<Radio />} label="No" />
+                                                    <FormControlLabel value="true" control={<Radio />} label="Sí" />
+                                                </RadioGroup>
+                                                <Typography variant="h6" color="secondary">
+                                                    Comentarios
+                                                </Typography>
+                                                <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
+                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={guardarAprobacion} sx={{
+                                                    width: 150,
+                                                }}>
+                                                    Guardar
+                                                </Button>
+                                            </Stack>
+                                        </FormControl>
+
+                                    </AccordionDetails>
+                                </Accordion>
+
+                            </>
+                        ) : (
+                            <>
+                               
+                            </>
+                        )
+                        }
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Typography variant="h2" color="secondary">
                             Aprobaciones
@@ -180,7 +273,8 @@ function VerSolicitud(props) {
 }
 VerSolicitud.propTypes = {
     onClose: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired
+    open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
 };
 
 export default VerSolicitud;
