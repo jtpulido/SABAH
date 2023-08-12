@@ -50,6 +50,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
 } = require('../controllers/entregas.controller')
 
 const { verInfoDocEntregado, descargarDocumento } = require('../controllers/documento.controller');
+const { obtenerVistasDisponibles, obtenerColumnasDisponibles, generarReporte } = require('../controllers/reportes.controller');
 router.get('/comite/usuarios', authenticateJWT, obtenerUsuarios);
 router.post('/comite/cambiarUsuarioRol', authenticateJWT, cambioUsuarioRol);
 
@@ -122,5 +123,9 @@ router.get('/comite/documento/aspectos/:id_esp_entrega', authenticateJWT, verAsp
 router.post('/comite/documento/guardarCalificacion', authenticateJWT, guardarCalificacion);
 router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, verCalificacionAspectos);
 
+//reportes
+router.get('/comite/vistas-disponibles', authenticateJWT, obtenerVistasDisponibles);
+router.get('/comite/columnas-disponibles/:vista', authenticateJWT, obtenerColumnasDisponibles);
+router.post('/comite/generarReporte', authenticateJWT, generarReporte );
 
 module.exports = router;
