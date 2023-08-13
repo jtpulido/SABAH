@@ -3,50 +3,52 @@ const passport = require('passport');
 const router = Router()
 
 const authenticateJWT = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, (error, user, info) => {
-      if (error || !user) {
-        return res.status(401).json({ message: 'La sesión ha expirado. Por favor, inicie sesión nuevamente.' });
+  passport.authenticate('jwt', { session: false }, (error, user, info) => {
+    if (error || !user) {
+      return res.status(401).json({ message: 'La sesión ha expirado. Por favor, inicie sesión nuevamente.' });
     }
-      req.user = user;
-      next();
-    })(req, res, next);
-  };
+    req.user = user;
+    next();
+  })(req, res, next);
+};
 
 const {
-    obtenerProyecto,
-    obtenerProyectosTerminados,
-    obtenerProyectosDesarrollo,
-    asignarCodigoProyecto,
-    obtenerDirectoresProyectosActivos,
-    obtenerDirectoresProyectosInactivos,
-    obtenerJuradosProyectosActivos,
-    obtenerJuradosProyectosInactivos,
-    obtenerLectoresProyectosActivos,
-    obtenerLectoresProyectosInactivos,
-    obtenerSolicitudesPendientesComite,
-    obtenerSolicitudesAprobadasComite,
-    obtenerSolicitudesRechazadasComite,
-    obtenerJuradosProyectosCerrados,
-    obtenerDirectoresProyectosCerrados,
-    obtenerLectoresProyectosCerrados,
-    asignarNuevoCodigo,
-    verAprobacionesSolicitud,
-    verSolicitud,
-    agregarAprobacion,
-    obtenerUsuarios,
-    cambioUsuarioRol
+  obtenerProyecto,
+  obtenerProyectosTerminados,
+  obtenerProyectosDesarrollo,
+  asignarCodigoProyecto,
+  obtenerDirectoresProyectosActivos,
+  obtenerDirectoresProyectosInactivos,
+  obtenerJuradosProyectosActivos,
+  obtenerJuradosProyectosInactivos,
+  obtenerLectoresProyectosActivos,
+  obtenerLectoresProyectosInactivos,
+  obtenerSolicitudesPendientesComite,
+  obtenerSolicitudesAprobadasComite,
+  obtenerSolicitudesRechazadasComite,
+  obtenerJuradosProyectosCerrados,
+  obtenerDirectoresProyectosCerrados,
+  obtenerLectoresProyectosCerrados,
+  asignarNuevoCodigo,
+  verAprobacionesSolicitud,
+  verSolicitud,
+  agregarAprobacion,
+  obtenerUsuarios,
+  cambioUsuarioRol,
+  removerEstudiante,
+  agregarEstudiante
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
-    crearRubrica, obtenerRubricasConAspectos, eliminarRubrica, modificarRubrica,
-    crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
-    obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
-    verEntregasPendientesProyecto, verEntregasRealizadasCalificadasProyecto, verEntregasRealizadasSinCalificarProyecto,
-    verEntregasPendientes,
-    verEntregasRealizadasCalificadas,
-    verEntregasRealizadasSinCalificar,
-    verAspectosEspacio,
-    guardarCalificacion, validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
+  crearRubrica, obtenerRubricasConAspectos, eliminarRubrica, modificarRubrica,
+  crearEspacio, eliminarEspacio, modificarEspacio, obtenerEspacio, obtenerEspacioPorId,
+  obtenerEtapas, obtenerModalidades, obtenerRoles, obtenerRubricas,
+  verEntregasPendientesProyecto, verEntregasRealizadasCalificadasProyecto, verEntregasRealizadasSinCalificarProyecto,
+  verEntregasPendientes,
+  verEntregasRealizadasCalificadas,
+  verEntregasRealizadasSinCalificar,
+  verAspectosEspacio,
+  guardarCalificacion, validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
 } = require('../controllers/entregas.controller')
 
 const { verInfoDocEntregado, descargarDocumento } = require('../controllers/documento.controller');
@@ -68,7 +70,8 @@ router.get('/comite/juradosproyectos/inactivos', authenticateJWT, obtenerJurados
 router.get('/comite/lectoresproyectos/activos', authenticateJWT, obtenerLectoresProyectosActivos);
 router.get('/comite/lectoresproyectos/cerrados', authenticateJWT, obtenerLectoresProyectosCerrados);
 router.get('/comite/lectoresproyectos/inactivos', authenticateJWT, obtenerLectoresProyectosInactivos);
-
+router.put('/comite/estudiante/:id', authenticateJWT, removerEstudiante);
+router.post('/comite/estudiante/:id', authenticateJWT, agregarEstudiante);
 router.get('/comite/solicitudes/pendienteaprobacion', authenticateJWT, obtenerSolicitudesPendientesComite);
 router.get('/comite/solicitudes/aprobadas', authenticateJWT, obtenerSolicitudesAprobadasComite);
 router.get('/comite/solicitudes/rechazadas', authenticateJWT, obtenerSolicitudesRechazadasComite);
@@ -116,7 +119,7 @@ router.get('/comite/entregas/pendientes', authenticateJWT, verEntregasPendientes
 router.get('/comite/entregas/realizadas/calificadas', authenticateJWT, verEntregasRealizadasCalificadas);
 router.get('/comite/entregas/realizadas/porCalificar', authenticateJWT, verEntregasRealizadasSinCalificar);
 router.get('/comite/documento/:id_doc_entrega', authenticateJWT, verInfoDocEntregado);
-router.get('/descargar/:nombreArchivo',  descargarDocumento);
+router.get('/descargar/:nombreArchivo', descargarDocumento);
 router.get('/comite/documento/aspectos/:id_esp_entrega', authenticateJWT, verAspectosEspacio);
 
 //calificación
@@ -126,6 +129,6 @@ router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, ve
 //reportes
 router.get('/comite/vistas-disponibles', authenticateJWT, obtenerVistasDisponibles);
 router.get('/comite/columnas-disponibles/:vista', authenticateJWT, obtenerColumnasDisponibles);
-router.post('/comite/generarReporte', authenticateJWT, generarReporte );
+router.post('/comite/generarReporte', authenticateJWT, generarReporte);
 
 module.exports = router;

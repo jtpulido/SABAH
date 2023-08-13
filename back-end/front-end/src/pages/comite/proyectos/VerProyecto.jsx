@@ -7,9 +7,10 @@ import './VerProyecto.css';
 import VerEntrega from "../entregas/Ventanas/VerEntrega";
 import CustomDataGrid from "../../layouts/DataGrid";
 import CambiarCodigo from './Ventana/CambiarCodigo';
-import { PostAdd, Source } from "@mui/icons-material";
+import { Add, PostAdd, Remove, Source } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
+import AgregarEstudiante from "./Ventana/AgregarEstudiante";
 export default function VerProyectos() {
 
   const id = sessionStorage.getItem('id_proyecto');
@@ -136,13 +137,62 @@ export default function VerProyectos() {
     }
   }
 
+  const quitarEstudiante = async (estudiante) => {
+    try {
+      const response = await fetch(`http://localhost:5000/comite/estudiante/${estudiante.id_estudiante_proyecto}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 200) {
+        mostrarMensaje(data.message, "success")
+      }
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+    }
+  }
+  const [abrirAgregarEstudiante, setAbrirAgregarEstudiante] = useState(false);
 
+  const abrirVentanaAgregarEstudiante = () => {
+    setAbrirAgregarEstudiante(true);
+  };
+  const cerrarDialogEstudiante = () => {
+    setAbrirAgregarEstudiante(false);
+  }
+  const cerrarDialogAgregarEstudiante = async (e,estudiante) => {
+    e.preventDefault();
+    setAbrirAgregarEstudiante(false);
+    if (estudiante) {
+      await agregarEstudiante(estudiante)
+    };
+  }
+  const agregarEstudiante = async (estudiante) => {
+    try {
+      const response = await fetch(`http://localhost:5000/comite/estudiante/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(estudiante)
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 200) {
+        mostrarMensaje(data.message, "success")
+        setEstudiantes(data.estudiantes)
+        console.log(data.estudiantes)
+      }
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+    }
+  }
 
   useEffect(() => {
     infoProyecto()
     llenarTabla("pendientes", id, setEntregasPendientes);
-    llenarTabla("realizadas/calificadas", id,setEntregasCalificadas);
-    llenarTabla("realizadas/porCalificar", id,setEntregasPorCalificar);
+    llenarTabla("realizadas/calificadas", id, setEntregasCalificadas);
+    llenarTabla("realizadas/porCalificar", id, setEntregasPorCalificar);
   }, [id]);
 
   const [open, setOpen] = useState(false);
@@ -157,7 +207,8 @@ export default function VerProyectos() {
       modificarCodigo(newValue)
     };
   }
-  const abrirVentanaVerEntrega = (row,tipo) => {
+
+  const abrirVentanaVerEntrega = (row, tipo) => {
     setEntrega(row);
     setTipo(tipo)
     setOpenDialog(true);
@@ -166,6 +217,7 @@ export default function VerProyectos() {
   const generacerrarDialogVerEntrega = () => {
     setOpenDialog(false);
   };
+
 
   const generarColumnasEntregas = (inicio, extraColumns) => {
     const columns = [
@@ -344,15 +396,28 @@ export default function VerProyectos() {
           </Box>
 
           <Box>
-            <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
-              Estudiante(s)
-            </Typography>
+            <div style={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+              <Typography variant="h4" color="secondary" sx={{ mt: "20px", mb: "20px", flexGrow: 1, maxWidth: '98%' }}>
+                Estudiante(s)
+              </Typography>
+              <Tooltip title="Agregar Estudiante">
+                <IconButton variant="outlined" color='secondary' size="large" onClick={abrirVentanaAgregarEstudiante} sx={{ marginLeft: '8px' }}>
+                  <Add fontSize="inherit" />
+                </IconButton>
+              </Tooltip>
+            </div>
+            <AgregarEstudiante
+              open={abrirAgregarEstudiante}
+              onClose={cerrarDialogEstudiante}
+              onSubmit={cerrarDialogAgregarEstudiante}
+            />
 
             <Grid container>
+
               {estudiantes.map((estudiante) => (
                 <Grid item key={estudiante.num_identificacion} xs={12}>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
                         Nombre
                       </Typography>
@@ -361,7 +426,7 @@ export default function VerProyectos() {
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
                         Correo electrónico
                       </Typography>
@@ -370,7 +435,7 @@ export default function VerProyectos() {
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
                         Número de Identificación
                       </Typography>
@@ -378,6 +443,13 @@ export default function VerProyectos() {
                         value={estudiante.num_identificacion || ''}
                         fullWidth
                       />
+                    </Grid>
+                    <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                      <Tooltip title="Quitar estudiante">
+                        <IconButton variant="outlined" color='naranja' size="large" onClick={() => quitarEstudiante(estudiante)} sx={{ marginLeft: '8px' }}>
+                          <Remove fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
                     </Grid>
                   </Grid>
                 </Grid>
@@ -387,7 +459,7 @@ export default function VerProyectos() {
           {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
             <> <Box>
 
-              <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
+              <Typography variant="h4" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
                 Jurado(s)
               </Typography>
               {existeJurados ? (
