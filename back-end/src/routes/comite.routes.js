@@ -70,7 +70,7 @@ router.get('/comite/juradosproyectos/inactivos', authenticateJWT, obtenerJurados
 router.get('/comite/lectoresproyectos/activos', authenticateJWT, obtenerLectoresProyectosActivos);
 router.get('/comite/lectoresproyectos/cerrados', authenticateJWT, obtenerLectoresProyectosCerrados);
 router.get('/comite/lectoresproyectos/inactivos', authenticateJWT, obtenerLectoresProyectosInactivos);
-router.put('/comite/estudiante/:id', authenticateJWT, removerEstudiante);
+router.put('/comite/estudiante/:id_estudiante/:id_proyecto', authenticateJWT, removerEstudiante);
 router.post('/comite/estudiante/:id', authenticateJWT, agregarEstudiante);
 router.get('/comite/solicitudes/pendienteaprobacion', authenticateJWT, obtenerSolicitudesPendientesComite);
 router.get('/comite/solicitudes/aprobadas', authenticateJWT, obtenerSolicitudesAprobadasComite);

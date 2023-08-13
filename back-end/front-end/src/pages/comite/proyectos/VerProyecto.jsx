@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton } from "@mui/material";
+import React, { useState, useEffect, Fragment } from "react";
+import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -7,10 +7,12 @@ import './VerProyecto.css';
 import VerEntrega from "../entregas/Ventanas/VerEntrega";
 import CustomDataGrid from "../../layouts/DataGrid";
 import CambiarCodigo from './Ventana/CambiarCodigo';
-import { Add, PostAdd, Remove, Source } from "@mui/icons-material";
+import { Add, Edit, Person, PostAdd, Remove, Source } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
+import VerModificarUsuario from "../usuarios_normales/Ventana/VerModificarUsuario";
+import { width } from "@mui/system";
 export default function VerProyectos() {
 
   const id = sessionStorage.getItem('id_proyecto');
@@ -25,10 +27,10 @@ export default function VerProyectos() {
   const [existe, setExiste] = useState([]);
   const [proyecto, setProyecto] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
-  const [director, setDirector] = useState([]);
-  const [lector, setLector] = useState([]);
-  const [existeLector, setExisteLector] = useState([]);
-  const [existeJurados, setExisteJurados] = useState([]);
+  const [director, setDirector] = useState({});
+  const [lector, setLector] = useState({});
+  const [existeLector, setExisteLector] = useState(false);
+  const [existeJurados, setExisteJurados] = useState(false);
   const [listaJurado, setListaJurado] = useState([]);
   const [entregasPendientes, setEntregasPendientes] = useState([]);
   const [entregasCalificadas, setEntregasCalificadas] = useState([]);
@@ -36,6 +38,16 @@ export default function VerProyectos() {
   const [openDialog, setOpenDialog] = useState(false);
   const [entrega, setEntrega] = useState({});
   const [tipo, setTipo] = useState("");
+  const [estudiante, setEstudiante] = useState({});
+  const [confirmarEliminacion, setConfirmarEliminacion] = useState(false);
+  const abrirConfirmarEliminacion = (estudiante) => {
+    setEstudiante(estudiante);
+    setConfirmarEliminacion(true);
+  };
+  const handleClose = () => {
+    setEstudiante({})
+    setConfirmarEliminacion(false);
+  };
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
@@ -107,7 +119,7 @@ export default function VerProyectos() {
         setEstudiantes(data.estudiantes);
         setDirector(data.director);
         setExisteLector(data.lector.existe_lector)
-        setLector(data.lector.existe_lector ? data.lector.nombre : "");
+        setLector(data.lector.lector);
         setExisteJurados(data.jurados.existe_jurado)
         setListaJurado(data.jurados.existe_jurado ? data.jurados.jurados : []);
         setExiste(true)
@@ -138,8 +150,9 @@ export default function VerProyectos() {
   }
 
   const quitarEstudiante = async (estudiante) => {
+    setConfirmarEliminacion(false);
     try {
-      const response = await fetch(`http://localhost:5000/comite/estudiante/${estudiante.id_estudiante_proyecto}`, {
+      const response = await fetch(`http://localhost:5000/comite/estudiante/${estudiante.id_estudiante_proyecto}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -148,6 +161,7 @@ export default function VerProyectos() {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 200) {
         mostrarMensaje(data.message, "success")
+        setEstudiantes(data.estudiantes)
       }
     } catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -161,7 +175,7 @@ export default function VerProyectos() {
   const cerrarDialogEstudiante = () => {
     setAbrirAgregarEstudiante(false);
   }
-  const cerrarDialogAgregarEstudiante = async (e,estudiante) => {
+  const cerrarDialogAgregarEstudiante = async (e, estudiante) => {
     e.preventDefault();
     setAbrirAgregarEstudiante(false);
     if (estudiante) {
@@ -181,7 +195,6 @@ export default function VerProyectos() {
       } else if (response.status === 200) {
         mostrarMensaje(data.message, "success")
         setEstudiantes(data.estudiantes)
-        console.log(data.estudiantes)
       }
     } catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -218,7 +231,59 @@ export default function VerProyectos() {
     setOpenDialog(false);
   };
 
+  const [rol, setRol] = useState("");
+  const [info, setInfo] = useState({});
+  const [accion, setAccion] = useState("");
+  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
 
+  const abrirDialog = (row, accion, rol) => {
+    if (accion === "asignar") {
+      const infoRol = {
+        id_proyecto: row.id,
+      };
+      setInfo(infoRol)
+    } else if (accion === "modificar") {
+      const infoRol = {
+        id_proyecto: row.id_proyecto,
+        id_usuario: row.id_usuario
+      };
+      setInfo(infoRol)
+    }
+    setRol(rol)
+    setAccion(accion)
+    setAbrirVerModificarUsuario(true);
+  };
+
+  const cerrarDialog = () => {
+    setAbrirVerModificarUsuario(false);
+  }
+  const cerrarUsuarioCambiado = (usuarios) => {
+    if (usuarios) {
+      if (rol === "DIRECTOR") {
+        if (usuarios.length === 1) {
+          setDirector(usuarios[0])
+        }
+      } else if (rol === "LECTOR") {
+        if (usuarios.length > 0) {
+          setLector(usuarios[0])
+          setExisteLector(true)
+        } else {
+          setLector({})
+          setExisteLector(false)
+        }
+      } else if (rol === "JURADO") {
+        if (usuarios.length > 0) {
+          setListaJurado(usuarios)
+          setExisteJurados(true)
+        } else {
+          setListaJurado({})
+          setExisteJurados(false)
+        }
+      }
+
+    }
+    setAbrirVerModificarUsuario(false);
+  }
   const generarColumnasEntregas = (inicio, extraColumns) => {
     const columns = [
       { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
@@ -373,22 +438,79 @@ export default function VerProyectos() {
                 <TextField value={proyecto.periodo || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Typography variant="h6" color="primary">
-                  Director
-                </Typography>
-                <TextField value={director.nombre || ''} fullWidth />
+                <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                  {director ? (
+                    <>
+                      <Box fullWidth sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                        <Typography variant="h6" color="primary" fullWidth>
+                          Director
+                        </Typography>
+                        <TextField value={director.nombre || ''} fullWidth />
+                      </Box>
+                      <Tooltip title="Ver/Cambiar Director">
+                        <IconButton color="secondary" onClick={() => abrirDialog(director, "modificar", "DIRECTOR")}>
+                          <Edit />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  ) : (
+                    <Box fullWidth sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexGrow: 1,
+                    }}>
+                      <Typography variant="h6" color="primary" fullWidth>
+                        Asignar Director
+                      </Typography>
+                      <Tooltip title="Asignar Director">
+                        <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'DIRECTOR')}>
+                          <Person />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
+                </Box>
               </Grid>
 
-              {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
+              {proyecto.acronimo !== "AUX" && (
                 <>
                   <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <Typography variant="h6" color="primary">Lector</Typography>
-                    {existeLector ? (
-                      <TextField value={lector || ''} xs={12} sm={6} md={4} lg={4} xl={3} fullWidth />
-                    ) : (
-                      <Typography variant="h6" color="primary">No se ha asignado lector para este proyecto</Typography>
-                    )}
-
+                    <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                      {existeLector ? (
+                        <>
+                          <Box fullWidth sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                            <Typography variant="h6" color="primary" fullWidth>
+                              Lector
+                            </Typography>
+                            <TextField value={lector.nombre || ''} fullWidth />
+                          </Box>
+                          <Tooltip title="Ver/Cambiar Lector">
+                            <IconButton color="secondary" onClick={() => abrirDialog(lector, "modificar", "LECTOR")}>
+                              <Edit />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      ) : (
+                        <Box fullWidth sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexGrow: 1,
+                        }}>
+                          <Typography variant="h6" color="primary" fullWidth>
+                            Asignar Lector
+                          </Typography>
+                          <Tooltip title="Asignar Lector">
+                            <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'LECTOR')}>
+                              <Person />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Box>
                   </Grid>
                 </>
               )}
@@ -446,7 +568,7 @@ export default function VerProyectos() {
                     </Grid>
                     <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
                       <Tooltip title="Quitar estudiante">
-                        <IconButton variant="outlined" color='naranja' size="large" onClick={() => quitarEstudiante(estudiante)} sx={{ marginLeft: '8px' }}>
+                        <IconButton variant="outlined" color='naranja' size="large" onClick={() => abrirConfirmarEliminacion(estudiante)} sx={{ marginLeft: '8px' }}>
                           <Remove fontSize="inherit" />
                         </IconButton>
                       </Tooltip>
@@ -458,29 +580,67 @@ export default function VerProyectos() {
           </Box>
           {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
             <> <Box>
+              <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                <Typography variant="h4" color="secondary" fullWidth sx={{ mt: "20px", mb: "20px", flexGrow: 1, maxWidth: '98%' }}>
+                  Jurado(s)
+                </Typography>
 
-              <Typography variant="h4" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
-                Jurado(s)
-              </Typography>
-              {existeJurados ? (
-
-
-                <Grid container spacing={2}>
-                  {listaJurado.map((jurado) => (
-                    <Grid item key={jurado.id} xs={12} sm={6} md={6} lg={6} xl={6}>
-                      <Typography variant="h6" color="primary">
-                        Nombre
-                      </Typography>
-                      <TextField
-                        value={jurado.nombre || ''}
-                        fullWidth
-                      />
+              </Box>
+              <Grid container spacing={2}>
+                {listaJurado.map((jurado, index) => (
+                  <Fragment key={jurado.id}>
+                    <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+                      <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Box fullWidth sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                          <Typography variant="h6" color="primary" fullWidth>
+                            Nombre
+                          </Typography>
+                          <TextField value={jurado.nombre || ''} fullWidth />
+                        </Box>
+                        <Tooltip title="Ver/Cambiar Jurado">
+                          <IconButton
+                            color="secondary"
+                            onClick={() => abrirDialog(jurado, 'modificar', 'JURADO')}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Grid>
-                  ))}
-                </Grid>
+                  </Fragment>
+                ))}
+                {proyecto.acronimo === "DT" ? (
+                  <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+                    <Box fullWidth sx={{ alignItems: 'center', flexGrow: 1 }}>
+                      <Typography variant="h6" color="primary" fullWidth>
+                        Asignar Jurado
+                      </Typography>
+                      <Tooltip title="Asignar Jurado">
+                        <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'JURADO')}>
+                          <Person />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Grid>
+                ) : (
+                  listaJurado.length < 2 && proyecto.acronimo === "IT" && (
+                    <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+                      <Box fullWidth sx={{ alignItems: 'center', flexGrow: 1 }}>
+                        <Typography variant="h6" color="primary" fullWidth>
+                          Asignar Jurado
+                        </Typography>
+                        <Tooltip title="Asignar Jurado">
+                          <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'JURADO')}>
+                            <Person />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
+                  )
+                )}
 
-              ) : (<Typography variant="h6" color="primary">No se han asignado jurados</Typography>
-              )}
+              </Grid>
+
             </Box>
             </>
           )}
@@ -515,6 +675,31 @@ export default function VerProyectos() {
         <CustomDataGrid rows={entregasCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />
 
       </Box>
+      <Dialog
+        open={confirmarEliminacion}
+        keepMounted
+        onClose={handleClose}
+      >
+        <DialogTitle variant="h1" color="primary">
+          ¿Está seguro de que quiere retirar al estudiante?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText variant="h4">
+            Puede volver a asignar al estudiante a este u otro proyecto.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="naranja">Cancelar</Button>
+          <Button onClick={() => { quitarEstudiante(estudiante); }} variant="contained" sx={{ width: 150 }}>Continuar</Button>
+        </DialogActions>
+      </Dialog>
+      <VerModificarUsuario
+        open={abrirVerModificarUsuario}
+        onSubmit={cerrarUsuarioCambiado}
+        onClose={cerrarDialog}
+        informacion={info}
+        rol={rol}
+        accion={accion} />
     </div>
   );
 }

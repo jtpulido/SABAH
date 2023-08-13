@@ -578,9 +578,8 @@ export default function ModificarProyectos() {
                 mostrarMensaje("Por favor, ingrese toda la información de los estudiantes", "error");
             }
         }
-
         await esperar(4000);
-        navigate('/admin/proyectos');
+        navigate('/admin/verProyecto');
     };
 
     const handleSubmit = async () => {

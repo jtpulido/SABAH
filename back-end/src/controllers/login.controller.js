@@ -404,34 +404,27 @@ const inscribirPropuesta = async (req, res) => {
     await pool.query('BEGIN');
 
     // Agregar proyecto
-    await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
-
+    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
+    const id_proyecto = proyecto.rows[0].id;
     // Agregar Usuario-Rol (director)
     await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, 1, $3)', [fecha_asignacion, id_usuario, id]);
 
     // Verificar si ya existe el estudiante
-    const result = await pool.query('SELECT * FROM estudiante WHERE num_identificacion=$1 AND LOWER(correo)=LOWER($2)', [num_identificacion, correo]);
-    if (result.rowCount > 0) {
-
-      // Verificar si el estudiante ya tiene un proyecto activo
-      const resultProyecto = await pool.query('SELECT pr.* FROM estudiante_proyecto pr, estudiante e WHERE pr.id_estudiante = e.id AND e.num_identificacion=$1 AND LOWER(e.correo)=LOWER($2) AND pr.estado=true', [num_identificacion, correo]);
-      if (resultProyecto.rowCount > 0) {
-        await pool.query('ROLLBACK');
-        res.status(409).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
-      } else {
-        // Agregar estudiante
-        await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3)', [nombreEstudiante, num_identificacion, correo]);
-        // Agregar estudiante-proyecto
-        await pool.query('INSERT INTO estudiante_proyecto(estado, id_proyecto, id_estudiante) SELECT true, $1, e.id FROM estudiante AS e WHERE e.nombre = $2', [id, nombreEstudiante]);
-      }
-
-    } else {
-      // Agregar estudiante
-      await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3)', [nombreEstudiante, num_identificacion, correo]);
-      // Agregar estudiante-proyecto
-      await pool.query('INSERT INTO estudiante_proyecto(estado, id_proyecto, id_estudiante) SELECT true, $1, e.id FROM estudiante AS e WHERE e.nombre = $2', [id, nombreEstudiante]);
-    }
-
+    const result = await pool.query('SELECT e.id FROM estudiante e WHERE LOWER(e.num_identificacion) = LOWER($1) OR LOWER(e.correo) = LOWER($2)', [num_identificacion, correo]);
+        if (result.rowCount > 0) {
+            const estudianteId = result.rows[0].id;
+            const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
+            if (resultProyecto.rowCount > 0) {
+                return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
+            } else {
+                await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
+                await pool.query('COMMIT');
+              }
+        } else {
+            const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
+            const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
+            await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
+        }
     // Agregar Inicio Sesion
     await pool.query("INSERT INTO inicio_sesion(id_proyecto, contrasena) VALUES ($1, $2)", [id, hashedPassword]);
 
@@ -446,7 +439,7 @@ const inscribirPropuesta = async (req, res) => {
   } catch (error) {
     // Deshacer transaccion
     await pool.query('ROLLBACK');
-    if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === estudiante_num_identificacion_key)) {
+    if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
       return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
     }
     res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el proyecto. Por favor inténtelo más tarde.' });

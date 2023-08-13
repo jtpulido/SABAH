@@ -84,8 +84,9 @@ function VerModificarUsuario(props) {
             const data = await response.json();
             if (!data.success) {
                 mostrarMensaje(data.message, "error");
+                handleCancel()
             } else {
-                onSubmit()
+                onSubmit(data.usuarios)
                 mostrarMensaje(data.message, "success")
             }
         } catch (error) {

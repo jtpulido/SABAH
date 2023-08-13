@@ -229,6 +229,9 @@ export const Inscribir = () => {
                     // Verificar veracidad del correo
                     const emailRegex = /^\S+@unbosque\.edu\.co$/;
                     const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
+                    console.log(estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo)))
+                    console.log(validEmails.length)
+                    console.log(numIntegrantes)
                     if (validEmails.length !== numIntegrantes) {
                         mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
                     } else {
