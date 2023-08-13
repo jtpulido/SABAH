@@ -141,6 +141,25 @@ const obtenerProyecto = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+const asignarNuevoNombre = async (req, res) => {
+    try {
+        const { id, nombre } = req.body;
+        await pool.query(
+            "UPDATE proyecto SET nombre = $1 WHERE id = $2",
+            [nombre, id], async (error, result) => {
+                if (error) {
+                    return res.status(500).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
+                }
+                if (result) {
+                    return res.json({ success: true })
+                }
+
+            })
+    } catch (error) {
+        return false;
+
+    }
+};
 const asignarNuevoCodigo = async (req, res) => {
     try {
         const { id, codigo } = req.body;
@@ -149,7 +168,7 @@ const asignarNuevoCodigo = async (req, res) => {
             [codigo, id], async (error, result) => {
                 if (error) {
                     if (error.code === "23505" && error.constraint === "proyecto_codigo_key") {
-                        return res.status(400).json({ success: false, message: "El código ya está en uso." });
+                        return res.status(203).json({ success: false, message: "El código ya está en uso." });
                     } else {
                         return res.status(500).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                     }
@@ -558,6 +577,7 @@ module.exports = {
     obtenerSolicitudesRechazadasComite,
     obtenerJuradosProyectosCerrados,
     asignarNuevoCodigo,
+    asignarNuevoNombre,
     verAprobacionesSolicitud,
     verSolicitud,
     agregarAprobacion,

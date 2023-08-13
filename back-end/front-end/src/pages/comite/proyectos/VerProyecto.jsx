@@ -7,12 +7,13 @@ import './VerProyecto.css';
 import VerEntrega from "../entregas/Ventanas/VerEntrega";
 import CustomDataGrid from "../../layouts/DataGrid";
 import CambiarCodigo from './Ventana/CambiarCodigo';
-import { Add, Edit, Person, PostAdd, Remove, Source } from "@mui/icons-material";
+import CambiarNombre from './Ventana/CambiarNombre';
+import { Add, Edit, Person, Remove, Source } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
 import VerModificarUsuario from "../usuarios_normales/Ventana/VerModificarUsuario";
-import { width } from "@mui/system";
+
 export default function VerProyectos() {
 
   const id = sessionStorage.getItem('id_proyecto');
@@ -70,6 +71,28 @@ export default function VerProyectos() {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
     }
   }
+  const modificarNombre = async (nuevo_nombre) => {
+    try {
+      const response = await fetch("http://localhost:5000/comite/cambiarNombre", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: id, nombre: nuevo_nombre })
+      });
+      const data = await response.json();
+      if (response.status === 203) {
+        mostrarMensaje(data.message, "error")
+      } else if (data.success) {
+        actualizarNombreProyecto(nuevo_nombre)
+        mostrarMensaje("Se ha actualizado el nombre del proyecto.", "success");
+      } else {
+        mostrarMensaje(data.message, "error")
+      }
+    }
+    catch (error) {
+      setExiste(false)
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+    }
+  };
   const modificarCodigo = async (nuevo_cod) => {
     try {
       const response = await fetch("http://localhost:5000/comite/cambiarCodigo", {
@@ -100,6 +123,12 @@ export default function VerProyectos() {
     setProyecto((prevState) => ({
       ...prevState,
       etapa: etapa
+    }));
+  };
+  const actualizarNombreProyecto = (nuevoNombre) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      nombre: nuevoNombre
     }));
   };
 
@@ -221,6 +250,18 @@ export default function VerProyectos() {
     };
   }
 
+  const [openNombre, setOpenNombre] = useState(false);
+
+  const abrirDialogCambiarNombre = () => {
+    setOpenNombre(true);
+  };
+
+  const cerrarDialogCambiarNombre = (newValue) => {
+    setOpenNombre(false);
+    if (newValue) {
+      modificarNombre(newValue)
+    };
+  }
   const abrirVentanaVerEntrega = (row, tipo) => {
     setEntrega(row);
     setTipo(tipo)
@@ -386,20 +427,30 @@ export default function VerProyectos() {
             {proyecto.codigo || ''}
           </Typography>
           {proyecto.etapa === "Propuesta" ? (
-            <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)}>
+            <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
+              width: 200,
+            }}>
               Asignar Código
             </Button>
           ) : (
-            <Button variant="outlined" disableElevation onClick={abrirDialogCambiarCodigo} sx={{
+            <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarCodigo} sx={{
               width: 200,
             }}>
               Modificar código
             </Button>
           )}
+          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, ml: 1 }}>
+            Modificar nombre
+          </Button>
           <CambiarCodigo
             open={open}
             onClose={cerrarDialogCambiarCodigo}
             proyectoCodigo={proyecto.codigo || ''}
+          />
+          <CambiarNombre
+            open={openNombre}
+            onClose={cerrarDialogCambiarNombre}
+            proyectoNombre={proyecto.nombre || ''}
           />
           <Box >
             <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
@@ -609,7 +660,7 @@ export default function VerProyectos() {
                     </Grid>
                   </Fragment>
                 ))}
-                {proyecto.acronimo === "DT" ? (
+                {listaJurado.length < 1 && proyecto.acronimo === "DT" ? (
                   <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
                     <Box fullWidth sx={{ alignItems: 'center', flexGrow: 1 }}>
                       <Typography variant="h6" color="primary" fullWidth>

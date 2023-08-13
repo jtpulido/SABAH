@@ -36,7 +36,8 @@ const {
   obtenerUsuarios,
   cambioUsuarioRol,
   removerEstudiante,
-  agregarEstudiante
+  agregarEstudiante,
+  asignarNuevoNombre
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -61,6 +62,7 @@ router.get('/comite/obtenerEnCurso', authenticateJWT, obtenerProyectosDesarrollo
 router.get('/comite/verProyecto/:proyecto_id', authenticateJWT, obtenerProyecto);
 router.post('/comite/asignarCodigo', authenticateJWT, asignarCodigoProyecto);
 router.post('/comite/cambiarCodigo', authenticateJWT, asignarNuevoCodigo);
+router.post('/comite/cambiarNombre', authenticateJWT, asignarNuevoNombre);
 router.get('/comite/directoresproyectos/activos', authenticateJWT, obtenerDirectoresProyectosActivos);
 router.get('/comite/directoresproyectos/cerrados', authenticateJWT, obtenerDirectoresProyectosCerrados);
 router.get('/comite/directoresproyectos/inactivos', authenticateJWT, obtenerDirectoresProyectosInactivos);
