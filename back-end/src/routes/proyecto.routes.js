@@ -1,9 +1,9 @@
 const { Router } = require('express');
 const passport = require('passport');
-const { obtenerProyecto, obtenerEntregasPendientes , obtenerEntregasRealizadasCalificadas, obtenerEntregasRealizadasSinCalificar,
+const { obtenerProyecto, obtenerInfoDirector, obtenerInfoJurado, obtenerInfoLector, obtenerEntregasPendientes , obtenerEntregasRealizadasCalificadas, obtenerEntregasRealizadasSinCalificar,
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
   obtenerSolicitudesPendientes,    obtenerSolicitudesAprobadas,  obtenerSolicitudesRechazadas,
-    guardarReunion, obtenerReunion, 
+    guardarReunion, obtenerReunion, obtenerInfoCliente, ultIdReunion, crearReunionInvitados, obtenerInvitados, 
    cancelarReunion, editarReunion, guardarSolicitud, guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink, obtenerTipoSolicitud, obtenerLinkProyecto} = require('../controllers/proyecto.controller')
 
 const router = Router()
@@ -44,5 +44,14 @@ router.get('/proyecto/obtenerInfoActa/:id', passport.authenticate('jwt', {sessio
 router.post('/proyecto/guardarLink', passport.authenticate('jwt', {session: false}), guardarLink);
 router.get('/proyecto/obtenerLink/:id', passport.authenticate('jwt', {session: false}), obtenerLinkProyecto);
 
+router.post('/proyecto/obtenerInfoDirector', passport.authenticate('jwt', {session: false}), obtenerInfoDirector);
+router.post('/proyecto/obtenerInfoLector', passport.authenticate('jwt', {session: false}), obtenerInfoLector);
+router.post('/proyecto/obtenerInfoJurado', passport.authenticate('jwt', {session: false}), obtenerInfoJurado);
+router.post('/proyecto/obtenerInfoCliente', passport.authenticate('jwt', {session: false}), obtenerInfoCliente);
+
+router.get('/proyecto/ultIdReunion', passport.authenticate('jwt', {session: false}), ultIdReunion);
+router.post('/proyecto/crearReunionInvitados', passport.authenticate('jwt', {session: false}), crearReunionInvitados);
+
+router.get('/proyecto/obtenerInvitados/:id', passport.authenticate('jwt', { session: false }), obtenerInvitados);
 
 module.exports = router;

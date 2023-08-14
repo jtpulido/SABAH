@@ -56,7 +56,6 @@ const obtenerProyecto = async (req, res) => {
             return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
         }
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -102,7 +101,6 @@ const rolJurado = async (req, res) => {
         }
 
     } catch (error) {
-        console.log(error);
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -141,6 +139,85 @@ const obtenerReunion = async (req, res) => {
     }
 };
 
+const obtenerReunionesPendientes = async (req, res) => {
+    const { id, idRol } = req.body;
+
+    let rol = '';
+    if (idRol === '1') {
+        rol = 'director';
+    } else if (idRol === '2') {
+        rol = 'lector';
+    }
+
+    try {
+        const updateQuery = `UPDATE reunion SET id_estado = 2 WHERE fecha < CURRENT_DATE AND id_estado != 3 AND id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario = $1 AND estado = true AND id_rol = $4) AND (LOWER(invitados) = $2 OR LOWER(invitados) LIKE $3)`;
+        const updateValues = [id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)];
+        await pool.query(updateQuery, updateValues);
+
+        // Obtener reunion actualizadas
+        const selectQuery = `SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD/MM/YYYY HH24:MI') AS fecha_formateada, r.invitados, r.enlace FROM reunion r WHERE r.id_estado IN (SELECT id FROM estado_reunion WHERE nombre = $1) AND r.id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario=$2 AND estado=true AND id_rol=$5) AND (LOWER(r.invitados) = $3 OR LOWER(r.invitados) LIKE $4)`;
+        const selectValues = ['Pendiente', id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)];
+        const result = await pool.query(selectQuery, selectValues);
+        const pendientes = result.rows;
+
+        if (pendientes.length > 0) {
+            return res.json({ success: true, pendientes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones en estado pendiente.' });
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunionesCompletas = async (req, res) => {
+    const { id, idRol } = req.body;
+
+    let rol = '';
+    if (idRol === '1') {
+        rol = 'director';
+    } else if (idRol === '2') {
+        rol = 'lector';
+    }
+
+    try {
+        const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD/MM/YYYY HH24:MI') AS fecha_formateada, r.invitados, r.enlace FROM reunion r WHERE r.id_estado IN (SELECT id FROM estado_reunion WHERE nombre = $1) AND r.id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario = $2 AND estado = true AND id_rol = $5) AND (LOWER(r.invitados) = $3 OR LOWER(r.invitados) LIKE $4)`, ['Completa', id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)]);
+        const completas = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, completas });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones en estado completa.' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunionesCanceladas = async (req, res) => {
+    const { id, idRol } = req.body;
+
+    let rol = '';
+    if (idRol === '1') {
+        rol = 'director';
+    } else if (idRol === '2') {
+        rol = 'lector';
+    }
+
+    try {
+        const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD/MM/YYYY HH24:MI') AS fecha_formateada, r.invitados, r.enlace FROM reunion r WHERE r.id_estado IN (SELECT id FROM estado_reunion WHERE nombre = $1) AND r.id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario = $2 AND estado = true AND id_rol = $5) AND (LOWER(r.invitados) = $3 OR LOWER(r.invitados) LIKE $4)`, ['Cancelada', id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)]);
+        const canceladas = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, canceladas });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones en estado cancelada.' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
 const obtenerSolicitudesPendientesResponderDirector = async (req, res) => {
 
     const { id } = req.params;
@@ -167,7 +244,7 @@ const obtenerSolicitudesPendientesResponderDirector = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 
-}; 
+};
 
 const obtenerSolicitudesPendientesResponderComite = async (req, res) => {
 
@@ -313,7 +390,6 @@ const guardarSolicitud = async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error)
         return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error en la conexión con la base de datos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
     }
 };
@@ -334,7 +410,7 @@ const agregarAprobacion = async (req, res) => {
 
                 if (result.rowCount > 0) {
                     return res.json({ success: true, message: 'Aprobación guardada correctamente.' });
-                } 
+                }
             }
         );
 
@@ -364,6 +440,6 @@ const obtenerListaProyectos = async (req, res) => {
 };
 
 module.exports = {
-    obtenerProyectosDesarrolloRol, obtenerReunion, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
+    obtenerProyectosDesarrolloRol, obtenerReunion, obtenerReunionesCanceladas, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos
 }
