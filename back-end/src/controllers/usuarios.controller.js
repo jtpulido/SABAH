@@ -9,7 +9,7 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(404).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -24,7 +24,7 @@ const obtenerProyectosCerradosRol = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(404).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -62,7 +62,7 @@ const rolDirector = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(203).json({ success: false });
+            return res.status(200).json({ success: false, message: 'El usuario no tiene el rol de director.' });
         }
 
     } catch (error) {
@@ -77,7 +77,7 @@ const rolLector = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(203).json({ success: false });
+            return res.status(200).json({ success: false, message: 'El usuario no tiene el rol de lector.' });
         }
 
     } catch (error) {
@@ -92,7 +92,7 @@ const rolJurado = async (req, res) => {
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
-            return res.status(203).json({ success: false });
+            return res.status(200).json({ success: false, message: 'El usuario no tiene el rol de jurado.' });
         }
 
     } catch (error) {
@@ -112,6 +112,103 @@ const verUsuario = async (req, res) => {
         }
 
     } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunion = async (req, res) => {
+    const { id } = req.params;
+    const id_reunion = req.headers['id_reunion'];
+    try {
+
+        const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
+        const reunion = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, reunion })
+        } else {
+            return res.status(200).json({ success: false, message: 'No hay reuniones' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+    }
+};
+
+const obtenerReunionesPendientes = async (req, res) => {
+    const { id, idRol } = req.body;
+
+    let rol = '';
+    if (idRol === '1') {
+        rol = 'director';
+    } else if (idRol === '2') {
+        rol = 'lector';
+    }
+
+    try {
+        const updateQuery = `UPDATE reunion SET id_estado = 2 WHERE fecha < CURRENT_DATE AND id_estado != 3 AND id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario = $1 AND estado = true AND id_rol = $4) AND (LOWER(invitados) = $2 OR LOWER(invitados) LIKE $3)`;
+        const updateValues = [id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)];
+        await pool.query(updateQuery, updateValues);
+
+        // Obtener reunion actualizadas
+        const selectQuery = `SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD/MM/YYYY HH24:MI') AS fecha_formateada, r.invitados, r.enlace FROM reunion r WHERE r.id_estado IN (SELECT id FROM estado_reunion WHERE nombre = $1) AND r.id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario=$2 AND estado=true AND id_rol=$5) AND (LOWER(r.invitados) = $3 OR LOWER(r.invitados) LIKE $4)`;
+        const selectValues = ['Pendiente', id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)];
+        const result = await pool.query(selectQuery, selectValues);
+        const pendientes = result.rows;
+
+        if (pendientes.length > 0) {
+            return res.json({ success: true, pendientes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones en estado pendiente.' });
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunionesCompletas = async (req, res) => {
+    const { id, idRol } = req.body;
+
+    let rol = '';
+    if (idRol === '1') {
+        rol = 'director';
+    } else if (idRol === '2') {
+        rol = 'lector';
+    }
+
+    try {
+        const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD/MM/YYYY HH24:MI') AS fecha_formateada, r.invitados, r.enlace FROM reunion r WHERE r.id_estado IN (SELECT id FROM estado_reunion WHERE nombre = $1) AND r.id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario = $2 AND estado = true AND id_rol = $5) AND (LOWER(r.invitados) = $3 OR LOWER(r.invitados) LIKE $4)`, ['Completa', id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)]);
+        const completas = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, completas });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones en estado completa.' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunionesCanceladas = async (req, res) => {
+    const { id, idRol } = req.body;
+
+    let rol = '';
+    if (idRol === '1') {
+        rol = 'director';
+    } else if (idRol === '2') {
+        rol = 'lector';
+    }
+
+    try {
+        const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD/MM/YYYY HH24:MI') AS fecha_formateada, r.invitados, r.enlace FROM reunion r WHERE r.id_estado IN (SELECT id FROM estado_reunion WHERE nombre = $1) AND r.id_proyecto IN (SELECT id_proyecto FROM usuario_rol WHERE id_usuario = $2 AND estado = true AND id_rol = $5) AND (LOWER(r.invitados) = $3 OR LOWER(r.invitados) LIKE $4)`, ['Cancelada', id, rol, `%${rol.toLowerCase()}%`, parseInt(idRol, 10)]);
+        const canceladas = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, canceladas });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones en estado cancelada.' })
+        }
+    } catch (error) {
+        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -143,6 +240,7 @@ const obtenerSolicitudesPendientesResponderDirector = async (req, res) => {
     }
 
 };
+
 const obtenerSolicitudesPendientesResponderComite = async (req, res) => {
 
     const { id } = req.params;
@@ -221,6 +319,7 @@ const obtenerSolicitudesCerradasAprobadas = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+
 const obtenerSolicitudesCerradasRechazadas = async (req, res) => {
     const { id } = req.params;
     try {
@@ -315,6 +414,7 @@ const agregarAprobacion = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+
 const obtenerListaProyectos = async (req, res) => {
     const { id } = req.params;
     try {
@@ -333,7 +433,8 @@ const obtenerListaProyectos = async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
+
 module.exports = {
-    obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
+    obtenerProyectosDesarrolloRol, obtenerReunion, obtenerReunionesCanceladas, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos
 }

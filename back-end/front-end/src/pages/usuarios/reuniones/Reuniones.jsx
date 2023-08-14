@@ -3,19 +3,23 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 import { useSelector } from "react-redux";
 import {
-  Box, Grid, TextField, Typography, Button, IconButton, Tooltip,
+  Box, Grid, TextField, FormControl, InputLabel, MenuItem, Select, Typography, Button, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions, Toolbar, AppBar,
 } from '@mui/material';
 import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
 import DescriptionIcon from '@mui/icons-material/Description';
 
-import { selectToken } from "../../store/authSlice";
+import { selectToken } from "../../../store/authSlice";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
-import CustomDataGrid from "../layouts/DataGrid";
+import CustomDataGrid from "../../layouts/DataGrid";
 
-import CrearReunion from "./VentanasReuniones/CrearReunion";
+import CrearReunion from "./Ventanas/CrearReunion";
 
 function CustomToolbar() {
   return (
@@ -67,15 +71,23 @@ const CustomNoRowsMessage = () => {
 
 export default function Reuniones() {
 
-  const id = sessionStorage.getItem('id_proyecto');
+  const idUsuario = sessionStorage.getItem('user_id_usuario');
+  const idRol = sessionStorage.getItem('id_rol');
+
+  let nombreRol = '';
+  if (idRol === '1') {
+    nombreRol = 'DIRECTOR';
+  } else if (idRol === '2') {
+    nombreRol = 'LECTOR';
+  } else if (idRol === '3') {
+    nombreRol = 'JURADO';
+  }
 
   const token = useSelector(selectToken);
 
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCompletadas, setRowsCompletadas] = useState([]);
   const [rowsCanceladas, setRowsCanceladas] = useState([]);
-
-  const [invitados, setInvitados] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [showModal1, setShowModal1] = useState(false);
@@ -129,26 +141,29 @@ export default function Reuniones() {
 
   const generarColumnas = (extraColumns) => {
     const commonColumns = [
-      { field: 'fecha', headerName: 'Fecha y Hora', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
+      { field: 'fecha_formateada', headerName: 'Fecha', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'enlace', headerName: 'Link', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-      { field: 'roles_invitados', headerName: 'Invitados', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" }
+      { field: 'invitados', headerName: 'Invitados', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" }
+
     ];
+
     return [...commonColumns, ...extraColumns];
   };
 
   const llenarTablaPendientes = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesPendientes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
       });
       const data = await response.json();
 
       if (!data.success) {
         mostrarMensaje(data.message, 'error');
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "info")
+        mostrarMensaje(data.message, "warning")
       } else {
         setRowsPendientes(data.pendientes);
       }
@@ -160,9 +175,10 @@ export default function Reuniones() {
 
   const llenarTablaCompletas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCompletas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
       });
 
       const data = await response.json();
@@ -170,7 +186,7 @@ export default function Reuniones() {
       if (!data.success) {
         mostrarMensaje(data.message, 'error');
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "info")
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRowsCompletadas(data.completas);
       }
@@ -182,37 +198,19 @@ export default function Reuniones() {
 
   const llenarTablaCanceladas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCanceladas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
       });
       const data = await response.json();
 
       if (!data.success) {
         mostrarMensaje(data.message, 'error');
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "info")
+        mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
         setRowsCanceladas(data.canceladas);
-      }
-    }
-    catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-    }
-  };
-
-  const obtenerInvitados = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerInvitados/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-
-      if (!data.success) {
-        mostrarMensaje(data.message, 'error');
-      } else {
-        setInvitados(data.invitados);
       }
     }
     catch (error) {
@@ -224,12 +222,11 @@ export default function Reuniones() {
     llenarTablaPendientes();
     llenarTablaCompletas();
     llenarTablaCanceladas();
-    obtenerInvitados();
   }, []);
 
   const handleEditarClick = async (reunionId) => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${id}`, {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunion/${idUsuario}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}`, 'id_reunion': `${reunionId}` }
       });
@@ -287,7 +284,7 @@ export default function Reuniones() {
         nombre: nombre,
         enlace: enlace,
         invitados: rol,
-        id_proyecto: id, // IMPORTANTE REVISAR
+        id_proyecto: idUsuario, // IMPORTANTE REVISAR
         id_estado: 1
 
       };
@@ -322,7 +319,7 @@ export default function Reuniones() {
   }, [reunionSeleccionada]);
 
   const handleCancelReunion = (row, token) => {
-    if (window.confirm('¿Está seguro de que desea cancelar la reunión?')) {
+    if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
       fetch('http://localhost:5000/proyecto/cancelarReunion', {
         method: 'POST',
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
@@ -457,11 +454,10 @@ export default function Reuniones() {
   };
 
   const cerrarCrearReunion = () => {
-    llenarTablaPendientes();
     setAbrirCrear(false);
   }
   const cerrarReunionAgregada = () => {
-    llenarTablaPendientes();
+    setAbrirCrear(false);
   };
 
   return (
@@ -469,19 +465,92 @@ export default function Reuniones() {
       <AppBar position="static" color="transparent" variant="contained" >
         <Toolbar >
           <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
-            REUNIONES
+            REUNIONES ASOCIADOS AL ROL {nombreRol}
           </Typography>
           <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearReunion} sx={{ width: 150 }}>
             Crear Reunión
           </Button>
         </Toolbar>
       </AppBar>
-
       <CrearReunion
         open={abrirCrear}
-        onSubmit={cerrarReunionAgregada}
         onClose={cerrarCrearReunion}
+        onSubmit={cerrarReunionAgregada}
       />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+
+
+        <Dialog open={showModal} onClose={handleCloseModal}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <DialogTitle variant="h5">Crear Reunión</DialogTitle>
+            <Button onClick={handleCloseModal} startIcon={<Close />} />
+          </div>
+
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    label="Fecha"
+                    value={fecha}
+                    onChange={(newValue) => setFecha(newValue)}
+                    renderInput={(props) => <input {...props} />}
+                  />
+                </LocalizationProvider>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Nombre"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Enlace Reunión"
+                  value={enlace}
+                  onChange={(e) => setEnlace(e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel id="rol-label">Rol</InputLabel>
+                  <Select
+                    labelId="rol-label"
+                    id="rol"
+                    multiple
+                    value={selectedRoles}
+                    onChange={handleRoleChange}
+                    inputProps={{
+                      name: 'rol',
+                      id: 'rol',
+                    }}
+                  >
+                    {roles.map((role) => (
+                      <MenuItem key={role} value={role}>
+                        {role}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+            </Grid>
+          </DialogContent>
+
+          <DialogActions sx={{ justifyContent: "center" }}>
+            <Button onClick={handleSave} variant="contained" color="primary" sx={{ fontSize: "0.6rem" }}>
+              Guardar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+
+      </div>
 
       <Box sx={{ m: 3 }}>
         <Box> <Typography variant="h2" color="primary"
@@ -499,12 +568,14 @@ export default function Reuniones() {
             <DialogContent>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Fecha y Hora"
-                    value={fecha}
-                    onChange={(e) => setNombre(e.target.value)}
-                    fullWidth
-                  />
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DateTimePicker
+                      label="Fecha"
+                      value={fecha}
+                      onChange={(newValue) => setFecha(newValue)}
+                      renderInput={(props) => <input {...props} />}
+                    />
+                  </LocalizationProvider>
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
@@ -515,7 +586,6 @@ export default function Reuniones() {
                     fullWidth
                   />
                 </Grid>
-
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="Enlace Reunión"
@@ -524,16 +594,14 @@ export default function Reuniones() {
                     fullWidth
                   />
                 </Grid>
-
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Invitado(s)"
+                    label="Invitado"
                     value={rol}
                     onChange={(e) => setRol(e.target.value)}
                     fullWidth
                   />
                 </Grid>
-
               </Grid>
             </DialogContent>
 
@@ -558,6 +626,6 @@ export default function Reuniones() {
 
       </Box>
 
-    </div >
+    </div>
   );
 }
