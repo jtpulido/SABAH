@@ -8,13 +8,11 @@ import {
 } from '@mui/material';
 import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
 import DescriptionIcon from '@mui/icons-material/Description';
-
 import { selectToken } from "../../store/authSlice";
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
 import CustomDataGrid from "../layouts/DataGrid";
-
 import CrearReunion from "./VentanasReuniones/CrearReunion";
 
 function CustomToolbar() {
@@ -68,18 +66,13 @@ const CustomNoRowsMessage = () => {
 export default function Reuniones() {
 
   const id = sessionStorage.getItem('id_proyecto');
-
   const token = useSelector(selectToken);
-
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCompletadas, setRowsCompletadas] = useState([]);
   const [rowsCanceladas, setRowsCanceladas] = useState([]);
-
   const [invitados, setInvitados] = useState([]);
-
   const [showModal, setShowModal] = useState(false);
   const [showModal1, setShowModal1] = useState(false);
-
   const [fecha, setFecha] = useState(dayjs());
   const [hora, setHora] = useState("");
   const [nombre, setNombre] = useState("");
@@ -87,7 +80,6 @@ export default function Reuniones() {
   const [rol, setRol] = useState("");
   const [reunionSeleccionada, setReunionSeleccionada] = useState(null);
   const [selectedRoles, setSelectedRoles] = useState([]);
-  const roles = ['director', 'cliente', 'lector'];
   const [titulo, setTitulo] = useState("");
 
   const mostrarMensaje = (mensaje, variante) => {
@@ -410,12 +402,12 @@ export default function Reuniones() {
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
             <Tooltip title="">
-              <IconButton color="secondary" component={Link} to={`/user/ActaReunion/${id}`} disabled={has_acta}>
+              <IconButton color="secondary"  component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
                 <DescriptionIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="">
-              <IconButton color="secondary" component={Link} to={`/user/ActaReunion/${id}`} disabled={!has_acta}>
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
                 <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
