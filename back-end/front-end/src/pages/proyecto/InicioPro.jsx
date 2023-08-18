@@ -12,8 +12,12 @@ const drawerWidth = 240;
 function InicioPro() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const cerrarSesion = () => {
     dispatch(clearSession());
+    sessionStorage.removeItem('proyecto_id_reunion');
+    sessionStorage.removeItem('id_proyecto');
+    sessionStorage.removeItem('info_reunion_editar');
     navigate('/')
   };
 
