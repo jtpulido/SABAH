@@ -97,14 +97,16 @@ export default function Reportes() {
                 body: JSON.stringify({
                     vista: vistaSeleccionada,
                     columnas: columnasSeleccionadas,
-                    filtros: filtros,
+                    filtros: filtros
                 }),
             });
             const data = await response.json();
             if (!data.success) {
                 mostrarMensaje(data.message, "error")
+                setColumnasEnFormato([])
             } else if (response.status === 203) {
                 mostrarMensaje(data.message, "warning")
+                setColumnasEnFormato([])
             } else if (response.status === 200) {
                 setResultadoReporte(data.info)
                 const columnasEnFormato = convertirAColumnasEnFormato(columnasSeleccionadas);
@@ -117,14 +119,27 @@ export default function Reportes() {
 
     };
     const handleAgregarFiltro = () => {
-        setFiltros([...filtros, { columna: '', operador: '', valor: '' }]);
+        if (filtros.length === 0) {
+            setFiltros([{ columna: '', operador: '', valor: '' }]);
+        } else {
+            setFiltros([...filtros, { columna: '', operador: '', valor: '', operadorUnion: 'AND' }]);
+        }
     };
+
     const handleFiltroChange = (index, campo, valor) => {
         const nuevosFiltros = filtros.map((filtro, i) =>
             i === index ? { ...filtro, [campo]: valor } : filtro
         );
         setFiltros(nuevosFiltros);
     };
+
+    const handleOperadorUnionChange = (index, valor) => {
+        const nuevosFiltros = filtros.map((filtro, i) =>
+            i === index ? { ...filtro, operadorUnion: valor } : filtro
+        );
+        setFiltros(nuevosFiltros);
+    };
+
     const handleQuitarFiltro = (index) => {
         const nuevosFiltros = filtros.filter((filtro, i) => i !== index);
         setFiltros(nuevosFiltros);
@@ -149,6 +164,7 @@ export default function Reportes() {
             setColumnasSeleccionadas(selectedColumns);
         }
     };
+
     return (
         <div >
             <AppBar position="static" color="transparent" variant="contained" >
@@ -205,7 +221,25 @@ export default function Reportes() {
                     {vistaSeleccionada && (
                         <div>
                             {filtros.map((filtro, index) => (
-                                <Grid container spacing={2}>
+                                <Grid container spacing={2} key={index}>
+                                    {index !== 0 && (
+                                        <Grid item xs={12} sm={6} md={2} lg={2}>
+                                            <FormControl fullWidth variant="outlined" style={{ marginBottom: 16 }}>
+                                                <Typography variant="h5" color="primary">
+                                                    Operador
+                                                </Typography>
+                                                <Select
+                                                    value={filtro.operadorUnion}
+                                                    onChange={(event) =>
+                                                        handleOperadorUnionChange(index, event.target.value)
+                                                    }
+                                                >
+                                                    <MenuItem value="AND">AND</MenuItem>
+                                                    <MenuItem value="OR">OR</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Grid>
+                                    )}
                                     <Grid item xs={12} sm={6} md={3} lg={3}>
                                         <FormControl fullWidth variant="outlined" style={{ marginBottom: '8px' }}>
                                             <Typography variant="h6" color="primary">
@@ -266,11 +300,12 @@ export default function Reportes() {
 
                                         </>
                                     )}
-                                    <Grid item xs={12} sm={6} md={3} lg={3} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Button
-                                            color='naranja' type="submit" fullWidth startIcon={<Delete />} sx={{ width: '100%', height: '80%' }} onClick={() => handleQuitarFiltro(index)} >
-                                            Quitar Filtro
-                                        </Button>
+                                    <Grid item xs={12} sm={1} md={1} lg={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Tooltip title="Quitar filtro">
+                                            <IconButton variant="outlined" color='naranja' size="large" onClick={() => handleQuitarFiltro(index)}>
+                                                <Delete fontSize="inherit" />
+                                            </IconButton>
+                                        </Tooltip>
                                     </Grid>
                                 </Grid>
                             ))}
@@ -280,10 +315,7 @@ export default function Reportes() {
                         </div>
                     )}
 
-                    <Button type="submit" variant="contained" startIcon={<Replay />} sx={{
-                        mt: 2,
-                        width: 150,
-                    }}>
+                    <Button type="submit" variant="contained" startIcon={<Replay />} sx={{ mt: 2, width: 150 }}>
                         Generar Reporte
                     </Button>
                 </form >

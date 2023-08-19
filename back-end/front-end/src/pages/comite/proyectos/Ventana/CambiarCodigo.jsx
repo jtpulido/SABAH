@@ -2,11 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Typography, CssBaseline, DialogTitle, Dialog, Button, TextField, DialogActions, Divider, DialogContent } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
+import { useSelector } from 'react-redux';
+import { selectToken } from '../../../../store/authSlice';
 
 function CambiarCodigo(props) {
+    const id = sessionStorage.getItem('id_proyecto');
+    const token = useSelector(selectToken);
 
+    const { enqueueSnackbar } = useSnackbar();
 
-    const { onClose, proyectoCodigo: valueProp, open, ...other } = props;
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
+
+    const { onClose, proyectoCodigo: valueProp, onSubmit, open, ...other } = props;
     const [proyectoCodigo, setProyectoCodigo] = useState(valueProp);
 
     const [nuevoConsecutivo, setNuevoConsecutivo] = useState("");
@@ -18,6 +28,37 @@ function CambiarCodigo(props) {
     const [valido, setValido] = useState(false);
     const [helperText, setHelperText] = useState("No puede modificar la modalidad, el año, ni el periodo.");
 
+    const modificarCodigo = async (e) => {
+        e.preventDefault();
+        try {
+            const nuevoCodigo = `${modalidad}_${anio}-${periodo}-${formatNumber(nuevoConsecutivo)}`;
+
+            const response = await fetch("http://localhost:5000/comite/cambiarCodigo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ id: id, codigo: nuevoCodigo })
+            });
+            const data = await response.json();
+            if (data.success) {
+                onSubmit(data.codigo)
+                mostrarMensaje("Se ha actualizado el código del proyecto", "success");
+                setProyectoCodigo('')
+                setModalidad('')
+                setAnio('')
+                setPeriodo('')
+                setConsecutivo('')
+                setValido(false)
+                setHelperText('')
+                setNuevoConsecutivo('')
+            } else {
+                mostrarMensaje(data.message, "error")
+            }
+        }
+        catch (error) {
+            mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+        }
+
+    };
     useEffect(() => {
         if (proyectoCodigo) {
             const parts = proyectoCodigo.split('_');
@@ -60,19 +101,6 @@ function CambiarCodigo(props) {
         setNuevoConsecutivo('')
     };
 
-    const handleOk = () => {
-        const nuevoCodigo = `${modalidad}_${anio}-${periodo}-${formatNumber(nuevoConsecutivo)}`;
-        onClose(nuevoCodigo);
-        setProyectoCodigo('')
-        setModalidad('')
-        setAnio('')
-        setPeriodo('')
-        setConsecutivo('')
-        setValido(false)
-        setHelperText('')
-        setNuevoConsecutivo('')
-    };
-
 
     useEffect(() => {
         setNuevoConsecutivo(consecutivo);
@@ -98,8 +126,6 @@ function CambiarCodigo(props) {
 
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }}  {...other} >
-            <CssBaseline />
-
             <DialogTitle variant="h1" color="secondary">Asignar código</DialogTitle>
             <DialogContent dividers  >
 
@@ -129,7 +155,7 @@ function CambiarCodigo(props) {
                 <Button onClick={handleCancel}>
                     Cerrar
                 </Button>
-                <Button onClick={handleOk} disabled={!valido} variant="contained" startIcon={<SaveOutlined />} sx={{
+                <Button onClick={(e) => modificarCodigo(e)} disabled={!valido} variant="contained" startIcon={<SaveOutlined />} sx={{
                     width: 150,
                 }}>
                     Guardar
@@ -143,6 +169,7 @@ function CambiarCodigo(props) {
 CambiarCodigo.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired,
     proyectoCodigo: PropTypes.string.isRequired,
 };
 
