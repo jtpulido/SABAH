@@ -141,7 +141,7 @@ FROM
     documento_entrega de
 INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
 INNER JOIN proyecto p ON de.id_proyecto = p.id
-INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol 
+INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
 INNER JOIN usuario u ON ur.id_usuario = u.id 
 INNER JOIN rol r ON ur.id_rol = r.id 
 WHERE 

@@ -524,7 +524,7 @@ const verEntregasPendientesProyecto = async (req, res) => {
                 return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
             }
             console.log(result.rows)
-            return res.status(200).json({ success: true, espacios: result.rows });
+            return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
         return res.status(502).json({ success: false, message });
@@ -552,7 +552,7 @@ const verEntregasRealizadasSinCalificarProyecto = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
         WHERE 
@@ -586,11 +586,16 @@ const verEntregasRealizadasCalificadasProyecto = async (req, res) => {
             `SELECT 
         c.id,
         ee.nombre AS nombre_espacio_entrega,
-        ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
+        ee.fecha_apertura_entrega,
+        ee.fecha_cierre_entrega,
+        ee.fecha_apertura_calificacion,
+        ee.fecha_cierre_calificacion,
         r.nombre AS nombre_rol,
         p.nombre AS nombre_proyecto,
+        ee.descripcion,
         u.nombre AS evaluador,
         de.fecha_entrega,
+        de.id AS id_doc_entrega,
         c.fecha_evaluacion,
         c.nota_final
     FROM 
@@ -599,13 +604,12 @@ const verEntregasRealizadasCalificadasProyecto = async (req, res) => {
         INNER JOIN proyecto p ON de.id_proyecto = p.id
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
-        INNER JOIN rol r ON ur.id_rol = r.id
+        INNER JOIN rol r ON ur.id_rol = r.id 
         INNER JOIN calificacion c ON de.id = c.id_doc_entrega AND ur.id = c.id_usuario_rol
-    WHERE
-        p.id=$1
+    WHERE p.id = $1   
     ORDER BY 
-        c.fecha_evaluacion;
-    `;
+        de.fecha_entrega
+         `;
 
         await pool.query(query, [proyecto_id], (error, result) => {
             if (error) {
@@ -682,7 +686,7 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
         WHERE 
@@ -837,7 +841,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol 
+        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
         INNER JOIN rol r ON ur.id_rol = r.id AND r.id=$2
         WHERE 
@@ -885,7 +889,7 @@ const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
         INNER JOIN rol r ON ur.id_rol = r.id AND r.id=$2
-        INNER JOIN calificacion c ON de.id = c.id_doc_entrega AND ur.id = c.id_usuario_rol
+        INNER JOIN calificacion c ON de.id = c.id_doc_entrega AND ur.id = c.id_usuario_rol 
     ORDER BY 
         de.fecha_entrega;
     `;

@@ -112,7 +112,7 @@ export default function VerProyectos() {
       } else if (response.status === 203) {
         mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
-        setRowsFunc(data.espacios);
+        setRowsFunc(data.entregas);
       }
     } catch (error) {
       mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")

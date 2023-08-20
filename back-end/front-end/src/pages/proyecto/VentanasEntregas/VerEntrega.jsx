@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
-import { ExpandMore, SaveOutlined } from '@mui/icons-material';
+import { Download, ExpandMore, SaveOutlined } from '@mui/icons-material';
 import { selectToken } from '../../../store/authSlice';
 import CustomDataGrid from '../../layouts/DataGrid';
 
@@ -40,6 +40,9 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
     const [docEntregado, setDocEntregado] = useState(null);
     const [titulo, setTitulo] = useState("");
     const [linkDocEntregado, setLinkDocEntregado] = useState(null);
+    const [docRetroalimentacion, setDocRetroalimentacion] = useState(null);
+    const [linkDocRetro, setLinkDocRetro] = useState(null);
+    const [existeDocRetroalimentacion, setExisteDocRetroalimentacion] = useState(false);
 
     const handleEntering = async () => {
 
@@ -52,6 +55,8 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
         }
         if (tipo === "calificado") {
             await obtenerCalificacionAspectos(entrega.id);
+            await validarDocumentoRetroalimentacion(entrega.id)
+
         }
         setLoading(false);
     };
@@ -85,6 +90,30 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
         }
     };
 
+    const validarDocumentoRetroalimentacion = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/comite/retroalimentacion/documento/${id}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            });
+            const data = await response.json();
+            if (response.status === 200) {
+                setExisteDocRetroalimentacion(true)
+                setLinkDocRetro(data.nombreArchivo)
+                setDocRetroalimentacion(data.documento);
+            } else if (response.status === 502) {
+                mostrarMensaje(data.message, 'error');
+            } else if (response.status === 203) {
+                setExisteDocRetroalimentacion(false)
+            }
+        } catch (error) {
+            setLoading(true);
+            mostrarMensaje(
+                'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.',
+                'error'
+            );
+        }
+    };
 
     const obtenerCalificacionAspectos = async (id) => {
         try {
@@ -133,6 +162,23 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
             .then((response) => response.blob())
             .then((blob) => {
                 saveAs(blob, docEntregado.nombre_documento);
+            })
+            .catch((error) => {
+                mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
+            });
+    };
+    const handleDescargarRetroalimentacion = () => {
+        const url = `http://localhost:5000/descargar/retroalimentacion/${linkDocRetro}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((response) => response.blob())
+            .then((blob) => {
+                saveAs(blob, docRetroalimentacion.nombre_documento);
             })
             .catch((error) => {
                 mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
@@ -272,16 +318,26 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                         </Grid>
 
                         {tipo === "calificado" && (
-                            <Accordion sx={{ mt: 1, mb: 1 }}>
-                                <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
-                                    <Typography variant="h2" color="secondary">
-                                        Ver calificación por aspecto
-                                    </Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <CustomDataGrid rows={aspectosCalificados} columns={columnas} mensaje="No se encontraron las calificaciones." />
-                                </AccordionDetails>
-                            </Accordion>
+                            <>
+                                {existeDocRetroalimentacion && (
+                                    <>
+                                        <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                            Documento retroalimentación
+                                        </Typography>
+                                        <Button type="submit" startIcon={<Download />} variant='outlined' onClick={handleDescargarRetroalimentacion} sx={{ width: 250 }}> Descargar</Button>
+                                    </>
+                                )}
+                                <Accordion sx={{ mt: 1, mb: 1 }}>
+                                    <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
+                                        <Typography variant="h2" color="secondary">
+                                            Ver calificación por aspecto
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <CustomDataGrid rows={aspectosCalificados} columns={columnas} mensaje="No se encontraron las calificaciones." />
+                                    </AccordionDetails>
+                                </Accordion>
+                            </>
                         )}
                     </>
                 )}

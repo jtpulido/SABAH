@@ -52,7 +52,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
   verAspectosEspacio,validarModificarRubrica,  verCalificacionAspectos
 } = require('../controllers/entregas.controller')
 
-const { verInfoDocEntregado, descargarDocumento } = require('../controllers/documento.controller');
+const { verInfoDocEntregado, descargarDocumento, descargarDocumentoRetroalimentacion, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
 const { obtenerVistasDisponibles, obtenerColumnasDisponibles, generarReporte } = require('../controllers/reportes.controller');
 router.get('/comite/usuarios', authenticateJWT, obtenerUsuarios);
 router.post('/comite/cambiarUsuarioRol', authenticateJWT, cambioUsuarioRol);
@@ -121,7 +121,9 @@ router.get('/comite/entregas/pendientes', authenticateJWT, verEntregasPendientes
 router.get('/comite/entregas/realizadas/calificadas', authenticateJWT, verEntregasRealizadasCalificadas);
 router.get('/comite/entregas/realizadas/porCalificar', authenticateJWT, verEntregasRealizadasSinCalificar);
 router.get('/comite/documento/:id_doc_entrega', authenticateJWT, verInfoDocEntregado);
+router.get('/comite/retroalimentacion/documento/:id', authenticateJWT, verInfoDocRetroalimentacion);
 router.get('/descargar/:nombreArchivo', descargarDocumento);
+router.get('/descargar/retroalimentacion/:nombreArchivo', descargarDocumentoRetroalimentacion);
 router.get('/comite/documento/aspectos/:id_esp_entrega', authenticateJWT, verAspectosEspacio);
 
 router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, verCalificacionAspectos);

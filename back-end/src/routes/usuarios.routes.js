@@ -12,7 +12,7 @@ const authenticateJWT = (req, res, next) => {
 };
 const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, guardarCalificacion } = require('../controllers/usuarios.controller');
 const { verEntregasPendientesUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol } = require('../controllers/entregas.controller');
-const { guardarCalificacionDoc } = require('../controllers/documento.controller');
+const { guardarCalificacionDoc, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
 
 
 
@@ -32,6 +32,7 @@ router.post('/usuario/documento/guardarCalificacion', upload.single('file'), asy
     res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
   }
 });
+router.get('/usuario/documento/:id', authenticateJWT, verInfoDocRetroalimentacion);
 
 router.post('/usuario/obtenerProyectosDesarrolloRol', authenticateJWT, obtenerProyectosDesarrolloRol);
 router.post('/usuario/obtenerProyectosCerradosRol', authenticateJWT, obtenerProyectosCerradosRol);

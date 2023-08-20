@@ -215,7 +215,7 @@ const guardarCalificacionDoc = async (req, res, file) => {
     fs.renameSync(file.path, newPath);
 
     const documentoQuery = `
-      INSERT INTO documento_retroalimentacion (nombre, uuid, id)
+      INSERT INTO documento_retroalimentacion (nombre, uuid, id_calificacion)
       VALUES ($1, $2, $3)
 `;
     const documentoValues = [nombre, uuid, id_calificacion];
@@ -226,9 +226,59 @@ const guardarCalificacionDoc = async (req, res, file) => {
     return res.status(200).json({ success: true, message: 'Calificación y documento guardados correctamente' });
   } catch (error) {
     await pool.query('ROLLBACK');
-    console.log(error)
     return res.status(502).json({ success: false, message: 'Error guardar la calificación' });
   }
 };
+const verInfoDocRetroalimentacion = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query =
+      `SELECT 
+        id,
+        nombre AS nombre_documento,
+        uuid,
+        id_calificacion
+      FROM 
+        documento_retroalimentacion
+      WHERE id_calificacion= $1  
+      `;
+    await pool.query(query, [id], (error, result) => {
+      if (error) {
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+      }
+      if (result.rows.length === 0) {
 
-module.exports = { guardarDocumentoYEntrega, verInfoDocEntregado, descargarDocumento, guardarCalificacionDoc };
+        return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+      }
+      const documento = result.rows[0];
+
+      if (!documento) {
+        return res.status(203).json({ success: false, message: 'Documento no encontrado' });
+      }
+      const filePath = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\retro\\", documento.uuid + path.extname(documento.nombre_documento));
+      if (!fs.existsSync(filePath)) {
+        return res.status(203).json({ success: false, message: 'Archivo no encontrado' });
+      }
+      const nombreArchivo = documento.uuid + path.extname(documento.nombre_documento)
+      res.json({ success: true, filePath, documento, nombreArchivo });
+    })
+    return res.status(502).json({ success: false, message: 'Error al descargar el archivo' });
+  } catch (error) {
+    return res.status(502).json({ success: false, message: 'Error al descargar el archivo' });
+  }
+};
+
+const descargarDocumentoRetroalimentacion = async (req, res) => {
+  const nombreArchivo = req.params.nombreArchivo;
+  const rutaArchivo = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\entregas\\", nombreArchivo);
+
+  if (fs.existsSync(rutaArchivo)) {
+    res.sendFile(rutaArchivo);
+  } else {
+    res.status(203).json({ success: false, message: 'Archivo no encontrado' });
+  }
+};
+module.exports = {
+  guardarDocumentoYEntrega, verInfoDocEntregado, descargarDocumento, guardarCalificacionDoc,
+  verInfoDocRetroalimentacion, descargarDocumentoRetroalimentacion
+};
