@@ -333,7 +333,35 @@ const obtenerListaProyectos = async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
+const guardarCalificacion = async (req, res) => {
+    try {
+        const { id_doc_entrega, id_usuario_rol, calificacion_aspecto } = req.body;
+        await pool.query('BEGIN');
+        const insertCal = 'INSERT INTO calificacion (id_doc_entrega, id_usuario_rol) VALUES ($1, $2) RETURNING id';
+        const calResult = await pool.query(insertCal, [id_doc_entrega, id_usuario_rol]);
+        const id_calificacion = calResult.rows[0].id;
+  
+        let puntaje = 0;
+        const calAspRubricaQuery = 'INSERT INTO calificacion_aspecto (id_calificacion, id_rubrica_aspecto, puntaje, comentario) VALUES ($1, $2, $3, $4)';
+        for (let i = 0; i < calificacion_aspecto.length; i++) {
+            const calificacion = calificacion_aspecto[i];
+            puntaje = puntaje + Number(calificacion.puntaje)
+            const valuesCalificacion = [id_calificacion, calificacion.id_rubrica_aspecto, calificacion.puntaje, calificacion.comentario];
+            await pool.query(calAspRubricaQuery, valuesCalificacion);
+        }
+        const nota_final = (puntaje * 5) / 100
+        const query = 'UPDATE calificacion SET nota_final = $1 WHERE id = $2';
+        await pool.query(query, [nota_final, id_calificacion]);
+  
+        await pool.query('COMMIT');
+        return res.status(200).json({ success: true, message: 'Calificación guardada correctamente' });
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        return res.status(502).json({ success: false, message: 'Error guardar la calificación' });
+    }
+  };
 module.exports = {
     obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
-    obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos
+    obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, 
+    agregarAprobacion, obtenerListaProyectos,guardarCalificacion
 }

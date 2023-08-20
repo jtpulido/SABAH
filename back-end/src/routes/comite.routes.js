@@ -49,8 +49,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
   verEntregasPendientes,
   verEntregasRealizadasCalificadas,
   verEntregasRealizadasSinCalificar,
-  verAspectosEspacio,
-  guardarCalificacion, validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
+  verAspectosEspacio,validarModificarRubrica,  verCalificacionAspectos
 } = require('../controllers/entregas.controller')
 
 const { verInfoDocEntregado, descargarDocumento } = require('../controllers/documento.controller');
@@ -95,7 +94,6 @@ router.get('/comite/aspecto/:aspectoId', authenticateJWT, obtenerAspectoPorId);
 // Rutas para espacios
 router.post('/comite/espacio', authenticateJWT, crearEspacio);
 router.delete('/comite/espacio/:espacio_id', authenticateJWT, eliminarEspacio);
-router.get('/comite/usoEspacio/:espacio_id', authenticateJWT, validarModificarEspacio);
 router.put('/comite/espacio/:espacio_id', authenticateJWT, modificarEspacio);
 router.get('/comite/espacio', authenticateJWT, obtenerEspacio);
 router.get('/comite/espacio/:espacio_id', authenticateJWT, obtenerEspacioPorId);
@@ -126,8 +124,6 @@ router.get('/comite/documento/:id_doc_entrega', authenticateJWT, verInfoDocEntre
 router.get('/descargar/:nombreArchivo', descargarDocumento);
 router.get('/comite/documento/aspectos/:id_esp_entrega', authenticateJWT, verAspectosEspacio);
 
-//calificación
-router.post('/comite/documento/guardarCalificacion', authenticateJWT, guardarCalificacion);
 router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, verCalificacionAspectos);
 
 //reportes

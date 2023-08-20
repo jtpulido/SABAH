@@ -70,7 +70,7 @@ export default function Entregas() {
     llenarTabla("pendientes", setRowsPendientes);
     llenarTabla("realizadas/calificadas", setRowsCalificadas);
     llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
-  }, [id_rol,id_usuario]);
+  }, [id_rol, id_usuario]);
 
   const generarColumnas = (inicio, extraColumns) => {
     const columns = [
@@ -98,9 +98,11 @@ export default function Entregas() {
       );
     },
   }], [
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-
+    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'estado_entrega', headerName: 'Estado', flex: 0.1, minWidth: 100 }
   ]);
   const columnaPorCalificar = generarColumnas([
     {
@@ -109,21 +111,55 @@ export default function Entregas() {
       flex: 0.1,
       minWidth: 50,
       renderCell: ({ row }) => {
+        let boton = null;
+        if (row.estado === 'pendiente') {
+          boton = (
+            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+              <Tooltip title="Calificar">
+                <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificar")}>
+                  <Source />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        } else if (row.estado === 'vencido') {
+          // La fecha de cierre para calificar ya ha pasado
+          boton = (
+            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+              <Tooltip title="Ver Entrega">
+                <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "vencido")}>
+                  <Source />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        } else if (row.estado === 'cerrado') {
+          // La calificación está cerrada
+          boton = (
+            <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+              <Tooltip title="Ver Entrega">
+                <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "cerrado")}>
+                  <Source />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        }
+
         return (
           <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title="Calificar">
-              <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificar")}>
-                <Source />
-              </IconButton>
-            </Tooltip>
+            {boton}
           </Box>
         );
       },
     }], [
     { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100 }
 
   ]);
   const columnaCalificadas = generarColumnas([{

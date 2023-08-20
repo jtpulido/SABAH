@@ -21,8 +21,10 @@ function VerModificarEspacio(props) {
 
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
-    const [fechaApertura, setFechaApertura] = useState(dayjs());
-    const [fechaCierre, setFechaCierre] = useState(dayjs());
+    const [fechaAperturaEntrega, setFechaAperturaEntrega] = useState(dayjs());
+    const [fechaCierreEntrega, setFechaCierreEntrega] = useState(dayjs());
+    const [fechaAperturaCalificacion, setFechaAperturaCalificacion] = useState(dayjs());
+    const [fechaCierreCalificacion, setFechaCierreCalificacion] = useState(dayjs());
     const [idRol, setIdRol] = useState("");
     const [idModalidad, setIdModalidad] = useState("");
     const [idEtapa, setIdEtapa] = useState("");
@@ -37,8 +39,10 @@ function VerModificarEspacio(props) {
     const handleEntering = async () => {
         setNombre(espacio.nombre)
         setDescripcion(espacio.descripcion)
-        setFechaCierre(espacio.fecha_cierre)
-        setFechaApertura(espacio.fecha_apertura)
+        setFechaCierreEntrega(espacio.fecha_cierre_entrega)
+        setFechaAperturaEntrega(espacio.fecha_apertura_entrega)
+        setFechaCierreCalificacion(espacio.fecha_cierre_calificacion)
+        setFechaAperturaCalificacion(espacio.fecha_apertura_calificacion)
         obtenerRoles();
         obtenerModalidades();
         obtenerEtapas();
@@ -160,47 +164,44 @@ function VerModificarEspacio(props) {
     const handleIdRubricaChange = (event) => {
         setIdRubrica(event.target.value);
     };
-    const habilitarEdicion = async () => {
-        try {
-            const response = await fetch(`http://localhost:5000/comite/usoEspacio/${espacio.id}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setEditMode(!editMode);
-            } else {
-                mostrarMensaje(data.message, "warning");
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error al obtener los aspectos. Por favor, intente de nuevo más tarde.", "error");
-        }
-
+    const habilitarEdicion = () => {
+        setEditMode(!editMode);
     };
+
     const modificarEspacio = async (event) => {
         event.preventDefault();
         const today = dayjs();
-        const fechaAperturaDate = dayjs(fechaApertura);
-        const fechaCierreDate = dayjs(fechaCierre);
+        const fechaAperturaEntregaDate = dayjs(fechaAperturaEntrega);
+        const fechaCierreEntregaDate = dayjs(fechaCierreEntrega);
+        const fechaAperturaCalificacionDate = dayjs(fechaAperturaCalificacion);
+        const fechaCierreCalificacionDate = dayjs(fechaCierreCalificacion);
 
-        if (fechaAperturaDate.isBefore(today, 'minute')) {
+        if (fechaAperturaEntregaDate.isBefore(today, 'minute')) {
             mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
             return;
         }
 
-        if (fechaCierreDate.isBefore(fechaAperturaDate, 'minute')) {
+        if (fechaCierreEntregaDate.isBefore(fechaAperturaEntregaDate, 'minute')) {
             mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
             return;
         }
 
+        if (fechaAperturaCalificacionDate.isBefore(fechaCierreEntregaDate, 'minute')) {
+            mostrarMensaje("La fecha de inicio de calificación debe ser posterior a la fecha de cierre de entregas.", "error");
+            return;
+        }
+
+        if (fechaCierreCalificacionDate.isBefore(fechaAperturaCalificacionDate, 'minute')) {
+            mostrarMensaje("La fecha de cierre para calificar debe ser mayor a la fecha de inicio de calificación.", "error");
+            return;
+        }
         const espacioData = {
             nombre,
             descripcion,
-            fecha_apertura: fechaAperturaDate.format("YYYY-MM-DDTHH:mm:ssZ"),
-            fecha_cierre: fechaCierreDate.format("YYYY-MM-DDTHH:mm:ssZ"),
+            fecha_apertura_entrega: fechaAperturaEntrega.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre_entrega: fechaCierreEntrega.format("DD/MM/YYYY hh:mm A"),
+            fecha_apertura_calificacion: fechaAperturaCalificacion.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre_calificacion: fechaCierreCalificacion.format("DD/MM/YYYY hh:mm A"),
             id_rol: idRol,
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
@@ -219,8 +220,8 @@ function VerModificarEspacio(props) {
                 onSubmit();
                 setNombre("");
                 setDescripcion("");
-                setFechaApertura(dayjs());
-                setFechaCierre(dayjs());
+                setFechaAperturaEntrega(dayjs());
+                setFechaCierreEntrega(dayjs());
                 setIdRol("");
                 setIdModalidad("");
                 setIdEtapa("");
@@ -238,8 +239,8 @@ function VerModificarEspacio(props) {
         onClose();
         setNombre("");
         setDescripcion("");
-        setFechaApertura(dayjs());
-        setFechaCierre(dayjs());
+        setFechaAperturaEntrega(dayjs());
+        setFechaCierreEntrega(dayjs());
         setIdRol("");
         setIdModalidad("");
         setIdEtapa("");
@@ -261,7 +262,7 @@ function VerModificarEspacio(props) {
 
                 <DialogContent dividers >
                     <Typography variant="h6" color={colors.naranja[100]}>
-                        Si un proyecto ya realizo la entrega nos se puede cambiar la etapa y la modalidad. No se puede modificar un espacio si ya se ha calificado una entrega realizada en el mismo.
+                        Si un proyecto ya realizo la entrega nos se puede cambiar la etapa y la modalidad. No se puede modificar el evaluador y la rubrica en un espacio si ya se ha calificado una entrega realizada en el mismo.
                     </Typography>
                     {loading ? (
                         <Box sx={{ display: 'flex' }}>
@@ -301,35 +302,67 @@ function VerModificarEspacio(props) {
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <Typography variant="h6" color="primary">
-                                        Fecha de apertura
+                                        Fecha de apertura entrega
                                     </Typography>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <DateTimePicker
-                                            value={dayjs(fechaApertura)}
-                                            onChange={(newValue) => setFechaApertura(newValue)}
+                                            value={dayjs(fechaAperturaEntrega)}
+                                            onChange={(newValue) => setFechaAperturaEntrega(newValue)}
                                             required
                                             disabled={!editMode}
                                             format="DD/MM/YYYY hh:mm A"
                                             fullWidth
+                                            sx={{ minWidth: '100%' }}
                                         />
                                     </LocalizationProvider>
-
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <Typography variant="h6" color="primary">
-                                        Fecha de cierre
+                                        Fecha de cierre entrega
                                     </Typography>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <DateTimePicker
-                                            value={dayjs(fechaCierre)}
-                                            onChange={(newValue) => setFechaCierre(newValue)}
+                                            value={dayjs(fechaCierreEntrega)}
+                                            onChange={(newValue) => setFechaCierreEntrega(newValue)}
                                             required
                                             disabled={!editMode}
                                             format="DD/MM/YYYY hh:mm A"
                                             fullWidth
+                                            sx={{ minWidth: '100%' }}
                                         />
                                     </LocalizationProvider>
-
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Fecha de apertura calificación
+                                    </Typography>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DateTimePicker
+                                            value={dayjs(fechaAperturaCalificacion)}
+                                            onChange={(newValue) => setFechaAperturaCalificacion(newValue)}
+                                            required
+                                            disabled={!editMode}
+                                            format="DD/MM/YYYY hh:mm A"
+                                            fullWidth
+                                            sx={{ minWidth: '100%' }}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Fecha de cierre calificación
+                                    </Typography>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DateTimePicker
+                                            value={dayjs(fechaCierreCalificacion)}
+                                            onChange={(newValue) => setFechaCierreCalificacion(newValue)}
+                                            required
+                                            disabled={!editMode}
+                                            format="DD/MM/YYYY hh:mm A"
+                                            fullWidth
+                                            sx={{ minWidth: '100%' }}
+                                        />
+                                    </LocalizationProvider>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <Typography variant="h6" color="primary">

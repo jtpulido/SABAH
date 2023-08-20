@@ -33,7 +33,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
-
     const token = useSelector(selectToken);
 
     const [loading, setLoading] = useState(true);
@@ -70,7 +69,11 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         setAspectos([]);
         setLoading(true);
     };
+    const [selectedFile, setSelectedFile] = useState(null);
 
+    const handleInputChange = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
     const handlePuntajeChange = (aspectoId, value) => {
         setPuntaje((prevPuntaje) => ({
             ...prevPuntaje,
@@ -159,6 +162,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         event.preventDefault();
         try {
             const calificacionData = {
+                id_espacio_entrega: entrega.id_espacio_entrega,
                 id_doc_entrega: entrega.id_doc_entrega,
                 id_usuario_rol: entrega.id_usuario_rol,
                 calificacion_aspecto: aspectos.map((aspecto) => ({
@@ -167,12 +171,24 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                     comentario: comentario[aspecto.id_aspecto]?.trim() || '',
                 })),
             };
-
-            const response = await fetch('http://localhost:5000/comite/documento/guardarCalificacion', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(calificacionData),
-            });
+            let response
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('calificacionData', JSON.stringify(calificacionData));
+                formData.append('nombreArchivo', JSON.stringify(selectedFile.name));
+                response = await fetch("http://localhost:5000/usuario/documento/guardarCalificacion", {
+                    method: "POST",
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+            } else {
+                response = await fetch('http://localhost:5000/usuario/guardarCalificacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(calificacionData),
+                });
+            }
             const data = await response.json();
             if (response.status === 200) {
                 setPuntaje({});
@@ -305,7 +321,26 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
                                     </Grid>
-
+                                    {tipo === "cerrado" && (
+                                        <>
+                                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                <Typography variant="h6" color="primary">
+                                                    Nota
+                                                </Typography>
+                                                <TextField value={"Aún no puede calificar"} fullWidth />
+                                            </Grid>
+                                        </>
+                                    )}
+                                    {tipo === "vencido" && (
+                                        <>
+                                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                <Typography variant="h6" color="primary">
+                                                    Nota
+                                                </Typography>
+                                                <TextField value={"Ya no puede realizar la calificación"} fullWidth />
+                                            </Grid>
+                                        </>
+                                    )}
                                     {tipo === "calificado" && (
                                         <>
                                             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -384,7 +419,12 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                                     </Stack>
                                                 </Box>
                                             ))}
-                                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                                Documento
+                                            </Typography>
+                                            <TextField fullWidth placeholder="Agregue el documento" type='file' onChange={handleInputChange} />
+
+                                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
                                                 <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 250 }}>
                                                     Guardar
                                                 </Button>

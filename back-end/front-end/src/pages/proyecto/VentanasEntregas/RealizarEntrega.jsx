@@ -97,18 +97,30 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                             </Typography>
                             <TextField multiline value={entrega.nombre_rol || ''} fullWidth />
                         </Grid>
-                        <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color="primary">
-                                Fecha de apertura
-                            </Typography>
-                            <TextField multiline value={formatFecha(entrega.fecha_apertura) || ''} fullWidth />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={4} lg={4}>
-                            <Typography variant="h6" color="primary">
-                                Fecha de cierre
-                            </Typography>
-                            <TextField multiline value={formatFecha(entrega.fecha_cierre) || ''} fullWidth />
-                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de apertura entrega
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de cierre entrega
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_cierre_entrega)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de apertura calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_apertura_calificacion)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de cierre calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_cierre_calificacion)} fullWidth />
+                            </Grid>
                     </Grid>
 
                     <Divider sx={{ mt: 2, mb: 2 }} />

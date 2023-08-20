@@ -42,12 +42,12 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
     const [linkDocEntregado, setLinkDocEntregado] = useState(null);
 
     const handleEntering = async () => {
-    
+
         setTitulo(
-                tipo === "calificado" ? "Ver Entrega y Calificación" :
-                    "Ver Entrega"
+            tipo === "calificado" ? "Ver Entrega y Calificación" :
+                "Ver Entrega"
         );
-        if (tipo !== "pendiente") {
+        if (tipo !== "pendiente" && tipo !== "vencida" && tipo !== "cerrada") {
             await infoDocEntrega(entrega.id_doc_entrega);
         }
         if (tipo === "calificado") {
@@ -120,7 +120,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
         }
         return dayjs(fecha).format('DD-MM-YYYY HH:mm:ss');
     };
-    
+
     const handleDescargarArchivo = () => {
         const url = `http://localhost:5000/descargar/${linkDocEntregado}`;
         fetch(url, {
@@ -171,15 +171,27 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
-                                    Fecha de apertura
+                                    Fecha de apertura entrega
                                 </Typography>
-                                <TextField value={formatFecha(entrega.fecha_apertura)} fullWidth />
+                                <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
-                                    Fecha de cierre
+                                    Fecha de cierre entrega
                                 </Typography>
-                                <TextField value={formatFecha(entrega.fecha_cierre)} fullWidth />
+                                <TextField value={formatFecha(entrega.fecha_cierre_entrega)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de apertura calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_apertura_calificacion)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de cierre calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_cierre_calificacion)} fullWidth />
                             </Grid>
 
                         </Grid>
@@ -196,7 +208,27 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                                 </Typography>
                                 <TextField value={entrega.nombre_proyecto} multiline fullWidth />
                             </Grid>
-                            {tipo !== "pendiente" && (
+                            {tipo === "vencida" && (
+                                <>
+                                    <Grid item xs={12} sm={6} >
+                                        <Typography variant="h6" color="primary">
+                                            Nota
+                                        </Typography>
+                                        <TextField value={"Ya no puede subir documentos a este espacio."} fullWidth />
+                                    </Grid>
+                                </>
+                            )}
+                            {tipo === "cerrada" && (
+                                <>
+                                    <Grid item xs={12} sm={6} >
+                                        <Typography variant="h6" color="primary">
+                                            Nota
+                                        </Typography>
+                                        <TextField value={"No puede realizar la entrega aún"} fullWidth />
+                                    </Grid>
+                                </>
+                            )}
+                            {tipo !== "pendiente" && tipo !== "cerrada" && tipo !== "vencida" && (
                                 <>
                                     <Grid item xs={12} sm={6} >
                                         <Typography variant="h6" color="primary">
@@ -211,7 +243,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
                                     </Grid>
-                                   
+
                                     {tipo === "calificado" && (
                                         <>
                                             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -228,7 +260,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                                             </Grid>
                                         </>
                                     )}
-                                     <Grid item xs={12} sm={6} md={4} lg={4}>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
                                         <Typography variant="h6" color="primary">
                                             Documento entregado
                                         </Typography>

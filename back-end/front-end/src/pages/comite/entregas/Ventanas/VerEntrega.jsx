@@ -168,17 +168,28 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
-                                    Fecha de apertura
+                                    Fecha de apertura entrega
                                 </Typography>
-                                <TextField value={formatFecha(entrega.fecha_apertura)} fullWidth />
+                                <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
-                                    Fecha de cierre
+                                    Fecha de cierre entrega
                                 </Typography>
-                                <TextField value={formatFecha(entrega.fecha_cierre)} fullWidth />
+                                <TextField value={formatFecha(entrega.fecha_cierre_entrega)} fullWidth />
                             </Grid>
-
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de apertura calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_apertura_calificacion)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de cierre calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_cierre_calificacion)} fullWidth />
+                            </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Typography variant="h2" color="secondary">
