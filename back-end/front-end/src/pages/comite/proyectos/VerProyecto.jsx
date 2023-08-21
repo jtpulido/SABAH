@@ -14,6 +14,7 @@ import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
 import VerModificarUsuario from "../usuarios_normales/Ventana/VerModificarUsuario";
 import CambiarFecha from "./Ventana/CambiarFecha";
+import CambiarEtapaEstado from "./Ventana/CambiarEtapaEstado";
 
 export default function VerProyectos() {
 
@@ -27,7 +28,7 @@ export default function VerProyectos() {
   };
 
   const [existe, setExiste] = useState([]);
-  const [proyecto, setProyecto] = useState([]);
+  const [proyecto, setProyecto] = useState({});
   const [estudiantes, setEstudiantes] = useState([]);
   const [director, setDirector] = useState({});
   const [lector, setLector] = useState({});
@@ -45,6 +46,7 @@ export default function VerProyectos() {
   const [abrirAgregarEstudiante, setAbrirAgregarEstudiante] = useState(false);
   const [open, setOpen] = useState(false);
   const [openNombre, setOpenNombre] = useState(false);
+  const [openEstado, setOpenEstado] = useState(false);
   const [openFechaGrado, setOpenFechaGrado] = useState(false);
   const [rol, setRol] = useState("");
   const [info, setInfo] = useState({});
@@ -151,6 +153,16 @@ export default function VerProyectos() {
       nombre: nuevoNombre
     }));
   };
+  const actualizarEtapaEstado= (nuevo) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      etapa: nuevo.etapa
+    }));
+    setProyecto((prevState) => ({
+      ...prevState,
+      estado: nuevo.estado
+    }));
+  };
   const abrirConfirmarEliminacion = (estudiante) => {
     setEstudiante(estudiante);
     setConfirmarEliminacion(true);
@@ -183,6 +195,18 @@ export default function VerProyectos() {
     setOpenNombre(false);
     if (newValue) {
       actualizarNombreProyecto(newValue)
+    };
+  }
+  const abrirDialogCambiarEstado = () => {
+    setOpenEstado(true);
+  };
+  const cerrarDialogCambiarEstado = () => {
+    setOpenEstado(false);
+  }
+  const cerrarDialogEstadoCambiado = (newValue) => {
+    setOpenEstado(false);
+    if (newValue) {
+      actualizarEtapaEstado(newValue)
     };
   }
   const abrirVentanaAgregarEstudiante = () => {
@@ -399,6 +423,9 @@ export default function VerProyectos() {
           <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, ml: 1 }}>
             Modificar nombre
           </Button>
+          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 250, ml: 1 }}>
+            Cambiar etapa y estado
+          </Button>
           <CambiarCodigo
             open={open}
             onClose={cerrarDialogCambiarCodigo}
@@ -410,6 +437,12 @@ export default function VerProyectos() {
             onClose={cerrarDialogCambiarNombre}
             onSubmit={cerrarDialogNombreCambiado}
             proyectoNombre={proyecto.nombre || ''}
+          />
+          <CambiarEtapaEstado
+            open={openEstado}
+            onClose={cerrarDialogCambiarEstado}
+            onSubmit={cerrarDialogEstadoCambiado}
+            proyecto={proyecto}
           />
           <Box >
             <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>

@@ -58,7 +58,7 @@ function CambiarFecha(props) {
 
 
     return (
-        <Dialog open={open} TransitionProps={{ onEntering: handleEntering }}  {...other} >
+        <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel} {...other} >
             <form onSubmit={(e) => modificarFechaGrado(e)}>
                 <DialogTitle variant="h1" color="secondary">Cambiar Fecha de Grado</DialogTitle>
                 <DialogContent dividers >

@@ -487,6 +487,25 @@ const obtenerEtapas = async (req, res) => {
     }
 };
 
+const obtenerEstados = async (req, res) => {
+    try {
+        const query = `
+        SELECT id, nombre
+        FROM estado ORDER BY nombre ASC`;
+        await pool.query(query, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las etapa. Por favor, intente de nuevo más tarde.' });
+            }
+            if (result.rows.length === 0) {
+                return res.status(203).json({ success: true, message: 'No hay estados creados.' });
+            }
+            return res.status(200).json({ success: true, estados: result.rows });
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message });
+    }
+};
+
 const verEntregasPendientesProyecto = async (req, res) => {
     try {
         const proyecto_id = req.params.proyecto_id;
@@ -975,5 +994,5 @@ module.exports = {
     verEntregasPendientesProyecto, verEntregasRealizadasCalificadasProyecto, verEntregasRealizadasSinCalificarProyecto,
     verEntregasPendientes, verEntregasRealizadasSinCalificar, verEntregasRealizadasCalificadas,
     verEntregasPendientesUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol,
-    verAspectosEspacio, verCalificacionAspectos
+    verAspectosEspacio, verCalificacionAspectos,obtenerEstados
 }

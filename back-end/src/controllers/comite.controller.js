@@ -120,7 +120,7 @@ const obtenerProyectosTerminados = async (req, res) => {
 const obtenerProyecto = async (req, res) => {
     const id = req.params.proyecto_id;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
+        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.id as id_etapa, e.nombre as etapa, es.id as id_estado, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
         const proyecto = result.rows
         if (result.rowCount === 1) {
             const result_director = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, ur.id_proyecto, u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
@@ -154,6 +154,63 @@ const asignarNuevoNombre = async (req, res) => {
 
             })
     } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const cambiarEtapaEstado = async (req, res) => {
+    try {
+        const { proyecto, nueva_etapa, nuevo_estado } = req.body;
+        const { id, acronimo, etapa, estado } = proyecto;
+
+        if (estado === 'Rechazado' || estado === 'Cancelado' || estado === 'Terminado' || estado === 'Aprobado comité') {
+            return res.status(203).json({ success: false, message: 'No se puede cambiar la etapa/estado de un proyecto que ya termino (Terminado, Aprobado comité, Rechazado o Cancelado).' });
+        }
+        if (acronimo === 'COT') {
+            if (nueva_etapa.nombre !== 'Propuesta') {
+                return res.status(203).json({ success: false, message: 'La modalidad COT solo puede estar en etapa Propuesta.' });
+            }
+            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado comité' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
+                return res.status(203).json({ success: false, message: 'Los estados válidos para la modalidad COT son: En desarrollo, Aprobado comité, Rechazado, Cancelado.' });
+            }
+        }
+        if (acronimo !== 'COT' && nuevo_estado.nombre === 'Aprobado comité') {
+            return res.status(203).json({ success: false, message: 'El estado Aprobado comité solo es valida para la modalidad COT.' });
+
+        }
+        if (nuevo_estado.nombre === 'Aprobado proyecto de grado 1') {
+            if (nueva_etapa.nombre !== 'Proyecto de grado 1') {
+                return res.status(203).json({ success: false, message: 'El estado Aprobado proyecto de grado 1 solo es válida si el proyecto se encuentra en Proyecto de grado 1' });
+            }
+        }
+        if (nuevo_estado.nombre === 'Aprobado' || nuevo_estado.nombre === 'Terminado') {
+            if (nueva_etapa.nombre !== 'Proyecto de grado 2') {
+                return res.status(203).json({ success: false, message: 'El estado Aprobado y Terminado solo son validos si el proyecto se encuentra en Proyecto de grado 2' });
+            }
+        }
+        const etapasOrden = ['Propuesta', 'Proyecto de grado 1', 'Proyecto de grado 2'];
+        const indexEtapaActual = etapasOrden.indexOf(etapa);
+        const indexEtapaNueva = etapasOrden.indexOf(nueva_etapa.nombre);
+        if (indexEtapaNueva < indexEtapaActual) {
+            return res.status(203).json({ success: false, message: 'No se puede cambiar a una etapa anterior.' });
+        }
+        console.log([nueva_etapa.id, nuevo_estado.id, id])
+        await pool.query(
+            `
+            UPDATE proyecto
+            SET id_etapa = $1, id_estado = $2
+            WHERE id = $3
+        `,
+            [nueva_etapa.id, nuevo_estado.id, id], async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al realizar el cambio de etapa y estado." });
+                }
+                if (result) {
+                    return res.json({ success: true })
+                }
+            })
+    } catch (error) {
+        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -594,6 +651,7 @@ module.exports = {
     obtenerJuradosProyectosCerrados,
     asignarNuevoCodigo,
     asignarNuevoNombre,
+    cambiarEtapaEstado,
     verAprobacionesSolicitud,
     verSolicitud,
     agregarAprobacion,

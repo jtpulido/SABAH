@@ -54,7 +54,7 @@ function CambiarNombre(props) {
         setNombre(isOnlyWhitespace ? "" : value);
     };
     return (
-        <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }}  {...other} >
+        <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel} {...other} >
             <CssBaseline />
             <form onSubmit={(e) =>modificarNombre(e)}>
                 <DialogTitle variant="h1" color="secondary">Cambiar nombre</DialogTitle>

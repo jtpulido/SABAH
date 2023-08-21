@@ -38,7 +38,8 @@ const {
   removerEstudiante,
   agregarEstudiante,
   asignarNuevoNombre,
-  asignarFechaGrado
+  asignarFechaGrado,
+  cambiarEtapaEstado
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -49,7 +50,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
   verEntregasPendientes,
   verEntregasRealizadasCalificadas,
   verEntregasRealizadasSinCalificar,
-  verAspectosEspacio,validarModificarRubrica,  verCalificacionAspectos
+  verAspectosEspacio,validarModificarRubrica,  verCalificacionAspectos, obtenerEstados
 } = require('../controllers/entregas.controller')
 
 const { verInfoDocEntregado, descargarDocumento, descargarDocumentoRetroalimentacion, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
@@ -63,6 +64,7 @@ router.get('/comite/verProyecto/:proyecto_id', authenticateJWT, obtenerProyecto)
 router.post('/comite/asignarCodigo', authenticateJWT, asignarCodigoProyecto);
 router.post('/comite/cambiarCodigo', authenticateJWT, asignarNuevoCodigo);
 router.post('/comite/cambiarNombre', authenticateJWT, asignarNuevoNombre);
+router.post('/comite/cambiarEtaEsta', authenticateJWT, cambiarEtapaEstado);
 router.get('/comite/directoresproyectos/activos', authenticateJWT, obtenerDirectoresProyectosActivos);
 router.get('/comite/directoresproyectos/cerrados', authenticateJWT, obtenerDirectoresProyectosCerrados);
 router.get('/comite/directoresproyectos/inactivos', authenticateJWT, obtenerDirectoresProyectosInactivos);
@@ -98,6 +100,7 @@ router.put('/comite/espacio/:espacio_id', authenticateJWT, modificarEspacio);
 router.get('/comite/espacio', authenticateJWT, obtenerEspacio);
 router.get('/comite/espacio/:espacio_id', authenticateJWT, obtenerEspacioPorId);
 
+router.get('/comite/estados', authenticateJWT, obtenerEstados);
 router.get('/comite/etapas', authenticateJWT, obtenerEtapas);
 router.get('/comite/modalidades', authenticateJWT, obtenerModalidades);
 router.get('/comite/roles', authenticateJWT, obtenerRoles);

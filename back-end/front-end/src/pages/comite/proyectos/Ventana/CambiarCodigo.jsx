@@ -125,7 +125,7 @@ function CambiarCodigo(props) {
 
 
     return (
-        <Dialog open={open} TransitionProps={{ onEntering: handleEntering }}  {...other} >
+        <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel} {...other} >
             <DialogTitle variant="h1" color="secondary">Asignar código</DialogTitle>
             <DialogContent dividers  >
 
