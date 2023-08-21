@@ -32,6 +32,7 @@ const menuItems = [
   { label: "ESPACIOS", button: "espacio" },
   { label: "ENTREGAS", button: "entregas" },
   { label: "SOLICITUDES", button: "solicitudes" },
+  { label: "REPORTES", button: "reportes" },
   { label: "CERRAR SESIÓN", button: "cerrarSesion" }
 ];
 

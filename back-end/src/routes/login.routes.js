@@ -2,9 +2,17 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const { inicioSesion, confirmarCorreo, confirmarCodigo, inscribirPropuestaVarios, cambiarContrasenaProyecto, sendEmails, getEstados, getEtapas, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, getIdUltEst } = require('../controllers/login.controller');
-
+const authenticateJWT = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (error, user, info) => {
+    if (error || !user) {
+      return res.status(401).json({ message: 'La sesión ha expirado. Por favor, inicie sesión nuevamente.' });
+    }
+    req.user = user;
+    next();
+  })(req, res, next);
+};
 router.post('/login', inicioSesion);
-router.get('/perfil', passport.authenticate('jwt', { session: false }), (req, res) => {
+router.get('/perfil', authenticateJWT, (req, res) => {
   res.json({
     id: req.user.id,
     correo: req.user.correo,

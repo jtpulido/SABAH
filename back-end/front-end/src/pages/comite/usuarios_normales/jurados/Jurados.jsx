@@ -48,6 +48,8 @@ export default function Jurados() {
 
         align: "center"
       },
+      { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100 },
+      
       {
         field: 'etapa_estado',
         headerName: 'Estado del proyecto',

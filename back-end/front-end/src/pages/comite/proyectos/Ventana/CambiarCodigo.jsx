@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from "../../../../theme";
-import { Typography, useTheme, CssBaseline, DialogTitle, Dialog, Button, TextField, DialogActions, Divider, DialogContent } from "@mui/material";
+import { Typography, CssBaseline, DialogTitle, Dialog, Button, TextField, DialogActions, Divider, DialogContent } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
 
 function CambiarCodigo(props) {
 
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const { onClose, proyectoCodigo: valueProp, open, ...other } = props;
     const [proyectoCodigo, setProyectoCodigo] = useState(valueProp);

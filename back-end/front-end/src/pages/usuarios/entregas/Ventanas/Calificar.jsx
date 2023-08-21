@@ -203,9 +203,9 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
 
 
     const columnas = [
-        { field: 'nombre_aspecto', headerName: 'Aspecto', flex: 0.3, minWidth: 200 },
+        { field: 'nombre_aspecto', headerName: 'Aspecto', flex: 0.5, minWidth: 200 },
         { field: 'puntaje_aspecto', headerName: 'Puntaje', flex: 0.1, minWidth: 100 },
-        { field: 'comentario_aspecto', headerName: 'Comentario', flex: 0.3, minWidth: 150 },
+        { field: 'comentario_aspecto', headerName: 'Comentario', flex: 0.4, minWidth: 150 },
     ]
     const formatFecha = (fecha) => {
         if (!fecha || !dayjs(fecha).isValid()) {

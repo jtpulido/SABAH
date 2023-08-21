@@ -46,9 +46,9 @@ export default function Proyectos() {
     }
   ];
   const verProyecto = (id) => {
-    navigate(`/comite/verProyecto/${id}`)
-  }
-
+    sessionStorage.setItem('id_proyecto', id);
+    navigate(`/comite/verProyecto`)
+}
   const token = useSelector(selectToken);
   const [rowsEnCurso, setRowsEnCurso] = useState([]);
   const [rowsTerminados, setRowsTerminados] = useState([]);

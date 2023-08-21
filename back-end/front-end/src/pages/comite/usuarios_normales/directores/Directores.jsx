@@ -26,6 +26,7 @@ export default function Directores() {
       { field: 'nombre_director', headerName: 'Nombre del director', flex: 0.2, minWidth: 150 },
       { field: 'fecha_asignacion', headerName: 'Fecha de asignación', flex: 0.2, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') },
       { field: 'codigo', headerName: 'Código del proyecto', flex: 0.1, minWidth: 100 },
+      { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100 },
       {
         field: 'etapa_estado', headerName: 'Estado del proyecto', flex: 0.2, minWidth: 100,
         valueGetter: (params) => `${params.row.etapa || ''} - ${params.row.estado || ''}`,

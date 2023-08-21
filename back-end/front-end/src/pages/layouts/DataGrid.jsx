@@ -3,6 +3,7 @@ import { Box, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import { DataGrid, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport } from '@mui/x-data-grid';
 
+
 function CustomToolbar() {
   return (
     <GridToolbarContainer>
@@ -34,6 +35,8 @@ export default function CustomDataGrid({ rows = [], columns, mensaje }) {
       height,
       "& .MuiDataGrid-root": {
         border: "none",
+        minWidth: '100%',
+        overflowX: 'scroll',
       },
       "& .MuiDataGrid-cellContent": {
         textAlign: "center"
@@ -51,10 +54,9 @@ export default function CustomDataGrid({ rows = [], columns, mensaje }) {
       "& .MuiDataGrid-toolbarContainer": {
         justifyContent: 'flex-end',
         align: "right"
-      }
+      },
     }}>
       <DataGrid
-
         getRowHeight={() => 'auto'}
         rows={rows}
         columns={updatedColumns}

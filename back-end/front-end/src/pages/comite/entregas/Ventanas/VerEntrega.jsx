@@ -25,7 +25,7 @@ import { useSnackbar } from 'notistack';
 import { ExpandMore, SaveOutlined } from '@mui/icons-material';
 import CustomDataGrid from '../../../layouts/DataGrid';
 
-function VerEntrega({ open, onClose, entrega = {}, tipo }) {
+function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const { enqueueSnackbar } = useSnackbar();
 

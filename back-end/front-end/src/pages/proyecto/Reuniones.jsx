@@ -11,9 +11,10 @@ import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material
 import DescriptionIcon from '@mui/icons-material/Description';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
+import { selectToken } from "../../store/authSlice";
+import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../layouts/DataGrid";
-
 import CrearReunion from "./VentanasReuniones/CrearReunion";
 import CancelarReunion from "./VentanasReuniones/CancelarReunion";
 import EditarReunion from "./VentanasReuniones/EditarReunion";
@@ -24,7 +25,6 @@ export default function Reuniones() {
 
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
-
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCompletadas, setRowsCompletadas] = useState([]);
   const [rowsCanceladas, setRowsCanceladas] = useState([]);

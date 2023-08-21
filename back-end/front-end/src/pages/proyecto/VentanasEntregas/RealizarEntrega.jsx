@@ -39,6 +39,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 const formData = new FormData();
                 formData.append('file', selectedFile);
                 formData.append('entrega', JSON.stringify(entrega));
+                formData.append('nombreArchivo', JSON.stringify(selectedFile.name));
 
                 const response = await fetch("http://localhost:5000/entrega/guardar", {
                     method: "POST",

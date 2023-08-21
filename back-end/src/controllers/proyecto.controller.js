@@ -1,4 +1,9 @@
 const pool = require('../database')
+let proyectos = "";
+let director = "";
+let jurados = "";
+let estudiantes = ""
+let lector = "";
 
 const obtenerProyecto = async (req, res) => {
   const id = req.params.id;
@@ -14,15 +19,15 @@ const obtenerProyecto = async (req, res) => {
       const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
       const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
       const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
-
-      if (result_estudiantes.rowCount > 0 && result_director.rowCount > 0) {
-        return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
-      } else {
-        return res.status(203).json({ success: true, message: error })
-      }
+      proyectos = proyecto[0];
+      director = usuario_director;
+      jurados = info_jurado;
+      estudiantes = result_estudiantes.rows;
+      lector = info_lector;
+      return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
 
     } else {
-      return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
+      return res.status(203).json({ success: true, message: error })
     }
   } catch (error) {
     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -535,92 +540,206 @@ const obtenerInfoActa = async (req, res) => {
 };
 
 const generarPDF = async (req, res) => {
-  const { fecha, invitados, compromisos, objetivos, tareas, nombre } = req.body;
-  const PDFDocument = require('pdfkit');
-  const fs = require('fs');
   try {
-
-
+    const { fecha, invitados, compromisos, objetivos, tareas, nombre } = req.body;
+    const PDFDocument = require('pdfkit');
+    const path = require('path');
     const doc = new PDFDocument();
 
-    // Agrega contenido al PDF
-    doc.text("");
+    const tituloParte1 = 'FACULTAD DE INGENIERÍA\nPROGRAMA INGENIERÍA DE SISTEMAS\nCOMITÉ OPCIONES DE GRADO';
+    const tituloParte2 = 'FORMATO REUNIONES REALIMENTACIÓN PROPUESTAS DE GRADO';
+    const tituloParte3 = 'OPCIONES DESARROLLO TECNOLÓGICO Y PROYECTO DE GRADO';
+
+    const imagePath = path.join(__dirname, 'Logo.png');
+
+    doc
+      .image(imagePath, 50, 50, { width: 100 })
+      .font('Helvetica-Bold')
+      .fontSize(11)
+      .text(tituloParte1, { align: 'center' })
+      .moveDown(0)
+      .text(tituloParte2, { align: 'center' })
+      .moveDown(0)
+      .font('Helvetica')
+      .fontSize(10)
+      .text(tituloParte3, { align: 'center' })
+      .moveDown(1);
+
+
+    const asistentes = [];
+
+
+    doc.font('Helvetica-Bold').fontSize(10).text('TÍTULO PROPUESTA: ', { continued: true })
+      .font('Helvetica').text(proyectos.nombre, { continued: false, align: 'left' });
+    doc.font('Helvetica-Bold').fontSize(10).text('OPCIÓN DE GRADO: ', { continued: true })
+      .font('Helvetica').text(proyectos.modalidad, { continued: false, align: 'left' });
+    doc.font('Helvetica-Bold').fontSize(10).text('CÓDIGO ASIGNADO A PROPUESTA: ', { continued: true })
+      .font('Helvetica').text(proyectos.codigo, { continued: false, align: 'left' })
+      .moveDown(1);
+
+
+    doc.font('Helvetica-Bold').fontSize(10).text('ESTUDIANTES', { align: 'left' });
+    estudiantes.forEach((estudiante) => {
+      doc.font('Helvetica').fontSize(10).text(`${estudiante.nombre} - ${estudiante.num_identificacion}`, { align: 'left' });
+      asistentes.push(estudiante.nombre);
+    });
+    doc.moveDown(1);
+
+    doc.font('Helvetica-Bold').fontSize(10).text('DIRECTOR: ', { continued: true })
+      .font('Helvetica').text(director.nombre, { continued: false, align: 'left' })
+      .moveDown(1);
+
+    doc.font('Helvetica-Bold').fontSize(11).text(nombre, { continued: false, align: 'center' })
+      .moveDown(1);
 
     const tableData = [
-      ['Fecha', fecha],
-      ['invitados', invitados],
-      ['Compromisos', compromisos],
-      ['Objetivos', objetivos],
-      ['Tareas', tareas],
-      ['Nombre', nombre]
+      [{ text: '1.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'FECHA Y HORA', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: fecha, font: 'Helvetica', fontSize: 10 }],
+      [{ text: '2.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'DESCRIPCIÓN DE OBJETIVOS', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: objetivos, font: 'Helvetica', fontSize: 10 }],
+      [{ text: '3.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'RESULTADOS DE REUNIÓN', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'resultados', font: 'Helvetica', fontSize: 10 }],
+      [{ text: '4.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'TAREAS SESION ANTERIOR', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: tareas, font: 'Helvetica', fontSize: 10 }],
+      [{ text: '5.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'COMPROMISOS', font: 'Helvetica-Bold', fontSize: 10 }],
+      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: compromisos, font: 'Helvetica', fontSize: 10 }],
+      // Agregar más filas de datos aquí...
     ];
 
-    const table = {
-      headers: ['Nombre', 'Edad'],
-      rows: tableData
+    const tableSettings = {
+      x: 80,
+      y: doc.y, // La posición Y actual del cursor, para que la tabla comience desde este punto
+      col1Width: 50, // Ancho de la columna uno (números tipo 1.)
+      col2Width: 400, // Ancho de la columna dos (títulos formales)
+      rowHeight: 40,
+      cellMargin: 5,
     };
 
-    doc.moveDown();
-    drawTable(doc, table, {
+    drawTable(doc, tableData, tableSettings);
+    doc.moveDown(1);
+    doc.addPage();
+
+    doc.font('Helvetica-Bold').fontSize(11).text('FIRMAS ASISTENTES', { continued: false, align: 'center' })
+      .moveDown(1);
+    doc.font('Helvetica-Bold').fontSize(11).text(invitados, { continued: false, align: 'center' })
+      .moveDown(1);
+    doc.moveDown(1);
+
+
+    // Llamamos a la función para agregar las firmas después del contenido previo
+    // Llamamos a la función para agregar las firmas después del contenido previo
+    const signatureSettings = {
       x: 50,
-      y: doc.y,
-      width: 200,
-      height: 0,
-      cellMargin: 10
+      y: doc.y, // La posición Y actual del cursor, para que las firmas comiencen desde este punto
+      width: 165, // Width of the signature field
+      rowHeight: 100, // Height of each row for signatures
+      signatureHeight: 40, // Height of the signature field (adjust as needed)
+      fontSize: 10,
+      signaturesPerRow: 3, // Number of signatures per row
+    };
+
+   // if (invitados.includes("director")) {
+    //  asistentes.push(director.nombre);
+    //}
+
+    //if (invitados.includes("lector")) {
+     // asistentes.push(lector);
+    //}
+
+    //if(invitados.includes("cliente")){
+    // asistentes.push(cliente.nombre);
+    //}
+
+
+    const numberOfSignatureFields = asistentes; // Number of signature fields you want to have
+    drawSignatureFields(doc, numberOfSignatureFields, signatureSettings);
+
+    doc.end();
+    const buffer = await new Promise((resolve, reject) => {
+      const chunks = [];
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
     });
 
-    // Guarda el archivo en el sistema de archivos
-    const outputPath = nombre + '.pdf';
-    doc.pipe(fs.createWriteStream(outputPath));
-    doc.end();
+    res.setHeader('Content-Disposition', `attachment; filename="${nombre}.pdf"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(buffer);
 
-    return outputPath;
+
   } catch (error) {
+    console.log(error)
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
 
 function drawTable(doc, table, settings) {
-  const startX = settings.x;
-  const startY = settings.y;
-  const marginCell = settings.cellMargin || 0;
-
-  const columnCount = table.headers.length;
-  const columnWidth = settings.width / columnCount;
-  const rowHeight = settings.rowHeight || 20;
-  const pageHeight = doc.page.height;
+  const { x, y, col1Width, col2Width, rowHeight, cellMargin } = settings;
 
   doc.font('Helvetica-Bold');
 
-  // Dibuja los encabezados de la tabla
-  doc.fillColor('black');
-  doc.fontSize(12);
+  // Dibujar los bordes externos de la tabla
+  doc.rect(x, y, col1Width + col2Width + cellMargin * 2, rowHeight * table.length + cellMargin * 2).stroke();
 
-  let currentY = startY;
-  table.headers.forEach((header, columnIndex) => {
-    const currentX = startX + columnIndex * columnWidth;
-    doc.text(header, currentX, currentY, { width: columnWidth, align: 'left' });
-  });
+  // Dibujar los bordes internos de la tabla (columnas)
+  doc.lineWidth(2);
+  doc.moveTo(x + col1Width, y + cellMargin).lineTo(x + col1Width, y + rowHeight * table.length + cellMargin).stroke();
 
-  // Dibuja las filas de la tabla
-  doc.font('Helvetica');
-  doc.fontSize(10);
+  // Dibujar los bordes internos de la tabla (filas)
+  doc.lineWidth(1);
+  for (let i = 1; i < table.length; i++) {
+    const yPos = y + i * rowHeight + cellMargin;
+    doc.moveTo(x, yPos).lineTo(x + col1Width + col2Width + cellMargin * 2, yPos).stroke();
+  }
 
-  table.rows.forEach((row, rowIndex) => {
-    currentY += rowHeight;
-    let rowText = '';
-    row.forEach((cell, cellIndex) => {
-      const currentX = startX + cellIndex * columnWidth;
-      doc.text(cell, currentX, currentY, { width: columnWidth - marginCell, align: 'left' });
+  doc.text('', x + cellMargin, y + cellMargin);
+
+  table.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      const xPos = x + (colIndex === 0 ? 0 : col1Width) + cellMargin;
+      const yPos = y + rowIndex * rowHeight + cellMargin + (rowHeight - cell.fontSize) / 2;
+      const { text, font, fontSize, align } = cell;
+
+      // Verificar si la primera celda de la fila contiene solo espacios en blanco
+      const isFirstCellEmpty = colIndex === 0 && text.trim().length === 0;
+
+      // Desplazar las celdas hacia arriba si la primera celda está vacía
+      const verticalOffset = isFirstCellEmpty ? -rowHeight / 4 : 0;
+
+      doc
+        .font(font || 'Helvetica')
+        .fontSize(fontSize || 12)
+        .text(text, xPos, yPos + verticalOffset, { width: colIndex === 0 ? col1Width : col2Width, align: align || (colIndex === 0 ? 'center' : 'left') });
     });
   });
-
-  // Calcula la altura de la tabla
-  const tableHeight = currentY - startY + rowHeight;
-  if (tableHeight > settings.height) {
-    doc.addPage();
-  }
 }
+
+function drawSignatureFields(doc, numberOfFields, settings) {
+  const { x, y, width, rowHeight, signatureHeight, fontSize, signaturesPerRow } = settings;
+
+  doc.font('Helvetica').fontSize(fontSize);
+
+  for (let i = 0; i < numberOfFields.length; i++) {
+    const row = Math.floor(i / signaturesPerRow);
+    const col = i % signaturesPerRow;
+
+    const xPos = x + (width + 20) * col; // Añadimos 20 de separación horizontal entre las celdas
+    const yPos = y + row * rowHeight;
+
+    doc.font('Helvetica-Bold').fontSize(11).text(numberOfFields[i], xPos + 10, yPos + 50, { width: width - 20, align: 'center' });
+
+    const lineYPos = yPos + signatureHeight;
+    const lineLength = width * 0.85; // Ajusta este valor para cambiar la longitud de la línea
+    const lineXPos = xPos + (width - lineLength) / 2;
+    doc
+      .strokeColor('#000000')
+      .lineJoin('round')
+      .moveTo(lineXPos, lineYPos)
+      .lineTo(lineXPos + lineLength, lineYPos)
+      .stroke();
+  }
+};
+
 
 const guardarLink = async (req, res) => {
   const { id, tipol, link } = req.body;
@@ -821,7 +940,7 @@ const crearReunionInvitados = async (req, res) => {
         }
 
         // Verificar si es jurado
-      } else if (roleName.startsWith("jurado")) {
+      } else if (roleName.startsWith("jurado")) { 
         const juradoIndex = parseInt(roleName.split(" ")[1]);
         await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true))`, [id, jurado[juradoIndex].id]);
       }

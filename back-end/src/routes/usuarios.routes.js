@@ -2,30 +2,39 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
+const authenticateJWT = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (error, user, info) => {
+    if (error || !user) {
+      return res.status(401).json({ message: 'La sesión ha expirado. Por favor, inicie sesión nuevamente.' });
+    }
+    req.user = user;
+    next();
+  })(req, res, next);
+};
 const { obtenerProyectosDesarrolloRol, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, obtenerReunionesPendientes, obtenerReunionesCanceladas, obtenerReunionesCompletas, crearReunionInvitados } = require('../controllers/usuarios.controller');
 const { verEntregasPendientesUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol } = require('../controllers/entregas.controller');
 
-router.post('/usuario/obtenerProyectosDesarrolloRol', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrolloRol);
-router.post('/usuario/obtenerProyectosCerradosRol', passport.authenticate('jwt', { session: false }), obtenerProyectosCerradosRol);
-router.get('/usuario/obtenerProyecto/:proyecto_id', passport.authenticate('jwt', { session: false }), obtenerProyecto);
+router.post('/usuario/obtenerProyectosDesarrolloRol', authenticateJWT, obtenerProyectosDesarrolloRol);
+router.post('/usuario/obtenerProyectosCerradosRol', authenticateJWT, obtenerProyectosCerradosRol);
+router.get('/usuario/obtenerProyecto/:proyecto_id', authenticateJWT, obtenerProyecto);
 
-router.post('/usuario/rolDirector', passport.authenticate('jwt', { session: false }), rolDirector);
-router.post('/usuario/rolLector', passport.authenticate('jwt', { session: false }), rolLector);
-router.post('/usuario/rolJurado', passport.authenticate('jwt', { session: false }), rolJurado);
+router.post('/usuario/rolDirector', authenticateJWT, rolDirector);
+router.post('/usuario/rolLector', authenticateJWT, rolLector);
+router.post('/usuario/rolJurado', authenticateJWT, rolJurado);
 
-router.get('/usuario/obtenerSolicitudesPendientes/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesResponderDirector);
-router.get('/usuario/obtenerSolicitudesPendientesComite/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesPendientesResponderComite);
-router.get('/usuario/obtenerSolicitudesCerradasAprobadas/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesCerradasAprobadas);
-router.get('/usuario/obtenerSolicitudesCerradasRechazadas/:id', passport.authenticate('jwt', { session: false }), obtenerSolicitudesCerradasRechazadas);
-router.post('/usuario/guardarSolicitud', passport.authenticate('jwt', { session: false }), guardarSolicitud);
-router.post('/usuario/solicitudes/agregarAprobacion', passport.authenticate('jwt', { session: false }), agregarAprobacion);
-router.get('/usuario/obtenerProyectos/:id', passport.authenticate('jwt', { session: false }), obtenerListaProyectos);
+router.get('/usuario/obtenerSolicitudesPendientes/:id', authenticateJWT, obtenerSolicitudesPendientesResponderDirector);
+router.get('/usuario/obtenerSolicitudesPendientesComite/:id', authenticateJWT, obtenerSolicitudesPendientesResponderComite);
+router.get('/usuario/obtenerSolicitudesCerradasAprobadas/:id', authenticateJWT, obtenerSolicitudesCerradasAprobadas);
+router.get('/usuario/obtenerSolicitudesCerradasRechazadas/:id', authenticateJWT, obtenerSolicitudesCerradasRechazadas);
+router.post('/usuario/guardarSolicitud', authenticateJWT, guardarSolicitud);
+router.post('/usuario/solicitudes/agregarAprobacion', authenticateJWT, agregarAprobacion);
+router.get('/usuario/obtenerProyectos/:id', authenticateJWT, obtenerListaProyectos);
 
-router.get('/usuario/entregas/pendientes/:id_usuario/:id_rol', passport.authenticate('jwt', { session: false }), verEntregasPendientesUsuarioRol);
-router.get('/usuario/entregas/realizadas/calificadas/:id_usuario/:id_rol', passport.authenticate('jwt', { session: false }), verEntregasRealizadasCalificadasUsuarioRol);
-router.get('/usuario/entregas/realizadas/porCalificar/:id_usuario/:id_rol', passport.authenticate('jwt', { session: false }), verEntregasRealizadasSinCalificarUsuarioRol);
+router.get('/usuario/entregas/pendientes/:id_usuario/:id_rol', authenticateJWT, verEntregasPendientesUsuarioRol);
+router.get('/usuario/entregas/realizadas/calificadas/:id_usuario/:id_rol', authenticateJWT, verEntregasRealizadasCalificadasUsuarioRol);
+router.get('/usuario/entregas/realizadas/porCalificar/:id_usuario/:id_rol', authenticateJWT, verEntregasRealizadasSinCalificarUsuarioRol);
 
-router.post('/usuario/verUsuario', passport.authenticate('jwt', { session: false }), verUsuario);
+router.post('/usuario/verUsuario', authenticateJWT, verUsuario);
 
 router.post('/usuario/obtenerReunionesPendientes', passport.authenticate('jwt', { session: false }), obtenerReunionesPendientes);
 router.post('/usuario/obtenerReunionesCompletas', passport.authenticate('jwt', { session: false }), obtenerReunionesCompletas);
@@ -35,6 +44,6 @@ router.post('/usuario/crearReunionInvitados', passport.authenticate('jwt', { ses
 router.post('/usuario/cancelarReunion', passport.authenticate('jwt', { session: false }), cancelarReunion);
 router.post('/usuario/editarReunion', passport.authenticate('jwt', { session: false }), editarReunion);
 router.get('/usuario/obtenerAsistencia', passport.authenticate('jwt', { session: false }), obtenerAsistencia);
-router.get('/usuario/ultIdReunion', passport.authenticate('jwt', {session: false}), ultIdReunion);
+router.get('/usuario/ultIdReunion', passport.authenticate('jwt', { session: false }), ultIdReunion);
 
 module.exports = router;
