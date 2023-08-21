@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, obtenerReunionesPendientes, obtenerReunionesCanceladas, obtenerReunionesCompletas } = require('../controllers/usuarios.controller');
+const { obtenerProyectosDesarrolloRol, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, obtenerReunionesPendientes, obtenerReunionesCanceladas, obtenerReunionesCompletas, crearReunionInvitados } = require('../controllers/usuarios.controller');
 const { verEntregasPendientesUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol } = require('../controllers/entregas.controller');
 
 router.post('/usuario/obtenerProyectosDesarrolloRol', passport.authenticate('jwt', { session: false }), obtenerProyectosDesarrolloRol);
@@ -30,5 +30,11 @@ router.post('/usuario/verUsuario', passport.authenticate('jwt', { session: false
 router.post('/usuario/obtenerReunionesPendientes', passport.authenticate('jwt', { session: false }), obtenerReunionesPendientes);
 router.post('/usuario/obtenerReunionesCompletas', passport.authenticate('jwt', { session: false }), obtenerReunionesCompletas);
 router.post('/usuario/obtenerReunionesCanceladas', passport.authenticate('jwt', { session: false }), obtenerReunionesCanceladas);
+
+router.post('/usuario/crearReunionInvitados', passport.authenticate('jwt', { session: false }), crearReunionInvitados);
+router.post('/usuario/cancelarReunion', passport.authenticate('jwt', { session: false }), cancelarReunion);
+router.post('/usuario/editarReunion', passport.authenticate('jwt', { session: false }), editarReunion);
+router.get('/usuario/obtenerAsistencia', passport.authenticate('jwt', { session: false }), obtenerAsistencia);
+router.get('/usuario/ultIdReunion', passport.authenticate('jwt', {session: false}), ultIdReunion);
 
 module.exports = router;
