@@ -21,8 +21,10 @@ function CrearEspacio(props) {
 
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
-    const [fechaApertura, setFechaApertura] = useState(dayjs());
-    const [fechaCierre, setFechaCierre] = useState(dayjs());
+    const [fechaAperturaEntrega, setFechaAperturaEntrega] = useState(dayjs());
+    const [fechaCierreEntrega, setFechaCierreEntrega] = useState(dayjs());
+    const [fechaAperturaCalificacion, setFechaAperturaCalificacion] = useState(dayjs());
+    const [fechaCierreCalificacion, setFechaCierreCalificacion] = useState(dayjs());
     const [idRol, setIdRol] = useState("");
     const [idModalidad, setIdModalidad] = useState("");
     const [idEtapa, setIdEtapa] = useState("");
@@ -143,23 +145,37 @@ function CrearEspacio(props) {
     const guardarEspacio = async (event) => {
         event.preventDefault();
         const today = dayjs();
-        const fechaAperturaDate = dayjs(fechaApertura);
-        const fechaCierreDate = dayjs(fechaCierre);
+        const fechaAperturaEntregaDate = dayjs(fechaAperturaEntrega);
+        const fechaCierreEntregaDate = dayjs(fechaCierreEntrega);
+        const fechaAperturaCalificacionDate = dayjs(fechaAperturaCalificacion);
+        const fechaCierreCalificacionDate = dayjs(fechaCierreCalificacion);
 
-        if (fechaAperturaDate.isBefore(today, 'minute')) {
+        if (fechaAperturaEntregaDate.isBefore(today, 'minute')) {
             mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
             return;
         }
 
-        if (fechaCierreDate.isBefore(fechaAperturaDate, 'minute')) {
+        if (fechaCierreEntregaDate.isBefore(fechaAperturaEntregaDate, 'minute')) {
             mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
+            return;
+        }
+
+        if (fechaAperturaCalificacionDate.isBefore(fechaCierreEntregaDate, 'minute')) {
+            mostrarMensaje("La fecha de inicio de calificación debe ser posterior a la fecha de cierre de entregas.", "error");
+            return;
+        }
+
+        if (fechaCierreCalificacionDate.isBefore(fechaAperturaCalificacionDate, 'minute')) {
+            mostrarMensaje("La fecha de cierre para calificar debe ser mayor a la fecha de inicio de calificación.", "error");
             return;
         }
         const espacioData = {
             nombre,
             descripcion,
-            fecha_apertura: fechaApertura.format("DD/MM/YYYY hh:mm A"),
-            fecha_cierre: fechaCierre.format("DD/MM/YYYY hh:mm A"),
+            fecha_apertura_entrega: fechaAperturaEntrega.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre_entrega: fechaCierreEntrega.format("DD/MM/YYYY hh:mm A"),
+            fecha_apertura_calificacion: fechaAperturaCalificacion.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre_calificacion: fechaCierreCalificacion.format("DD/MM/YYYY hh:mm A"),
             id_rol: idRol,
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
@@ -178,8 +194,10 @@ function CrearEspacio(props) {
                 onSubmit();
                 setNombre("");
                 setDescripcion("");
-                setFechaApertura(dayjs());
-                setFechaCierre(dayjs());
+                setFechaAperturaEntrega(dayjs());
+                setFechaCierreEntrega(dayjs());
+                setFechaAperturaCalificacion(dayjs());
+                setFechaCierreCalificacion(dayjs());
                 setIdRol("");
                 setIdModalidad("");
                 setIdEtapa("");
@@ -202,8 +220,10 @@ function CrearEspacio(props) {
         onClose();
         setNombre("");
         setDescripcion("");
-        setFechaApertura(dayjs());
-        setFechaCierre(dayjs());
+        setFechaAperturaEntrega(dayjs());
+        setFechaCierreEntrega(dayjs());
+        setFechaAperturaCalificacion(dayjs());
+        setFechaCierreCalificacion(dayjs());
         setIdRol("");
         setIdModalidad("");
         setIdEtapa("");
@@ -240,7 +260,7 @@ function CrearEspacio(props) {
                                 value={descripcion}
                                 onChange={handleDescripcionChange}
                                 multiline
-                                rows={2}
+                                rows={1}
                                 required
                                 fullWidth
                                 error={!descripcion}
@@ -249,29 +269,61 @@ function CrearEspacio(props) {
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <Typography variant="h6" color="primary">
-                                Fecha de apertura
+                                Fecha de apertura entregas
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DateTimePicker
-                                    value={fechaApertura}
-                                    onChange={(newValue) => setFechaApertura(newValue)}
+                                    value={fechaAperturaEntrega}
+                                    onChange={(newValue) => setFechaAperturaEntrega(newValue)}
                                     required
                                     format="DD/MM/YYYY hh:mm A"
                                     fullWidth
+                                    sx={{ minWidth: '100%' }}
                                 />
                             </LocalizationProvider>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <Typography variant="h6" color="primary">
-                                Fecha de cierre
+                                Fecha de cierre entregas
                             </Typography>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DateTimePicker
-                                    value={fechaCierre}
-                                    onChange={(newValue) => setFechaCierre(newValue)}
+                                    value={fechaCierreEntrega}
+                                    onChange={(newValue) => setFechaCierreEntrega(newValue)}
                                     required
                                     format="DD/MM/YYYY hh:mm A"
                                     fullWidth
+                                    sx={{ minWidth: '100%' }}
+                                />
+                            </LocalizationProvider>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color="primary">
+                                Fecha de apertura calificación
+                            </Typography>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                    value={fechaAperturaCalificacion}
+                                    onChange={(newValue) => setFechaAperturaCalificacion(newValue)}
+                                    required
+                                    format="DD/MM/YYYY hh:mm A"
+                                    fullWidth
+                                    sx={{ minWidth: '100%' }}
+                                />
+                            </LocalizationProvider>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="h6" color="primary">
+                                Fecha de cierre calificación
+                            </Typography>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                    value={fechaCierreCalificacion}
+                                    onChange={(newValue) => setFechaCierreCalificacion(newValue)}
+                                    required
+                                    format="DD/MM/YYYY hh:mm A"
+                                    fullWidth
+                                    sx={{ minWidth: '100%' }}
                                 />
                             </LocalizationProvider>
                         </Grid>

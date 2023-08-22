@@ -37,7 +37,9 @@ const {
   cambioUsuarioRol,
   removerEstudiante,
   agregarEstudiante,
-  asignarNuevoNombre
+  asignarNuevoNombre,
+  asignarFechaGrado,
+  cambiarEtapaEstado
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -48,11 +50,10 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
   verEntregasPendientes,
   verEntregasRealizadasCalificadas,
   verEntregasRealizadasSinCalificar,
-  verAspectosEspacio,
-  guardarCalificacion, validarModificarRubrica, validarModificarEspacio, verCalificacionAspectos
+  verAspectosEspacio,validarModificarRubrica,  verCalificacionAspectos, obtenerEstados
 } = require('../controllers/entregas.controller')
 
-const { verInfoDocEntregado, descargarDocumento } = require('../controllers/documento.controller');
+const { verInfoDocEntregado, descargarDocumento, descargarDocumentoRetroalimentacion, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
 const { obtenerVistasDisponibles, obtenerColumnasDisponibles, generarReporte } = require('../controllers/reportes.controller');
 router.get('/comite/usuarios', authenticateJWT, obtenerUsuarios);
 router.post('/comite/cambiarUsuarioRol', authenticateJWT, cambioUsuarioRol);
@@ -63,6 +64,7 @@ router.get('/comite/verProyecto/:proyecto_id', authenticateJWT, obtenerProyecto)
 router.post('/comite/asignarCodigo', authenticateJWT, asignarCodigoProyecto);
 router.post('/comite/cambiarCodigo', authenticateJWT, asignarNuevoCodigo);
 router.post('/comite/cambiarNombre', authenticateJWT, asignarNuevoNombre);
+router.post('/comite/cambiarEtaEsta', authenticateJWT, cambiarEtapaEstado);
 router.get('/comite/directoresproyectos/activos', authenticateJWT, obtenerDirectoresProyectosActivos);
 router.get('/comite/directoresproyectos/cerrados', authenticateJWT, obtenerDirectoresProyectosCerrados);
 router.get('/comite/directoresproyectos/inactivos', authenticateJWT, obtenerDirectoresProyectosInactivos);
@@ -73,6 +75,7 @@ router.get('/comite/lectoresproyectos/activos', authenticateJWT, obtenerLectores
 router.get('/comite/lectoresproyectos/cerrados', authenticateJWT, obtenerLectoresProyectosCerrados);
 router.get('/comite/lectoresproyectos/inactivos', authenticateJWT, obtenerLectoresProyectosInactivos);
 router.put('/comite/estudiante/:id_estudiante/:id_proyecto', authenticateJWT, removerEstudiante);
+router.put('/comite/estudiante/cambiarfecha', authenticateJWT, asignarFechaGrado);
 router.post('/comite/estudiante/:id', authenticateJWT, agregarEstudiante);
 router.get('/comite/solicitudes/pendienteaprobacion', authenticateJWT, obtenerSolicitudesPendientesComite);
 router.get('/comite/solicitudes/aprobadas', authenticateJWT, obtenerSolicitudesAprobadasComite);
@@ -93,11 +96,11 @@ router.get('/comite/aspecto/:aspectoId', authenticateJWT, obtenerAspectoPorId);
 // Rutas para espacios
 router.post('/comite/espacio', authenticateJWT, crearEspacio);
 router.delete('/comite/espacio/:espacio_id', authenticateJWT, eliminarEspacio);
-router.get('/comite/usoEspacio/:espacio_id', authenticateJWT, validarModificarEspacio);
 router.put('/comite/espacio/:espacio_id', authenticateJWT, modificarEspacio);
 router.get('/comite/espacio', authenticateJWT, obtenerEspacio);
 router.get('/comite/espacio/:espacio_id', authenticateJWT, obtenerEspacioPorId);
 
+router.get('/comite/estados', authenticateJWT, obtenerEstados);
 router.get('/comite/etapas', authenticateJWT, obtenerEtapas);
 router.get('/comite/modalidades', authenticateJWT, obtenerModalidades);
 router.get('/comite/roles', authenticateJWT, obtenerRoles);
@@ -121,11 +124,11 @@ router.get('/comite/entregas/pendientes', authenticateJWT, verEntregasPendientes
 router.get('/comite/entregas/realizadas/calificadas', authenticateJWT, verEntregasRealizadasCalificadas);
 router.get('/comite/entregas/realizadas/porCalificar', authenticateJWT, verEntregasRealizadasSinCalificar);
 router.get('/comite/documento/:id_doc_entrega', authenticateJWT, verInfoDocEntregado);
+router.get('/comite/retroalimentacion/documento/:id', authenticateJWT, verInfoDocRetroalimentacion);
 router.get('/descargar/:nombreArchivo', descargarDocumento);
+router.get('/descargar/retroalimentacion/:nombreArchivo', descargarDocumentoRetroalimentacion);
 router.get('/comite/documento/aspectos/:id_esp_entrega', authenticateJWT, verAspectosEspacio);
 
-//calificación
-router.post('/comite/documento/guardarCalificacion', authenticateJWT, guardarCalificacion);
 router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, verCalificacionAspectos);
 
 //reportes

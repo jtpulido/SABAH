@@ -20,7 +20,7 @@ export default function Entregas() {
 
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
-  
+
   const [entrega, setEntrega] = useState({});
   const [tipo, setTipo] = useState("");
   const [pendientes, setPendientes] = useState([]);
@@ -155,8 +155,9 @@ export default function Entregas() {
     const columns = [
       { field: 'nombre_espacio_entrega', headerName: 'Nombre', flex: 0.2, minWidth: 150 },
       { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150 },
-      { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.15, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-      { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.15, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+      { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+      { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+      { field: 'fecha_apertura_calificacion', headerName: 'Fecha de inicio calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'nombre_rol', headerName: 'Calificador', flex: 0.2, minWidth: 100 }
     ];
     return [...inicio, ...columns, ...extraColumns];
@@ -168,20 +169,56 @@ export default function Entregas() {
       flex: 0.1,
       minWidth: 50,
 
-
       renderCell: ({ row }) => {
-        return (
-          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title="Añadir entrega">
+        let boton = null;
+        if (row.estado_entrega === 'pendiente') {
+          boton = (
+            <Tooltip title="Realizar Entrega">
               <IconButton color="secondary" onClick={() => abrirDialogAgregarEntrega(row)}>
-                <PostAdd />
+                <Source />
               </IconButton>
             </Tooltip>
+          );
+        } else if (row.estado_entrega === 'en_proceso') {
+          // Estamos dentro del período de entrega
+          boton = (
+            <Tooltip title="Realizar Entrega">
+              <IconButton color="secondary" onClick={() => abrirDialogAgregarEntrega(row)}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          );
+        } else if (row.estado_entrega === 'vencido') {
+          // La fecha de cierre ya ha pasado
+          boton = (
+            <Tooltip title="Ver Entrega">
+              <IconButton color="secondary" onClick={() => abrirDialogVerEntrega(row, "vencida")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          );
+        } else if (row.estado_entrega === 'cerrado') {
+          // La entrega está cerrada
+          boton = (
+            <Tooltip title="Ver Entrega">
+              <IconButton color="secondary" onClick={() => abrirDialogVerEntrega(row, "cerrada")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          );
+        }
+
+        return (
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+            {boton}
           </Box>
         );
       },
     },
-  ], []);
+  ], [
+    { field: 'estado_entrega', headerName: 'Estado', flex: 0.2, minWidth: 100 },
+  ]);
+
 
   const columnaPorCalificar = generarColumnas([{
     field: "calificar",
@@ -191,8 +228,8 @@ export default function Entregas() {
     renderCell: ({ row }) => {
       return (
         <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-          <Tooltip title="Calificar">
-            <IconButton color="secondary" onClick={() => abrirDialogCalificar(row)}>
+          <Tooltip title="Ver Entrega">
+            <IconButton color="secondary" onClick={() => abrirDialogVerEntrega(row)}>
               <Source />
             </IconButton>
           </Tooltip>
@@ -201,7 +238,7 @@ export default function Entregas() {
     },
   }], [
     { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
-   { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
   ]);
   const columnaCalificadas = generarColumnas([{
@@ -213,7 +250,7 @@ export default function Entregas() {
       return (
         <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
           <Tooltip title="Calificar">
-            <IconButton color="secondary" onClick={() => abrirDialogCalificar(row, "calificado")}>
+            <IconButton color="secondary" onClick={() => abrirDialogVerEntrega(row, "calificado")}>
               <Source />
             </IconButton>
           </Tooltip>
@@ -228,17 +265,17 @@ export default function Entregas() {
 
 
   ]);
-  const [openCalificar, setOpenCalificar] = useState(false);
+  const [openVerEntrega, setOpenVerEntrega] = useState(false);
 
-  const abrirDialogCalificar = (row, tipo = "") => {
+  const abrirDialogVerEntrega = (row, tipo = "") => {
     setEntrega(row)
     setTipo(tipo)
-    setOpenCalificar(true);
+    setOpenVerEntrega(true);
   };
 
-  const cerrarDialogCalificar = () => {
+  const cerrarDialogVerEntrega = () => {
     setEntrega({})
-    setOpenCalificar(false);
+    setOpenVerEntrega(false);
   }
   const abrirDialogAgregarEntrega = (row) => {
     setSelectedRow(row);
@@ -373,8 +410,8 @@ export default function Entregas() {
           entrega={selectedRow || {}}
         />
         <VerEntrega
-          open={openCalificar}
-          onClose={cerrarDialogCalificar}
+          open={openVerEntrega}
+          onClose={cerrarDialogVerEntrega}
           entrega={entrega}
           tipo={tipo}
         />

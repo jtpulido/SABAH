@@ -11,8 +11,31 @@ const authenticateJWT = (req, res, next) => {
     next();
   })(req, res, next);
 };
-const { obtenerProyectosDesarrolloRol, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, obtenerReunionesPendientes, obtenerReunionesCanceladas, obtenerReunionesCompletas, crearReunionInvitados } = require('../controllers/usuarios.controller');
+
+const { obtenerProyectosDesarrolloRol, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, obtenerReunionesPendientes, obtenerReunionesCanceladas, obtenerReunionesCompletas, crearReunionInvitados ,
+  obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector,ultIdReunion, editarReunion, obtenerAsistencia, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados  } = require('../controllers/usuarios.controller');
 const { verEntregasPendientesUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol } = require('../controllers/entregas.controller');
+const { guardarCalificacionDoc, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
+
+
+
+const multer = require('multer');
+
+const upload = multer({ dest: 'uploads/retro/' });
+//calificación
+router.post('/usuario/guardarCalificacion', authenticateJWT, guardarCalificacion);
+
+router.post('/usuario/documento/guardarCalificacion', upload.single('file'), async (req, res) => {
+  try {
+    const file = req.file;
+    await guardarCalificacionDoc(req, res, file);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
+  }
+});
+router.get('/usuario/documento/:id', authenticateJWT, verInfoDocRetroalimentacion);
 
 router.post('/usuario/obtenerProyectosDesarrolloRol', authenticateJWT, obtenerProyectosDesarrolloRol);
 router.post('/usuario/obtenerProyectosCerradosRol', authenticateJWT, obtenerProyectosCerradosRol);

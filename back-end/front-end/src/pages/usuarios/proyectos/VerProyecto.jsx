@@ -122,7 +122,7 @@ export default function VerProyectos() {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
-   
+
     useEffect(() => {
         infoProyecto()
         llenarTabla("obtenerEntregasPendientes", id, setRowsPendientes);
@@ -236,7 +236,7 @@ export default function VerProyectos() {
 
         return [...commonColumns, ...extraColumns];
     };
-   
+
     const columnsSolPendientes = generarColumnasSol([{
         field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1
     }]);
@@ -251,18 +251,6 @@ export default function VerProyectos() {
 
     return (
         <div style={{ margin: "15px" }} >
-
-            <div style={{ display: 'flex', marginBottom: "20px" }}>
-                <Typography
-                    variant="h1"
-                    color="secondary"
-                    fontWeight="bold"
-                >
-                    VER PROYECTO
-                </Typography>
-
-            </div>
-
             {existe ? (
 
                 <Box >

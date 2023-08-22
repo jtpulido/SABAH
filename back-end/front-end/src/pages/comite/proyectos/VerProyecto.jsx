@@ -8,11 +8,13 @@ import VerEntrega from "../entregas/Ventanas/VerEntrega";
 import CustomDataGrid from "../../layouts/DataGrid";
 import CambiarCodigo from './Ventana/CambiarCodigo';
 import CambiarNombre from './Ventana/CambiarNombre';
-import { Add, Edit, Person, Remove, Source } from "@mui/icons-material";
+import { Add, Edit, EventAvailable, Person, Remove, Source } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
 import VerModificarUsuario from "../usuarios_normales/Ventana/VerModificarUsuario";
+import CambiarFecha from "./Ventana/CambiarFecha";
+import CambiarEtapaEstado from "./Ventana/CambiarEtapaEstado";
 
 export default function VerProyectos() {
 
@@ -26,7 +28,7 @@ export default function VerProyectos() {
   };
 
   const [existe, setExiste] = useState([]);
-  const [proyecto, setProyecto] = useState([]);
+  const [proyecto, setProyecto] = useState({});
   const [estudiantes, setEstudiantes] = useState([]);
   const [director, setDirector] = useState({});
   const [lector, setLector] = useState({});
@@ -41,14 +43,16 @@ export default function VerProyectos() {
   const [tipo, setTipo] = useState("");
   const [estudiante, setEstudiante] = useState({});
   const [confirmarEliminacion, setConfirmarEliminacion] = useState(false);
-  const abrirConfirmarEliminacion = (estudiante) => {
-    setEstudiante(estudiante);
-    setConfirmarEliminacion(true);
-  };
-  const handleClose = () => {
-    setEstudiante({})
-    setConfirmarEliminacion(false);
-  };
+  const [abrirAgregarEstudiante, setAbrirAgregarEstudiante] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [openNombre, setOpenNombre] = useState(false);
+  const [openEstado, setOpenEstado] = useState(false);
+  const [openFechaGrado, setOpenFechaGrado] = useState(false);
+  const [rol, setRol] = useState("");
+  const [info, setInfo] = useState({});
+  const [accion, setAccion] = useState("");
+  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
+
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
@@ -62,75 +66,14 @@ export default function VerProyectos() {
         mostrarMensaje(data.message, "error")
         setExiste(false)
       } else {
-        actualizarProyecto(data.codigo, data.etapa)
-
+        actualizarProyecto(data.codigo)
         mostrarMensaje("Se ha asignado un código al proyecto", "success");
       }
     } catch (error) {
       setExiste(false)
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
   }
-  const modificarNombre = async (nuevo_nombre) => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/cambiarNombre", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id, nombre: nuevo_nombre })
-      });
-      const data = await response.json();
-      if (response.status === 203) {
-        mostrarMensaje(data.message, "error")
-      } else if (data.success) {
-        actualizarNombreProyecto(nuevo_nombre)
-        mostrarMensaje("Se ha actualizado el nombre del proyecto.", "success");
-      } else {
-        mostrarMensaje(data.message, "error")
-      }
-    }
-    catch (error) {
-      setExiste(false)
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-    }
-  };
-  const modificarCodigo = async (nuevo_cod) => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/cambiarCodigo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id, codigo: nuevo_cod })
-      });
-      const data = await response.json();
-      if (response.status === 400) {
-        mostrarMensaje(data.message, "error")
-      } else if (data.success) {
-        actualizarProyecto(nuevo_cod, proyecto.etapa)
-        mostrarMensaje("Se ha actualizado el código del proyecto", "success");
-      } else {
-        mostrarMensaje(data.message, "error")
-      }
-    }
-    catch (error) {
-      setExiste(false)
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-    }
-  };
-  const actualizarProyecto = (nuevoCodigo, etapa) => {
-    setProyecto((prevState) => ({
-      ...prevState,
-      codigo: nuevoCodigo
-    }));
-    setProyecto((prevState) => ({
-      ...prevState,
-      etapa: etapa
-    }));
-  };
-  const actualizarNombreProyecto = (nuevoNombre) => {
-    setProyecto((prevState) => ({
-      ...prevState,
-      nombre: nuevoNombre
-    }));
-  };
 
   const infoProyecto = async () => {
     try {
@@ -156,7 +99,7 @@ export default function VerProyectos() {
     }
     catch (error) {
       setExiste(false)
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
   };
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
@@ -171,10 +114,10 @@ export default function VerProyectos() {
       } else if (response.status === 203) {
         mostrarMensaje(data.message, "warning")
       } else if (response.status === 200) {
-        setRowsFunc(data.espacios);
+        setRowsFunc(data.entregas);
       }
     } catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
   }
 
@@ -193,73 +136,101 @@ export default function VerProyectos() {
         setEstudiantes(data.estudiantes)
       }
     } catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
   }
-  const [abrirAgregarEstudiante, setAbrirAgregarEstudiante] = useState(false);
 
+  const actualizarProyecto = (nuevoCodigo) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      codigo: nuevoCodigo
+    }));
+  };
+  const actualizarNombreProyecto = (nuevoNombre) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      nombre: nuevoNombre
+    }));
+  };
+  const actualizarEtapaEstado = (cambio) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      id_etapa: cambio.id_etapa,
+      etapa: cambio.etapa,
+      id_estado: cambio.id_estado,
+      estado: cambio.estado
+    }));
+  };
+  const abrirConfirmarEliminacion = (estudiante) => {
+    setEstudiante(estudiante);
+    setConfirmarEliminacion(true);
+  };
+  const handleClose = () => {
+    setEstudiante({})
+    setConfirmarEliminacion(false);
+  };
+
+  const abrirDialogCambiarCodigo = () => {
+    setOpen(true);
+  };
+  const cerrarDialogCambiarCodigo = async () => {
+    setOpen(false);
+  }
+  const cerrarDialogCodigoCambiado = async (newValue) => {
+    setOpen(false);
+    if (newValue) {
+      actualizarProyecto(newValue)
+    };
+  }
+  const abrirDialogCambiarNombre = () => {
+    setOpenNombre(true);
+  };
+  const cerrarDialogCambiarNombre = () => {
+    setOpenNombre(false);
+  }
+
+  const cerrarDialogNombreCambiado = (newValue) => {
+    setOpenNombre(false);
+    if (newValue) {
+      actualizarNombreProyecto(newValue)
+    };
+  }
+  const abrirDialogCambiarEstado = () => {
+    setOpenEstado(true);
+  };
+  const cerrarDialogCambiarEstado = () => {
+    setOpenEstado(false);
+  }
+  const cerrarDialogEstadoCambiado = (newValue) => {
+    actualizarEtapaEstado(newValue)
+    setOpenEstado(false);
+  }
   const abrirVentanaAgregarEstudiante = () => {
     setAbrirAgregarEstudiante(true);
   };
   const cerrarDialogEstudiante = () => {
     setAbrirAgregarEstudiante(false);
   }
-  const cerrarDialogAgregarEstudiante = async (e, estudiante) => {
-    e.preventDefault();
+  const cerrarDialogAgregarEstudiante = async (estudiantes) => {
     setAbrirAgregarEstudiante(false);
-    if (estudiante) {
-      await agregarEstudiante(estudiante)
+    if (estudiantes) {
+      setEstudiantes(estudiantes)
     };
+    setEstudiante({})
   }
-  const agregarEstudiante = async (estudiante) => {
-    try {
-      const response = await fetch(`http://localhost:5000/comite/estudiante/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(estudiante)
-      });
-      const data = await response.json();
-      if (!data.success) {
-        mostrarMensaje(data.message, "error")
-      } else if (response.status === 200) {
-        mostrarMensaje(data.message, "success")
-        setEstudiantes(data.estudiantes)
-      }
-    } catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-    }
-  }
-
-  useEffect(() => {
-    infoProyecto()
-    llenarTabla("pendientes", id, setEntregasPendientes);
-    llenarTabla("realizadas/calificadas", id, setEntregasCalificadas);
-    llenarTabla("realizadas/porCalificar", id, setEntregasPorCalificar);
-  }, [id]);
-
-  const [open, setOpen] = useState(false);
-
-  const abrirDialogCambiarCodigo = () => {
-    setOpen(true);
+  const abrirDialogCambiarFechaGrado = (estudiante) => {
+    setEstudiante(estudiante)
+    setOpenFechaGrado(true);
   };
 
-  const cerrarDialogCambiarCodigo = (newValue) => {
-    setOpen(false);
-    if (newValue) {
-      modificarCodigo(newValue)
-    };
+  const cerrarDialogCambiarFechaGrado = () => {
+    setEstudiante({})
+    setOpenFechaGrado(false);
   }
-
-  const [openNombre, setOpenNombre] = useState(false);
-
-  const abrirDialogCambiarNombre = () => {
-    setOpenNombre(true);
-  };
-
-  const cerrarDialogCambiarNombre = (newValue) => {
-    setOpenNombre(false);
+  const cerrarDialogFechaGradoCambiada = (newValue) => {
+    setOpenFechaGrado(false);
     if (newValue) {
-      modificarNombre(newValue)
+      setEstudiantes(newValue)
     };
   }
   const abrirVentanaVerEntrega = (row, tipo) => {
@@ -271,11 +242,6 @@ export default function VerProyectos() {
   const generacerrarDialogVerEntrega = () => {
     setOpenDialog(false);
   };
-
-  const [rol, setRol] = useState("");
-  const [info, setInfo] = useState({});
-  const [accion, setAccion] = useState("");
-  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
 
   const abrirDialog = (row, accion, rol) => {
     if (accion === "asignar") {
@@ -325,6 +291,13 @@ export default function VerProyectos() {
     }
     setAbrirVerModificarUsuario(false);
   }
+  useEffect(() => {
+    infoProyecto()
+    llenarTabla("pendientes", id, setEntregasPendientes);
+    llenarTabla("realizadas/calificadas", id, setEntregasCalificadas);
+    llenarTabla("realizadas/porCalificar", id, setEntregasPorCalificar);
+  }, [id]);
+
   const generarColumnasEntregas = (inicio, extraColumns) => {
     const columns = [
       { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
@@ -350,9 +323,10 @@ export default function VerProyectos() {
       );
     },
   }], [
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-
+    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
   ]);
   const columnaPorCalificar = generarColumnasEntregas([
     {
@@ -373,8 +347,10 @@ export default function VerProyectos() {
       },
     }], [
     { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
-    { field: 'fecha_apertura', headerName: 'Fecha de apertura', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
   ]);
@@ -426,7 +402,7 @@ export default function VerProyectos() {
           >
             {proyecto.codigo || ''}
           </Typography>
-          {proyecto.etapa === "Propuesta" ? (
+          {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
             <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
               width: 200,
             }}>
@@ -439,18 +415,30 @@ export default function VerProyectos() {
               Modificar código
             </Button>
           )}
+
           <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, ml: 1 }}>
             Modificar nombre
+          </Button>
+          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 250, ml: 1 }}>
+            Cambiar etapa y estado
           </Button>
           <CambiarCodigo
             open={open}
             onClose={cerrarDialogCambiarCodigo}
+            onSubmit={cerrarDialogCodigoCambiado}
             proyectoCodigo={proyecto.codigo || ''}
           />
           <CambiarNombre
             open={openNombre}
             onClose={cerrarDialogCambiarNombre}
+            onSubmit={cerrarDialogNombreCambiado}
             proyectoNombre={proyecto.nombre || ''}
+          />
+          <CambiarEtapaEstado
+            open={openEstado}
+            onClose={cerrarDialogCambiarEstado}
+            onSubmit={cerrarDialogEstadoCambiado}
+            proyecto={proyecto}
           />
           <Box >
             <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
@@ -489,11 +477,11 @@ export default function VerProyectos() {
                 <TextField value={proyecto.periodo || ''} fullWidth />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
                   {director ? (
                     <>
-                      <Box fullWidth sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
-                        <Typography variant="h6" color="primary" fullWidth>
+                      <Box sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                        <Typography variant="h6" color="primary" >
                           Director
                         </Typography>
                         <TextField value={director.nombre || ''} fullWidth />
@@ -505,14 +493,14 @@ export default function VerProyectos() {
                       </Tooltip>
                     </>
                   ) : (
-                    <Box fullWidth sx={{
+                    <Box sx={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexGrow: 1,
                     }}>
-                      <Typography variant="h6" color="primary" fullWidth>
+                      <Typography variant="h6" color="primary">
                         Asignar Director
                       </Typography>
                       <Tooltip title="Asignar Director">
@@ -528,11 +516,11 @@ export default function VerProyectos() {
               {proyecto.acronimo !== "AUX" && (
                 <>
                   <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
                       {existeLector ? (
                         <>
-                          <Box fullWidth sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
-                            <Typography variant="h6" color="primary" fullWidth>
+                          <Box sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                            <Typography variant="h6" color="primary">
                               Lector
                             </Typography>
                             <TextField value={lector.nombre || ''} fullWidth />
@@ -544,14 +532,14 @@ export default function VerProyectos() {
                           </Tooltip>
                         </>
                       ) : (
-                        <Box fullWidth sx={{
+                        <Box sx={{
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexGrow: 1,
                         }}>
-                          <Typography variant="h6" color="primary" fullWidth>
+                          <Typography variant="h6" color="primary">
                             Asignar Lector
                           </Typography>
                           <Tooltip title="Asignar Lector">
@@ -584,7 +572,12 @@ export default function VerProyectos() {
               onClose={cerrarDialogEstudiante}
               onSubmit={cerrarDialogAgregarEstudiante}
             />
-
+            <CambiarFecha
+              open={openFechaGrado}
+              onClose={cerrarDialogCambiarFechaGrado}
+              estudiante={estudiante || {}}
+              onSubmit={cerrarDialogFechaGradoCambiada}
+            />
             <Grid container>
 
               {estudiantes.map((estudiante) => (
@@ -617,12 +610,28 @@ export default function VerProyectos() {
                         fullWidth
                       />
                     </Grid>
+                    <Grid item xs={12} sm={6} md={2} lg={2} xl={2}>
+                      <Typography variant="h6" color="primary">
+                        Fecha de grado
+                      </Typography>
+                      <TextField
+                        value={estudiante.fecha_grado || ''}
+                        fullWidth
+                      />
+                    </Grid>
                     <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
-                      <Tooltip title="Quitar estudiante">
-                        <IconButton variant="outlined" color='naranja' size="large" onClick={() => abrirConfirmarEliminacion(estudiante)} sx={{ marginLeft: '8px' }}>
-                          <Remove fontSize="inherit" />
-                        </IconButton>
-                      </Tooltip>
+                      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Tooltip title="Quitar estudiante">
+                          <IconButton variant="outlined" color='naranja' size="large" onClick={() => abrirConfirmarEliminacion(estudiante)} sx={{ marginLeft: '8px' }}>
+                            <Remove fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Modificar fecha de grado">
+                          <IconButton variant="outlined" color='secondary' size="large" onClick={() => abrirDialogCambiarFechaGrado(estudiante)} sx={{ marginLeft: '8px' }}>
+                            <EventAvailable fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Grid>
                   </Grid>
                 </Grid>
@@ -631,8 +640,8 @@ export default function VerProyectos() {
           </Box>
           {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
             <> <Box>
-              <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
-                <Typography variant="h4" color="secondary" fullWidth sx={{ mt: "20px", mb: "20px", flexGrow: 1, maxWidth: '98%' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                <Typography variant="h4" color="secondary" sx={{ mt: "20px", mb: "20px", flexGrow: 1, maxWidth: '98%' }}>
                   Jurado(s)
                 </Typography>
 
@@ -641,9 +650,9 @@ export default function VerProyectos() {
                 {listaJurado.map((jurado, index) => (
                   <Fragment key={jurado.id}>
                     <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                      <Box fullWidth sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
-                        <Box fullWidth sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
-                          <Typography variant="h6" color="primary" fullWidth>
+                      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Box sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                          <Typography variant="h6" color="primary">
                             Nombre
                           </Typography>
                           <TextField value={jurado.nombre || ''} fullWidth />
@@ -662,8 +671,8 @@ export default function VerProyectos() {
                 ))}
                 {listaJurado.length < 1 && proyecto.acronimo === "DT" ? (
                   <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                    <Box fullWidth sx={{ alignItems: 'center', flexGrow: 1 }}>
-                      <Typography variant="h6" color="primary" fullWidth>
+                    <Box sx={{ alignItems: 'center', flexGrow: 1 }}>
+                      <Typography variant="h6" color="primary">
                         Asignar Jurado
                       </Typography>
                       <Tooltip title="Asignar Jurado">
@@ -676,8 +685,8 @@ export default function VerProyectos() {
                 ) : (
                   listaJurado.length < 2 && proyecto.acronimo === "IT" && (
                     <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                      <Box fullWidth sx={{ alignItems: 'center', flexGrow: 1 }}>
-                        <Typography variant="h6" color="primary" fullWidth>
+                      <Box sx={{ alignItems: 'center', flexGrow: 1 }}>
+                        <Typography variant="h6" color="primary">
                           Asignar Jurado
                         </Typography>
                         <Tooltip title="Asignar Jurado">

@@ -57,7 +57,6 @@ const generarReporte = async (req, res) => {
                 query += ` WHERE ${condiciones}`;
             }
         }
-
         await pool.query(query, (error, result) => {
             if (error) {
                 return res.status(502).json({ success: false, message: "Error en la consulta, por favor revise los filtros." });
@@ -75,21 +74,27 @@ const generarReporte = async (req, res) => {
 const construirCondiciones = (filtros) => {
     const condiciones = [];
 
-    for (const filtro of filtros) {
-        const { columna, operador, valor } = filtro;
-
+    for (const index in filtros) {
+        const filtro = filtros[index];
+        const { columna, operador, valor, operadorUnion } = filtro;
         if (columna && operador) {
+            if (index > 0 && operadorUnion) {
+                condiciones.push(` ${operadorUnion} `);
+            }
             if (operador === 'LIKE' || operador === 'NOT LIKE') {
-                condiciones.push(`${columna} ${operador} '%${valor}%'`);
+                condiciones.push(`LOWER(${columna}) ${operador} LOWER('%${valor}%')`);
             } else if (operador === 'IS NULL' || operador === 'IS NOT NULL') {
                 condiciones.push(`${columna} ${operador}`);
             } else if (valor !== '') {
-                condiciones.push(`${columna} ${operador} '${valor}'`);
+                condiciones.push(`LOWER(${columna}) ${operador} LOWER('${valor}')`);
             }
+           
         }
+
     }
-    return condiciones.join(' AND ');
+    return condiciones.join('');
 };
+
 
 
 module.exports = {
