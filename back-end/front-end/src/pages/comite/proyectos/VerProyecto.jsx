@@ -1,20 +1,19 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
-
+import { Add, Edit, EventAvailable, Person, Remove, Source } from "@mui/icons-material";
+import { useSnackbar } from 'notistack';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
-import VerEntrega from "../entregas/Ventanas/VerEntrega";
+import CambiarFecha from "./Ventana/CambiarFecha";
 import CustomDataGrid from "../../layouts/DataGrid";
 import CambiarCodigo from './Ventana/CambiarCodigo';
 import CambiarNombre from './Ventana/CambiarNombre';
-import { Add, Edit, EventAvailable, Person, Remove, Source } from "@mui/icons-material";
-
-import { useSnackbar } from 'notistack';
+import VerEntrega from "../entregas/Ventanas/VerEntrega";
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
-import VerModificarUsuario from "../usuarios_normales/Ventana/VerModificarUsuario";
-import CambiarFecha from "./Ventana/CambiarFecha";
 import CambiarEtapaEstado from "./Ventana/CambiarEtapaEstado";
+import VerModificarUsuario from "../usuarios_normales/Ventana/VerModificarUsuario";
+
 
 export default function VerProyectos() {
 
