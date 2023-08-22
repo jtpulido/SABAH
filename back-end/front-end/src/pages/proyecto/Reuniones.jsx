@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import { selectToken } from "../../store/authSlice";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 import { useSnackbar } from 'notistack';
 
@@ -148,24 +148,6 @@ export default function Reuniones() {
     },
   ]);
 
-  const has_acta = async (id) => {
-    try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-
-      if (!data.success) {
-        return false 
-      } else {
-        return true
-      }
-    }
-    catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-    }
-  };
   const columnsCompletas = generarColumnas([
     {
       field: "Acción",
@@ -173,24 +155,23 @@ export default function Reuniones() {
       flex: 0.01,
       minWidth: 150,
       headerAlign: "center",
-      align: "center",  
+      align: "center",
       renderCell: ({ row }) => {
-        const id = row && row.id;
-        const { has }= has_acta(row.id);
+        const idActa = row && row.id_acta;
         return (
-          <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
+          <Box sx={{ display: 'flex' }}>
             <Tooltip title="Ver Reunión">
-              <IconButton color="secondary" style={{ marginRight: '10px' }} onClick={() => abrirVerReunion(row.id, 'completa')}>
+              <IconButton color="secondary" style={{ marginLeft: '10px' }} onClick={() => abrirVerReunion(row.id, 'completa')}>
                 <Visibility />
               </IconButton>
             </Tooltip>
             <Tooltip title="Crear Acta de Reunión">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has}>
+              <IconButton color="secondary" onClick={() => abrirActa(row.id, 'crear')} style={{ display: idActa === null ? 'block' : 'none', marginLeft: '10px' }}>
                 <DescriptionIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="Descargar Acta de Reunión">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has}>
+              <IconButton color="secondary" onClick={() => abrirActa(row.id, 'descargar')} style={{ display: idActa !== null ? 'block' : 'none', marginLeft: '10px' }}>
                 <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
@@ -227,11 +208,10 @@ export default function Reuniones() {
   const abrirCrearReunion = () => {
     setAbrirCrear(true);
   };
-
   const cerrarCrearReunion = () => {
     llenarTablaPendientes();
     setAbrirCrear(false);
-  }
+  };
   const cerrarReunionAgregada = () => {
     llenarTablaPendientes();
   };
@@ -242,12 +222,11 @@ export default function Reuniones() {
     sessionStorage.setItem('proyecto_id_reunion', id);
     setAbrirCancelar(true);
   };
-
   const cerrarCancelarReunion = () => {
     llenarTablaPendientes();
     llenarTablaCanceladas();
     setAbrirCancelar(false);
-  }
+  };
   const cerrarReunionCancelada = () => {
     llenarTablaPendientes();
     llenarTablaCanceladas();
@@ -262,11 +241,10 @@ export default function Reuniones() {
     sessionStorage.setItem('proyecto_id_reunion', id);
     setAbrirEditar(true);
   };
-
   const cerrarEditarReunion = () => {
     llenarTablaPendientes();
     setAbrirEditar(false);
-  }
+  };
   const cerrarReunionEditada = () => {
     llenarTablaPendientes();
   };
@@ -296,17 +274,22 @@ export default function Reuniones() {
       mostrarMensaje("No se encontró la reunión con el ID proporcionado.", "error");
     }
   };
-
   const cerrarVerReunion = () => {
     llenarTablaPendientes();
     setAbrirVer(false);
-  }
+  };
   const cerrarReunionVer = () => {
     llenarTablaPendientes();
   };
 
   // Acta de Reunion
-  const abrirActa = (id) => {
+  const abrirActa = (id, tipo) => {
+
+    if (tipo === 'crear') {
+      sessionStorage.setItem('estado_acta', 'crear');
+    } else if (tipo === 'descargar') {
+      sessionStorage.setItem('estado_acta', 'descargar');
+    }
     sessionStorage.setItem('proyecto_id_reunion', id);
     navigate('/proyecto/ActaReunion');
   };

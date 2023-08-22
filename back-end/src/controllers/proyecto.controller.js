@@ -27,7 +27,6 @@ const obtenerProyecto = async (req, res) => {
 
 const obtenerEntregasPendientes = async (req, res) => {
   const { id } = req.params;
-
   try {
     const query = `SELECT 
     ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
@@ -248,7 +247,7 @@ WHERE r.id_proyecto = $1 AND e.nombre = 'Pendiente' GROUP BY r.id, r.nombre, r.f
 const obtenerReunionesCompletas = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion,
+    const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion, ac.id AS id_acta,
     COALESCE(
         STRING_AGG(DISTINCT
             CASE
@@ -263,8 +262,8 @@ const obtenerReunionesCompletas = async (req, res) => {
         END,
         ''
     ) AS roles_invitados
-FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id
-WHERE r.id_proyecto = $2 AND e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.enlace ORDER BY fecha ASC;`, ['Completa', id])
+FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id LEFT JOIN acta_reunion ac ON ac.id_reunion = r.id
+WHERE r.id_proyecto = $2 AND e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.enlace, ac.id ORDER BY fecha ASC;`, ['Completa', id])
     const completas = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, completas });
@@ -389,6 +388,7 @@ const obtenerSolicitudesAprobadas = async (req, res) => {
     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
+
 const obtenerSolicitudesRechazadas = async (req, res) => {
   const { id } = req.params;
   try {
@@ -430,41 +430,6 @@ const obtenerSolicitudesRechazadas = async (req, res) => {
     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
-
-const guardarReunion = async (req, res) => {
-
-  const { nombre, fecha, invitados, enlace, id_proyecto, id_estado } = req.body;
-  try {
-    const query = `
-        INSERT INTO public.reunion(nombre, fecha, invitados, enlace, id_proyecto, id_estado)
-        VALUES ( $1, $2, $3, $4, $5, $6)
-      `;
-    const values = [nombre, fecha, invitados, enlace, id_proyecto, id_estado];
-    await pool.query(query, values);
-
-    res.status(200).json({ message: 'Reunión guardada exitosamente' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al guardar la reunión' });
-  }
-};
-
-const obtenerReunion = async (req, res) => {
-  const { id } = req.params;
-  const id_reunion = req.headers['id_reunion'];
-  try {
-
-    const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.enlace FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
-    const reunion = result.rows
-    if (result.rowCount > 0) {
-      return res.json({ success: true, reunion })
-    } else {
-      return res.status(203).json({ success: false, message: 'No hay reuniones' })
-    }
-  } catch (error) {
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-  }
-
-}
 
 const cancelarReunion = async (req, res) => {
   const { id_reunion, id_proyecto, justificacion } = req.body;
@@ -519,41 +484,35 @@ const guardarSolicitud = async (req, res) => {
 };
 
 const guardarInfoActa = async (req, res) => {
-
   const { id_reunion, objetivos, resultados, tareas, compromisos } = req.body;
-
   try {
-
     const query = `
         INSERT INTO public.acta_reunion(descrip_obj, resultados_reu, tareas_ant, compromisos, id_reunion)
         VALUES ($2, $3, $4, $5, $1)
       `;
     const values = [id_reunion, objetivos, resultados, tareas, compromisos];
-
     await pool.query(query, values);
+    res.status(200).json({ success: true, message: 'Se ha guardado la información del acta de reunión exitosamente.' });
 
-    res.status(200).json({ message: 'Acta guardada exitosamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al guardar el acta' });
+    res.status(502).json({ success: false, message: 'Ha ocurrido un error al guardar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
+
 const obtenerInfoActa = async (req, res) => {
-  const { id } = req.params;
+  const { idReunion } = req.params;
   try {
-    const result = await pool.query('SELECT t1.fecha, t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM public.reunion t1, public.acta_reunion t2 WHERE t2.id_reunion = $1', [id]);
-    const acta = result.rows
+    const result = await pool.query(`SELECT TO_CHAR(t1.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM acta_reunion t2 LEFT JOIN reunion t1 ON t1.id = t2.id_reunion WHERE t2.id_reunion = $1`, [idReunion]);
+    const acta = result.rows[0];
     if (result.rowCount > 0) {
-      return res.json({ success: true, acta })
+      return res.json({ success: true, acta });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay actas' })
+      return res.status(203).json({ success: false, message: 'No existe una acta para esta reunión.' });
     }
   } catch (error) {
-    console.log(error)
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    res.status(502).json({ success: false, message: 'Ha ocurrido un error al recuperar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
-
-
 
 const guardarLink = async (req, res) => {
   const { id, tipol, link } = req.body;
@@ -796,7 +755,7 @@ const obtenerInvitados = async (req, res) => {
 module.exports = {
   obtenerProyecto, obtenerEntregasRealizadasCalificadas, obtenerEntregasRealizadasSinCalificar, obtenerEntregasPendientes,
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
-  obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas, guardarReunion, obtenerReunion,
+  obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas,
   cancelarReunion, editarReunion, obtenerInfoCliente, obtenerInvitados,
   obtenerTipoSolicitud, guardarSolicitud, ultIdReunion, crearReunionInvitados,
   guardarInfoActa, obtenerInfoActa, guardarLink, obtenerLinkProyecto, obtenerInfoJurado, obtenerInfoDirector, obtenerInfoLector
