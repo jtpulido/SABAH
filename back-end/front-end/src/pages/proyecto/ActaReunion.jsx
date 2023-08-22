@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 
 
 export default function ActaReunion() {
+  const id_p = sessionStorage.getItem('id_proyecto');
   const { id } = useParams();
   const token = useSelector(selectToken);
   const theme = useTheme();
@@ -57,12 +58,26 @@ const traerInfo = async () => {
 
   const generarPDF = async () => {
     try {
+      const infoproyecto = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${id_p}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+      const data_proyecto = await infoproyecto.json();
+      const infoinvitados = await fetch(`http://localhost:5000/proyecto/obtenerInvitados/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+      const data_invitados = await infoinvitados.json();
       const data = {
         fecha: info.acta[0].fecha,
         compromisos: info.acta[0].compromisos,
         objetivos: info.acta[0].descrip_obj,
         tareas: info.acta[0].tareas_ant,
         nombre: info.acta[0].nombre,
+        data_proyecto,
+        data_invitados
       };
       const response = await fetch('http://localhost:5000/proyecto/generarPDF', {
         method: "POST",

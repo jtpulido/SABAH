@@ -185,12 +185,12 @@ export default function Reuniones() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Crear Acta de Reunión">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has}>
                 <DescriptionIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="Descargar Acta de Reunión">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has}>
                 <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>

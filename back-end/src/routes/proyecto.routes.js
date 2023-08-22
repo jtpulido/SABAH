@@ -15,8 +15,8 @@ const { obtenerProyecto, obtenerInfoDirector, obtenerInfoJurado, obtenerInfoLect
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
   obtenerSolicitudesPendientes,    obtenerSolicitudesAprobadas,  obtenerSolicitudesRechazadas,
     guardarReunion, obtenerReunion, obtenerInfoCliente, ultIdReunion, crearReunionInvitados, obtenerInvitados, 
-   cancelarReunion, editarReunion, guardarSolicitud, guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink, obtenerTipoSolicitud, obtenerLinkProyecto} = require('../controllers/proyecto.controller')
-
+   cancelarReunion, editarReunion, guardarSolicitud, guardarInfoActa, obtenerInfoActa, guardarLink, obtenerTipoSolicitud, obtenerLinkProyecto} = require('../controllers/proyecto.controller')
+const {generarPDF}  = require('../controllers/pdf.controller')
 const router = Router()
 const multer = require('multer');
 
