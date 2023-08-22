@@ -27,7 +27,6 @@ const mostrarMensaje = (mensaje, variante) => {
   };
 
 const traerInfo = async () => {
-  console.log(id)
     try {
       const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${id}`, { 
         method: "GET",

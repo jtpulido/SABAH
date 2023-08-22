@@ -388,6 +388,24 @@ export default function Reuniones() {
     },
   ]);
 
+  const has_acta = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        return false 
+      } else {
+        return true
+      }
+    }
+    catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
+  };
   const columnsCompletas = generarColumnas([
     {
       field: "Acción",
@@ -395,19 +413,19 @@ export default function Reuniones() {
       flex: 0.01,
       minWidth: 150,
       headerAlign: "center",
-      align: "center",
+      align: "center",  
       renderCell: ({ row }) => {
         const id = row && row.id;
-        const { has_acta } = row;
+        const { has }= has_acta(row.id);
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
             <Tooltip title="">
-              <IconButton color="secondary"  component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
+              <IconButton color="secondary"  component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has}>
                 <DescriptionIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has}>
                 <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
