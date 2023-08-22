@@ -4,7 +4,7 @@ const pool = require('../database')
 const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.id=1 ORDER BY nombre ASC', [id_usuario, id_rol]);
+        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -19,7 +19,7 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
 const obtenerProyectosCerradosRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.id <> 1 ORDER BY nombre ASC', [id_usuario, id_rol]);
+        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });

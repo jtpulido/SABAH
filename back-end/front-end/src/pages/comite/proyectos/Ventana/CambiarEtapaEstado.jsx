@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Typography, CssBaseline, DialogTitle, Dialog, Button, DialogActions, DialogContent, Grid, Select, MenuItem } from "@mui/material";
+import { Typography, CssBaseline, DialogTitle, Dialog, Button, DialogActions, DialogContent, Grid, Select, MenuItem, FormControl } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
 import { selectToken } from '../../../../store/authSlice';
 import { useSelector } from 'react-redux';
@@ -16,35 +16,34 @@ function CambiarEtapaEstado(props) {
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
-    const [etapa, setEtapa] = useState("");
-    const [estado, setEstado] = useState("");
+    const [etapa, setEtapa] = useState('');
+    const [estado, setEstado] = useState('');
     const [etapas, setEtapas] = useState([]);
     const [estados, setEstados] = useState([]);
 
-    const handleEntering = async () => {
-        await obtenerEstados()
-        await obtenerEtapas()
-        const etapaInicial = etapas.find(etapa => etapa.id === proyecto.id_etapa);
-        const estadoInicial = estados.find(estado => estado.id === proyecto.id_estado);
-        setEtapa(etapaInicial);
-        setEstado(estadoInicial);
+    const handleEntering = () => {
+        obtenerEstados()
+        obtenerEtapas()
     };
     useEffect(() => {
         if (etapas.length > 0 && estados.length > 0 && proyecto) {
             const etapaInicial = etapas.find(etapa => etapa.id === proyecto.id_etapa);
             const estadoInicial = estados.find(estado => estado.id === proyecto.id_estado);
-            setEtapa(etapaInicial);
-            setEstado(estadoInicial);
+            setEtapa(etapaInicial || '');
+            setEstado(estadoInicial || '');
         }
     }, [etapas, estados, proyecto]);
 
     const handleCancel = () => {
+        setEtapas([])
+        setEstados([])
+        setEstado('')
+        setEtapa('')
         onClose();
     };
 
     const modificarEtapaEstado = async (e) => {
         e.preventDefault();
-
         try {
             const response = await fetch("http://localhost:5000/comite/cambiarEtaEsta", {
                 method: "POST",
@@ -57,10 +56,16 @@ function CambiarEtapaEstado(props) {
             } else if (data.success) {
                 mostrarMensaje("Se ha actualizado la etapa y/o el estado del proyecto.", "success");
                 const cambio = {
+                    id_etapa: etapa.id,
                     etapa: etapa.nombre,
+                    id_estado: estado.id,
                     estado: estado.nombre
                 };
                 onSubmit(cambio)
+                setEtapas([])
+                setEstados([])
+                setEstado('')
+                setEtapa('')
             } else {
                 mostrarMensaje(data.message, "error")
             }
@@ -121,40 +126,45 @@ function CambiarEtapaEstado(props) {
             <form onSubmit={(e) => modificarEtapaEstado(e)}>
                 <DialogTitle variant="h1" color="secondary">Cambiar Etapa y Estado</DialogTitle>
                 <DialogContent dividers >
+
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={6}>
                             <Typography variant="h6" color="primary">
                                 Etapa
                             </Typography>
-                            <Select
-                                value={etapa}
-                                onChange={handleEtapaChange}
-                                required
-                                fullWidth
-                            >
-                                {etapas.map((etapa) => (
-                                    <MenuItem key={etapa.id} value={etapa}>
-                                        {etapa.nombre}
-                                    </MenuItem>
-                                ))}
-                            </Select>
+                            <FormControl fullWidth>
+                                <Select
+                                    value={etapa}
+                                    onChange={handleEtapaChange}
+                                    required
+                                    fullWidth
+                                >
+                                    {etapas.map((etapa) => (
+                                        <MenuItem key={etapa.id} value={etapa}>
+                                            {etapa.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <Typography variant="h6" color="primary">
                                 Estado
                             </Typography>
-                            <Select
-                                value={estado}
-                                onChange={handleEstadoChange}
-                                required
-                                fullWidth
-                            >
-                                {estados.map((estado) => (
-                                    <MenuItem key={estado.id} value={estado}>
-                                        {estado.nombre}
-                                    </MenuItem>
-                                ))}
-                            </Select>
+                            <FormControl fullWidth>
+                                <Select
+                                    value={estado}
+                                    onChange={handleEstadoChange}
+                                    required
+                                    fullWidth
+                                >
+                                    {estados.map((estado) => (
+                                        <MenuItem key={estado.id} value={estado}>
+                                            {estado.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid>
                     </Grid>
 

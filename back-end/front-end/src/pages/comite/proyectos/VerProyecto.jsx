@@ -140,7 +140,6 @@ export default function VerProyectos() {
     }
   }
 
-
   const actualizarProyecto = (nuevoCodigo) => {
     setProyecto((prevState) => ({
       ...prevState,
@@ -153,14 +152,13 @@ export default function VerProyectos() {
       nombre: nuevoNombre
     }));
   };
-  const actualizarEtapaEstado= (nuevo) => {
+  const actualizarEtapaEstado = (cambio) => {
     setProyecto((prevState) => ({
       ...prevState,
-      etapa: nuevo.etapa
-    }));
-    setProyecto((prevState) => ({
-      ...prevState,
-      estado: nuevo.estado
+      id_etapa: cambio.id_etapa,
+      etapa: cambio.etapa,
+      id_estado: cambio.id_estado,
+      estado: cambio.estado
     }));
   };
   const abrirConfirmarEliminacion = (estudiante) => {
@@ -204,10 +202,8 @@ export default function VerProyectos() {
     setOpenEstado(false);
   }
   const cerrarDialogEstadoCambiado = (newValue) => {
+    actualizarEtapaEstado(newValue)
     setOpenEstado(false);
-    if (newValue) {
-      actualizarEtapaEstado(newValue)
-    };
   }
   const abrirVentanaAgregarEstudiante = () => {
     setAbrirAgregarEstudiante(true);

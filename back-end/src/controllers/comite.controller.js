@@ -83,7 +83,7 @@ const cambioUsuarioRol = async (req, res) => {
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
         await pool.query(
-            'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id=1', async (error, result) => {
+            "SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado')", async (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
 
@@ -101,7 +101,7 @@ const obtenerProyectosDesarrollo = async (req, res) => {
 const obtenerProyectosTerminados = async (req, res) => {
     try {
         await pool.query(
-            'SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.id <> 1', async (error, result) => {
+            "SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado')", async (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
 
@@ -178,23 +178,43 @@ const cambiarEtapaEstado = async (req, res) => {
             return res.status(203).json({ success: false, message: 'El estado Aprobado comité solo es valida para la modalidad COT.' });
 
         }
-        if (nuevo_estado.nombre === 'Aprobado proyecto de grado 1') {
-            if (nueva_etapa.nombre !== 'Proyecto de grado 1') {
-                return res.status(203).json({ success: false, message: 'El estado Aprobado proyecto de grado 1 solo es válida si el proyecto se encuentra en Proyecto de grado 1' });
-            }
-        }
-        if (nuevo_estado.nombre === 'Aprobado' || nuevo_estado.nombre === 'Terminado') {
-            if (nueva_etapa.nombre !== 'Proyecto de grado 2') {
-                return res.status(203).json({ success: false, message: 'El estado Aprobado y Terminado solo son validos si el proyecto se encuentra en Proyecto de grado 2' });
-            }
-        }
         const etapasOrden = ['Propuesta', 'Proyecto de grado 1', 'Proyecto de grado 2'];
         const indexEtapaActual = etapasOrden.indexOf(etapa);
         const indexEtapaNueva = etapasOrden.indexOf(nueva_etapa.nombre);
         if (indexEtapaNueva < indexEtapaActual) {
             return res.status(203).json({ success: false, message: 'No se puede cambiar a una etapa anterior.' });
         }
-        console.log([nueva_etapa.id, nuevo_estado.id, id])
+        if (etapa === 'Propuesta' && nueva_etapa.nombre === 'Proyecto de grado 2') {
+            return res.status(203).json({ success: false, message: 'Primero debe pasar por Proyecto de grado 1' });
+        }
+        if (nueva_etapa.nombre === 'Propuesta') {
+            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado comité' && nuevo_estado.nombre !== 'Aprobado propuesta' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
+                return res.status(203).json({ success: false, message: 'Los estados válidos para Propuesta son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
+            }
+        }
+        if (nueva_etapa.nombre === 'Proyecto de grado 1' && etapa !== 'Proyecto de grado 1') {
+            if (estado !== 'Aprobado propuesta') {
+                return res.status(203).json({ success: false, message: 'Para pasar a Proyecto de grado 1 debe estar en estado Aprobado propuesta.' });
+            }
+        }
+        if (nueva_etapa.nombre === 'Proyecto de grado 2' && etapa !== 'Proyecto de grado 2') {
+            if (estado !== 'Aprobado proyecto de grado 1') {
+                return res.status(203).json({ success: false, message: 'Para pasar a Proyecto de grado 2 debe estar en estado Aprobado proyecto de grado 1' });
+            }
+        }
+        if (nueva_etapa.nombre === 'Proyecto de grado 1') {
+            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado proyecto de grado 1' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
+                return res.status(203).json({ success: false, message: 'Los estados válidos para Proyecto de grado 2 son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
+            }
+        }
+        if (nueva_etapa.nombre === 'Proyecto de grado 2') {
+            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Terminado' && nuevo_estado.nombre !== 'Cancelado') {
+                return res.status(203).json({ success: false, message: 'Los estados válidos para Proyecto de grado 2 son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
+            }
+            if (nuevo_estado.nombre === 'Terminado') {
+                return res.status(203).json({ success: false, message: 'Para cambiar a estado Terminado debe realizarlo por medio del formulario y estar en estado Aprobado.' });
+            }
+        }
         await pool.query(
             `
             UPDATE proyecto
@@ -210,7 +230,6 @@ const cambiarEtapaEstado = async (req, res) => {
                 }
             })
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -289,7 +308,7 @@ const asignarCodigoProyecto = async (req, res) => {
 };
 const obtenerDirectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, m.acronimo AS modalidad,e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id=1 ORDER BY u.nombre ASC')
+        const result = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, m.acronimo AS modalidad,e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY u.nombre ASC")
         const directores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
@@ -302,7 +321,7 @@ const obtenerDirectoresProyectosActivos = async (req, res) => {
 };
 const obtenerDirectoresProyectosCerrados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.id<>1 ORDER BY u.nombre ASC')
+        const result = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol,p.id AS id_proyecto, p.codigo, u.nombre AS nombre_director, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 1 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY u.nombre ASC")
         const directores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, directores });
@@ -328,7 +347,7 @@ const obtenerDirectoresProyectosInactivos = async (req, res) => {
 };
 const obtenerJuradosProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1 ORDER BY u.nombre ASC')
+        const result = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, u.id AS id_usuario, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY u.nombre ASC")
         const jurados = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
@@ -341,7 +360,7 @@ const obtenerJuradosProyectosActivos = async (req, res) => {
 };
 const obtenerJuradosProyectosCerrados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1 ORDER BY u.nombre ASC')
+        const result = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_jurado, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 3 AND ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY u.nombre ASC")
         const jurados = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, jurados });
@@ -367,7 +386,7 @@ const obtenerJuradosProyectosInactivos = async (req, res) => {
 };
 const obtenerLectoresProyectosActivos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, u.id AS id_usuario, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id=1 ORDER BY u.nombre ASC')
+        const result = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, u.id AS id_usuario, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY u.nombre ASC")
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
@@ -380,7 +399,7 @@ const obtenerLectoresProyectosActivos = async (req, res) => {
 };
 const obtenerLectoresProyectosCerrados = async (req, res) => {
     try {
-        const result = await pool.query('SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.id<>1 ORDER BY u.nombre ASC')
+        const result = await pool.query("SELECT ROW_NUMBER() OVER (ORDER BY ur.id) AS id, ur.id AS id_usuario_rol, p.id AS id_proyecto, p.codigo, u.nombre AS nombre_lector, ur.fecha_asignacion, m.acronimo AS modalidad, e.nombre AS etapa, es.nombre AS estado FROM proyecto p LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ur.id_rol = 2 AND  ur.estado JOIN etapa e ON p.id_etapa = e.id JOIN modalidad m ON p.id_modalidad = m.id JOIN estado es ON p.id_estado = es.id LEFT JOIN usuario u ON u.id = ur.id_usuario WHERE p.id_modalidad <> 3 AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY u.nombre ASC")
         const lectores = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, lectores });
