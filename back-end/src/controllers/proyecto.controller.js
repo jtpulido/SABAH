@@ -510,9 +510,8 @@ const guardarInfoActa = async (req, res) => {
     // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
 
     const query = `
-        INSERT INTO public.acta_reunion(
-            id, descrip_obj, resultados_reu, tareas_ant, compromisos)
-        VALUES ( $1, $2, $3, $4, $5 )
+        INSERT INTO public.acta_reunion(descrip_obj, resultados_reu, tareas_ant, compromisos, id_reunion)
+        VALUES ($2, $3, $4, $5, $1)
       `;
     const values = [id_reunion, objetivos, resultados, tareas, compromisos];
 
@@ -527,7 +526,7 @@ const guardarInfoActa = async (req, res) => {
 const obtenerInfoActa = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await pool.query('SELECT t1.fecha, t1.invitados, t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM public.reunion t1, public.acta_reunion t2  WHERE t1.id = $1 AND t2.id = $1', [id]);
+    const result = await pool.query('SELECT t1.fecha, t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM public.reunion t1, public.acta_reunion t2 WHERE t2.id_reunion = $1', [id]);
     const acta = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, acta })
@@ -540,8 +539,9 @@ const obtenerInfoActa = async (req, res) => {
 };
 
 const generarPDF = async (req, res) => {
+  console.log('holaaaa')
   try {
-    const { fecha, invitados, compromisos, objetivos, tareas, nombre } = req.body;
+    const { fecha, compromisos, objetivos, tareas, nombre } = req.body;
     const PDFDocument = require('pdfkit');
     const path = require('path');
     const doc = new PDFDocument();
@@ -565,9 +565,7 @@ const generarPDF = async (req, res) => {
       .text(tituloParte3, { align: 'center' })
       .moveDown(1);
 
-
     const asistentes = [];
-
 
     doc.font('Helvetica-Bold').fontSize(10).text('TÍTULO PROPUESTA: ', { continued: true })
       .font('Helvetica').text(proyectos.nombre, { continued: false, align: 'left' });
@@ -577,12 +575,11 @@ const generarPDF = async (req, res) => {
       .font('Helvetica').text(proyectos.codigo, { continued: false, align: 'left' })
       .moveDown(1);
 
-
     doc.font('Helvetica-Bold').fontSize(10).text('ESTUDIANTES', { align: 'left' });
-    estudiantes.forEach((estudiante) => {
-      doc.font('Helvetica').fontSize(10).text(`${estudiante.nombre} - ${estudiante.num_identificacion}`, { align: 'left' });
-      asistentes.push(estudiante.nombre);
-    });
+    //estudiantes.forEach((estudiante) => {
+    //doc.font('Helvetica').fontSize(10).text(`${estudiante.nombre} - ${estudiante.num_identificacion}`, { align: 'left' });
+    //asistentes.push(estudiante.nombre);
+    //});
     doc.moveDown(1);
 
     doc.font('Helvetica-Bold').fontSize(10).text('DIRECTOR: ', { continued: true })
@@ -621,8 +618,7 @@ const generarPDF = async (req, res) => {
 
     doc.font('Helvetica-Bold').fontSize(11).text('FIRMAS ASISTENTES', { continued: false, align: 'center' })
       .moveDown(1);
-    doc.font('Helvetica-Bold').fontSize(11).text(invitados, { continued: false, align: 'center' })
-      .moveDown(1);
+    //doc.font('Helvetica-Bold').fontSize(11).text(invitados, { continued: false, align: 'center' }).moveDown(1);
     doc.moveDown(1);
 
 
@@ -638,12 +634,12 @@ const generarPDF = async (req, res) => {
       signaturesPerRow: 3, // Number of signatures per row
     };
 
-   // if (invitados.includes("director")) {
+    // if (invitados.includes("director")) {
     //  asistentes.push(director.nombre);
     //}
 
     //if (invitados.includes("lector")) {
-     // asistentes.push(lector);
+    // asistentes.push(lector);
     //}
 
     //if(invitados.includes("cliente")){
@@ -739,7 +735,6 @@ function drawSignatureFields(doc, numberOfFields, settings) {
       .stroke();
   }
 };
-
 
 const guardarLink = async (req, res) => {
   const { id, tipol, link } = req.body;
@@ -940,7 +935,7 @@ const crearReunionInvitados = async (req, res) => {
         }
 
         // Verificar si es jurado
-      } else if (roleName.startsWith("jurado")) { 
+      } else if (roleName.startsWith("jurado")) {
         const juradoIndex = parseInt(roleName.split(" ")[1]);
         await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true))`, [id, jurado[juradoIndex].id]);
       }

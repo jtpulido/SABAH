@@ -3,18 +3,17 @@ import React, { useState, useEffect } from "react";
 import { selectToken } from "../../store/authSlice";
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
+import { useSnackbar } from 'notistack';
 
 import {
   Box, Typography, Button, IconButton, Tooltip, Toolbar, AppBar,
 } from '@mui/material';
+import CustomDataGrid from "../layouts/DataGrid";
+
 import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
-import { selectToken } from "../../store/authSlice";
-import { Link } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import CustomDataGrid from "../layouts/DataGrid";
 import CrearReunion from "./VentanasReuniones/CrearReunion";
 import CancelarReunion from "./VentanasReuniones/CancelarReunion";
 import EditarReunion from "./VentanasReuniones/EditarReunion";
@@ -168,7 +167,7 @@ export default function Reuniones() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Crear Acta de Reunión">
-              <IconButton color="secondary" onClick={() => abrirActa(row.id)} disabled={has_acta}>
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={has_acta}>
                 <DescriptionIcon />
               </IconButton>
             </Tooltip>
@@ -241,7 +240,6 @@ export default function Reuniones() {
   const abrirEditarReunion = (id) => {
     const registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
     const reunionCadena = JSON.stringify(registroEncontrado);
-    alert(reunionCadena.justificacion)
     sessionStorage.setItem('info_reunion_editar', reunionCadena);
     sessionStorage.setItem('proyecto_id_reunion', id);
     setAbrirEditar(true);
