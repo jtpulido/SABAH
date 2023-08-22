@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import PropTypes from 'prop-types';
@@ -21,24 +21,37 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-function CrearReunion(props) {
+function EditarReunion(props) {
 
     const id = sessionStorage.getItem('id_proyecto');
+    const idReunion = sessionStorage.getItem('proyecto_id_reunion');
     const token = useSelector(selectToken);
+
+    const reunionCadena = sessionStorage.getItem('info_reunion_editar');
+    const reunion = JSON.parse(reunionCadena);
+
+    const [invitados, setInvitados] = useState([]);
 
     const { onClose, onSubmit, open, ...other } = props;
 
     const [nombre, setNombre] = useState("");
     const [link, setLink] = useState("");
+    const [fecha, setFecha] = useState('');
+    const [selectedTime, setSelectedTime] = useState(true);
 
     const [director, setDirector] = useState([]);
     const [lector, setLector] = useState([]);
     const [jurado, setJurado] = useState([]);
     const [cliente, setCliente] = useState([]);
 
-    const [ultIdReunion, setUltIdReunion] = useState([]);
+    const [checkBoxesInicial, setCheckboxesInicial] = useState([]);
 
-    const obtenerInfoDirector = useCallback(async () => {
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = useCallback((mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    }, [enqueueSnackbar]);
+
+    const obtenerInfoDirector = async () => {
         try {
             const response = await fetch("http://localhost:5000/proyecto/obtenerInfoDirector", {
                 method: "POST",
@@ -54,9 +67,9 @@ function CrearReunion(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    }, [token, id]);
+    };
 
-    const obtenerInfoLector = useCallback(async () => {
+    const obtenerInfoLector = async () => {
         try {
             const response = await fetch("http://localhost:5000/proyecto/obtenerInfoLector", {
                 method: "POST",
@@ -72,9 +85,9 @@ function CrearReunion(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    }, [token, id]);
+    };
 
-    const obtenerInfoJurado = useCallback(async () => {
+    const obtenerInfoJurado = async () => {
         try {
             const response = await fetch("http://localhost:5000/proyecto/obtenerInfoJurado", {
                 method: "POST",
@@ -90,9 +103,9 @@ function CrearReunion(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    }, [token, id]);
+    };
 
-    const obtenerInfoCliente = useCallback(async () => {
+    const obtenerInfoCliente = async () => {
         try {
             const response = await fetch("http://localhost:5000/proyecto/obtenerInfoCliente", {
                 method: "POST",
@@ -108,37 +121,66 @@ function CrearReunion(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    }, [token, id]);
-
-    const obtenerUltIdReunion = useCallback(async () => {
-        try {
-            const response = await fetch("http://localhost:5000/proyecto/ultIdReunion", {
-                method: "GET",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
-                setUltIdReunion(data.id);
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
-        }
-    }, [token, id]);
+    };
 
     const handleEntering = async () => {
-        obtenerInfoDirector();
-        obtenerInfoLector();
-        obtenerInfoJurado();
-        obtenerInfoCliente();
-        obtenerUltIdReunion();
+        try {
+            await Promise.all([
+                obtenerInfoDirector(),
+                obtenerInfoLector(),
+                obtenerInfoJurado(),
+                obtenerInfoCliente()
+            ]);
+
+            setNombre(reunion.nombre);
+            setLink(reunion.enlace);
+            const fechaHoraArray = reunion.fecha.split(' ');
+            const fechaReunion = fechaHoraArray[0];
+            const horaReunion = fechaHoraArray[1];
+            setFecha(dayjs(fechaReunion, 'DD-MM-YYYY'));
+            setSelectedTime(dayjs(horaReunion, 'HH:mm'));
+
+        } catch (error) {
+            mostrarMensaje("Ocurrió un error al obtener la información. Por favor, inténtalo de nuevo más tarde.", "error");
+        }
     };
 
-    const { enqueueSnackbar } = useSnackbar();
-    const mostrarMensaje = (mensaje, variante) => {
-        enqueueSnackbar(mensaje, { variant: variante });
-    };
+    useEffect(() => {
+
+        const obtenerInvitados = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/proyecto/obtenerInvitados/${idReunion}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    mostrarMensaje(data.message, 'error');
+                } else {
+                    setInvitados(data.invitados);
+                    const invitadosCliente = data.invitados.map(invitado => invitado.nombre_repr);
+                    const invitadosUsuarios = data.invitados
+                        .filter(invitado => invitado.nombre_usuario !== null)
+                        .map(invitado => invitado.nombre_usuario);
+
+                    setClienteChecked(invitadosCliente.includes(cliente.nombre_repr));
+                    setDirectorChecked(invitadosUsuarios.includes(director.nombre));
+                    setLectorChecked(invitadosUsuarios.includes(lector.nombre));
+                    const newJuradoChecked = jurado.map(juradoMember => invitadosUsuarios.includes(juradoMember.nombre));
+                    setJuradoChecked(newJuradoChecked);
+
+                }
+            }
+            catch (error) {
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+            }
+        };
+
+        if (director.nombre && lector.nombre && cliente.nombre_repr && jurado) {
+            obtenerInvitados();
+        }
+    }, [director, lector, cliente, jurado, idReunion, token, mostrarMensaje]);
 
     const handleNombreChange = (event) => {
         const value = event.target.value;
@@ -163,6 +205,7 @@ function CrearReunion(props) {
         setClienteChecked(false);
         setFecha('');
         setCheckedStates(resetCheckedStates);
+        sessionStorage.removeItem('info_reunion_editar');
     };
 
     const [directorChecked, setDirectorChecked] = useState(false);
@@ -207,9 +250,6 @@ function CrearReunion(props) {
         setClienteChecked(event.target.checked);
     };
 
-    const [fecha, setFecha] = useState('');
-
-    const [selectedTime, setSelectedTime] = useState(true);
     const handleTimeChange = (newTime) => {
         setSelectedTime(newTime);
     };
@@ -233,6 +273,20 @@ function CrearReunion(props) {
         juradoChecked: [],
     };
 
+    useEffect(() => {
+        if (invitados[0]) {
+            const checkboxesTrue = [];
+            if (clienteChecked) checkboxesTrue.push("cliente");
+            if (directorChecked) checkboxesTrue.push("director");
+            if (lectorChecked) checkboxesTrue.push("lector");
+            juradoChecked.forEach((isChecked, index) => {
+                if (isChecked) checkboxesTrue.push(`jurado ${index}`);
+            });
+            setCheckboxesInicial(checkboxesTrue);
+        }
+
+    }, [invitados]);
+
     const guardarSolicitud = async (event) => {
         event.preventDefault();
 
@@ -252,45 +306,50 @@ function CrearReunion(props) {
                 mostrarMensaje("La fecha y hora seleccionadas deben ser después de la fecha y hora actual.", "error");
             } else {
 
-                const checkboxesTrue = [];
-                if (checkedStates.clienteChecked) checkboxesTrue.push("cliente");
-                if (checkedStates.directorChecked) checkboxesTrue.push("director");
-                if (checkedStates.lectorChecked) checkboxesTrue.push("lector");
-                checkedStates.juradoChecked.forEach((isChecked, index) => {
-                    if (isChecked) checkboxesTrue.push(`jurado ${index}`);
+                const checkboxesFinal = [];
+                if (clienteChecked) checkboxesFinal.push("cliente");
+                if (directorChecked) checkboxesFinal.push("director");
+                if (lectorChecked) checkboxesFinal.push("lector");
+                juradoChecked.forEach((isChecked, index) => {
+                    if (isChecked) checkboxesFinal.push(`jurado ${index}`);
                 });
 
-                if (checkboxesTrue.length === 0) {
+                if (checkboxesFinal.length === 0) {
                     mostrarMensaje("Por favor seleccione por lo menos un invitado para la reunión.", "error")
-
                 } else {
-                    try {
-                        const response = await fetch("http://localhost:5000/proyecto/crearReunionInvitados", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({
-                                id: parseInt(ultIdReunion) + 1,
-                                nombre: nombre,
-                                fecha: fechaHoraFormateada,
-                                enlace: link,
-                                id_proyecto: parseInt(id),
-                                id_estado: 1,
-                                director: director,
-                                lector: lector,
-                                cliente: cliente,
-                                jurado: jurado,
-                                infoChecked: checkboxesTrue
-                            })
-                        });
-                        const data = await response.json();
-                        if (!data.success) {
-                            mostrarMensaje(data.message, "error");
-                        } else {
-                            mostrarMensaje(data.message, "success");
-                            handleCancel();
+                    if (nombre === reunion.nombre && link === reunion.enlace && fechaHoraFormateada === reunion.fecha && JSON.stringify(checkBoxesInicial) === JSON.stringify(checkboxesFinal)) {
+                        mostrarMensaje("No se ha modificado ninguna información de la reunión.", "error");
+                    } else {
+                        const addedRoles = checkboxesFinal.filter(role => !checkBoxesInicial.includes(role));
+                        const removedRoles = checkBoxesInicial.filter(role => !checkboxesFinal.includes(role));
+                        try {
+                            const response = await fetch("http://localhost:5000/proyecto/editarReunion", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({
+                                    id: idReunion,
+                                    id_proyecto: id,
+                                    nombre: nombre,
+                                    fecha: fechaHoraFormateada,
+                                    enlace: link,
+                                    director: director,
+                                    lector: lector,
+                                    cliente: cliente,
+                                    jurado: jurado,
+                                    added: addedRoles,
+                                    removed: removedRoles
+                                })
+                            });
+                            const data = await response.json();
+                            if (!data.success) {
+                                mostrarMensaje(data.message, "error");
+                            } else {
+                                mostrarMensaje(data.message, "success");
+                                handleCancel();
+                            }
+                        } catch (error) {
+                            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                         }
-                    } catch (error) {
-                        mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
                     }
                 }
             }
@@ -301,7 +360,7 @@ function CrearReunion(props) {
         <Dialog maxWidth="sm" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <form onSubmit={guardarSolicitud}>
                 <DialogTitle variant="h1" color="primary">
-                    CREAR REUNIÓN
+                    EDITAR REUNIÓN
                 </DialogTitle>
 
                 <DialogContent dividers >
@@ -313,6 +372,7 @@ function CrearReunion(props) {
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
                                     required
+                                    value={fecha}
                                     onChange={(newValue) => setFecha(newValue)}
                                     format="DD-MM-YYYY"
                                     error={!fecha}
@@ -335,6 +395,7 @@ function CrearReunion(props) {
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <TimePicker
                                     required
+                                    value={selectedTime}
                                     error={!selectedTime}
                                     onChange={handleTimeChange}
                                     renderInput={(params) => <input {...params} />}
@@ -459,10 +520,10 @@ function CrearReunion(props) {
         </Dialog>
     );
 }
-CrearReunion.propTypes = {
+EditarReunion.propTypes = {
     onClose: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired
 };
 
-export default CrearReunion;
+export default EditarReunion;
