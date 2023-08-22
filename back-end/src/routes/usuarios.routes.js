@@ -12,8 +12,8 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
-const { obtenerProyectosDesarrolloRol, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, obtenerReunionesPendientes, obtenerReunionesCanceladas, obtenerReunionesCompletas, crearReunionInvitados ,
-  obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolLector,ultIdReunion, editarReunion, obtenerAsistencia, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados  } = require('../controllers/usuarios.controller');
+const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerReunionesPendientes,obtenerReunionesCompletas,obtenerReunionesCanceladas,cancelarReunion,obtenerProyecto, rolDirector, rolLector,ultIdReunion, editarReunion, obtenerAsistencia, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados  } = require('../controllers/usuarios.controller');
+
 const { verEntregasPendientesUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol } = require('../controllers/entregas.controller');
 const { guardarCalificacionDoc, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
 
