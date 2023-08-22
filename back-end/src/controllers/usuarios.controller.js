@@ -4,7 +4,7 @@ const pool = require('../database')
 const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.id=1 ORDER BY nombre ASC', [id_usuario, id_rol]);
+        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -19,7 +19,7 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
 const obtenerProyectosCerradosRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.id <> 1 ORDER BY nombre ASC', [id_usuario, id_rol]);
+        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -433,8 +433,35 @@ const obtenerListaProyectos = async (req, res) => {
         return res.status(502).json({ success: false, message });
     }
 };
-
+const guardarCalificacion = async (req, res) => {
+    try {
+        const { id_doc_entrega, id_usuario_rol, calificacion_aspecto } = req.body;
+        await pool.query('BEGIN');
+        const insertCal = 'INSERT INTO calificacion (id_doc_entrega, id_usuario_rol) VALUES ($1, $2) RETURNING id';
+        const calResult = await pool.query(insertCal, [id_doc_entrega, id_usuario_rol]);
+        const id_calificacion = calResult.rows[0].id;
+  
+        let puntaje = 0;
+        const calAspRubricaQuery = 'INSERT INTO calificacion_aspecto (id_calificacion, id_rubrica_aspecto, puntaje, comentario) VALUES ($1, $2, $3, $4)';
+        for (let i = 0; i < calificacion_aspecto.length; i++) {
+            const calificacion = calificacion_aspecto[i];
+            puntaje = puntaje + Number(calificacion.puntaje)
+            const valuesCalificacion = [id_calificacion, calificacion.id_rubrica_aspecto, calificacion.puntaje, calificacion.comentario];
+            await pool.query(calAspRubricaQuery, valuesCalificacion);
+        }
+        const nota_final = (puntaje * 5) / 100
+        const query = 'UPDATE calificacion SET nota_final = $1 WHERE id = $2';
+        await pool.query(query, [nota_final, id_calificacion]);
+  
+        await pool.query('COMMIT');
+        return res.status(200).json({ success: true, message: 'Calificación guardada correctamente' });
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        return res.status(502).json({ success: false, message: 'Error guardar la calificación' });
+    }
+  };
 module.exports = {
-    obtenerProyectosDesarrolloRol, obtenerReunion, obtenerReunionesCanceladas, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
-    obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos
+    obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
+    obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, 
+    agregarAprobacion, obtenerListaProyectos,guardarCalificacion
 }

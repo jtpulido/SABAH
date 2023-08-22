@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
-import { ExpandMore, SaveOutlined } from '@mui/icons-material';
+import { Download, DownloadTwoTone, ExpandMore, SaveOutlined } from '@mui/icons-material';
 import CustomDataGrid from '../../../layouts/DataGrid';
 
 function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
@@ -33,7 +33,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
-
     const token = useSelector(selectToken);
 
     const [loading, setLoading] = useState(true);
@@ -43,8 +42,11 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const [aspectosCalificados, setAspectosCalificados] = useState([]);
     const [docEntregado, setDocEntregado] = useState(null);
     const [linkDocEntregado, setLinkDocEntregado] = useState(null);
-
+    const [docRetroalimentacion, setDocRetroalimentacion] = useState(null);
+    const [linkDocRetro, setLinkDocRetro] = useState(null);
+    const [existeDocRetroalimentacion, setExisteDocRetroalimentacion] = useState(false);
     const [titulo, setTitulo] = useState("");
+
     const handleEntering = async () => {
         setTitulo(
             tipo === "pendiente" ? "Ver Entrega" :
@@ -59,6 +61,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         }
         if (tipo === "calificado") {
             await obtenerCalificacionAspectos(entrega.id);
+            await validarDocumentoRetroalimentacion(entrega.id)
         }
         setLoading(false);
     };
@@ -70,7 +73,11 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         setAspectos([]);
         setLoading(true);
     };
+    const [selectedFile, setSelectedFile] = useState(null);
 
+    const handleInputChange = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
     const handlePuntajeChange = (aspectoId, value) => {
         setPuntaje((prevPuntaje) => ({
             ...prevPuntaje,
@@ -153,12 +160,37 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             );
         }
     };
+    const validarDocumentoRetroalimentacion = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5000/comite/retroalimentacion/documento/${id}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            });
+            const data = await response.json();
+            if (response.status === 200) {
+                setExisteDocRetroalimentacion(true)
+                setLinkDocRetro(data.nombreArchivo)
+                setDocRetroalimentacion(data.documento);
+            } else if (response.status === 502) {
+                mostrarMensaje(data.message, 'error');
+            } else if (response.status === 203) {
+                setExisteDocRetroalimentacion(false)
+            }
+        } catch (error) {
+            setLoading(true);
+            mostrarMensaje(
+                'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.',
+                'error'
+            );
+        }
+    };
 
     const guardarCalificacion = async (event) => {
         setLoading(true);
         event.preventDefault();
         try {
             const calificacionData = {
+                id_espacio_entrega: entrega.id_espacio_entrega,
                 id_doc_entrega: entrega.id_doc_entrega,
                 id_usuario_rol: entrega.id_usuario_rol,
                 calificacion_aspecto: aspectos.map((aspecto) => ({
@@ -167,12 +199,24 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                     comentario: comentario[aspecto.id_aspecto]?.trim() || '',
                 })),
             };
-
-            const response = await fetch('http://localhost:5000/comite/documento/guardarCalificacion', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(calificacionData),
-            });
+            let response
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('calificacionData', JSON.stringify(calificacionData));
+                formData.append('nombreArchivo', JSON.stringify(selectedFile.name));
+                response = await fetch("http://localhost:5000/usuario/documento/guardarCalificacion", {
+                    method: "POST",
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+            } else {
+                response = await fetch('http://localhost:5000/usuario/guardarCalificacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(calificacionData),
+                });
+            }
             const data = await response.json();
             if (response.status === 200) {
                 setPuntaje({});
@@ -231,6 +275,23 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
             });
     };
+    const handleDescargarRetroalimentacion = () => {
+        const url = `http://localhost:5000/descargar/retroalimentacion/${linkDocRetro}`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((response) => response.blob())
+            .then((blob) => {
+                saveAs(blob, docRetroalimentacion.nombre_documento);
+            })
+            .catch((error) => {
+                mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
+            });
+    };
 
     return (
         <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
@@ -265,17 +326,28 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
-                                    Fecha de apertura
+                                    Fecha de apertura entrega
                                 </Typography>
-                                <TextField value={formatFecha(entrega.fecha_apertura)} fullWidth />
+                                <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
-                                    Fecha de cierre
+                                    Fecha de cierre entrega
                                 </Typography>
-                                <TextField value={formatFecha(entrega.fecha_cierre)} fullWidth />
+                                <TextField value={formatFecha(entrega.fecha_cierre_entrega)} fullWidth />
                             </Grid>
-
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de apertura calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_apertura_calificacion)} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Fecha de cierre calificación
+                                </Typography>
+                                <TextField value={formatFecha(entrega.fecha_cierre_calificacion)} fullWidth />
+                            </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
                         <Typography variant="h2" color="secondary">
@@ -305,7 +377,26 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                         </Typography>
                                         <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
                                     </Grid>
-
+                                    {tipo === "cerrado" && (
+                                        <>
+                                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                <Typography variant="h6" color="primary">
+                                                    Nota
+                                                </Typography>
+                                                <TextField value={"Aún no puede calificar"} fullWidth />
+                                            </Grid>
+                                        </>
+                                    )}
+                                    {tipo === "vencido" && (
+                                        <>
+                                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                <Typography variant="h6" color="primary">
+                                                    Nota
+                                                </Typography>
+                                                <TextField value={"Ya no puede realizar la calificación"} fullWidth />
+                                            </Grid>
+                                        </>
+                                    )}
                                     {tipo === "calificado" && (
                                         <>
                                             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -327,7 +418,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                             Documento entregado
                                         </Typography>
 
-                                        <Button type="submit" startIcon={<SaveOutlined />} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
+                                        <Button type="submit" endIcon={<DownloadTwoTone/>} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
                                     </Grid>
                                 </>
                             )}
@@ -384,7 +475,12 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                                     </Stack>
                                                 </Box>
                                             ))}
-                                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                                Documento
+                                            </Typography>
+                                            <TextField fullWidth placeholder="Agregue el documento" type='file' onChange={handleInputChange} />
+
+                                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
                                                 <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 250 }}>
                                                     Guardar
                                                 </Button>
@@ -395,16 +491,26 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                             </Accordion>
                         )}
                         {tipo === "calificado" && (
-                            <Accordion sx={{ mt: 1, mb: 1 }}>
-                                <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
-                                    <Typography variant="h2" color="secondary">
-                                        Ver calificación por aspecto
-                                    </Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <CustomDataGrid rows={aspectosCalificados} columns={columnas} mensaje="No se encontraron las calificaciones." />
-                                </AccordionDetails>
-                            </Accordion>
+                            <>
+                                {existeDocRetroalimentacion && (
+                                    <>
+                                        <Typography variant="h6" color="primary" sx={{ mt:1}}>
+                                            Documento retroalimentación
+                                        </Typography>
+                                        <Button type="submit" startIcon={<Download />}  variant='outlined' onClick={handleDescargarRetroalimentacion} sx={{ width: 250 }}> Descargar</Button>
+                                    </>
+                                )}
+                                <Accordion sx={{ mt: 1, mb: 1 }}>
+                                    <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
+                                        <Typography variant="h2" color="secondary">
+                                            Ver calificación por aspecto
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <CustomDataGrid rows={aspectosCalificados} columns={columnas} mensaje="No se encontraron las calificaciones." />
+                                    </AccordionDetails>
+                                </Accordion>
+                            </>
                         )}
                     </>
                 )}

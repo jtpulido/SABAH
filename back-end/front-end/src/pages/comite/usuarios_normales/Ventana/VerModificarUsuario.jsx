@@ -88,6 +88,7 @@ function VerModificarUsuario(props) {
             } else {
                 onSubmit(data.usuarios)
                 mostrarMensaje(data.message, "success")
+                setLoading(true)
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -114,6 +115,7 @@ function VerModificarUsuario(props) {
             } else {
                 onSubmit()
                 mostrarMensaje(data.message, "success")
+                setLoading(true)
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -129,8 +131,6 @@ function VerModificarUsuario(props) {
         }
         setCambio(false)
         setId_usuario("")
-        setLoading(true)
-
     }
     const obtenerUsuarios = async () => {
         try {

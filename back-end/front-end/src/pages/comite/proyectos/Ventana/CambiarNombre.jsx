@@ -2,10 +2,21 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Typography, CssBaseline, DialogTitle, Dialog, Button, TextField, DialogActions, DialogContent } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
+import { selectToken } from '../../../../store/authSlice';
+import { useSelector } from 'react-redux';
+import { useSnackbar } from 'notistack';
 
 function CambiarNombre(props) {
 
-    const { onClose, proyectoNombre, open, ...other } = props;
+    const { onClose, proyectoNombre, onSubmit, open, ...other } = props;
+    const id = sessionStorage.getItem('id_proyecto');
+    const token = useSelector(selectToken);
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
     const [nombre, setNombre] = useState('');
 
     const handleEntering = () => {
@@ -17,17 +28,35 @@ function CambiarNombre(props) {
         setNombre('')
     };
 
-    const handleOk = () => {
-        onClose(nombre.trim());
+    const modificarNombre = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch("http://localhost:5000/comite/cambiarNombre", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ id: id, nombre: nombre.trim() })
+            });
+            const data = await response.json();
+            if (data.success) {
+                mostrarMensaje("Se ha actualizado el nombre del proyecto.", "success");
+                onSubmit(nombre.trim())
+                setNombre('')
+            } else {
+                mostrarMensaje(data.message, "error")
+            }
+        }
+        catch (error) {
+            mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+        }
     };
     const handleNombreChange = (value) => {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setNombre(isOnlyWhitespace ? "" : value);
     };
     return (
-        <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }}  {...other} >
+        <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel} {...other} >
             <CssBaseline />
-            <form onSubmit={handleOk}>
+            <form onSubmit={(e) =>modificarNombre(e)}>
                 <DialogTitle variant="h1" color="secondary">Cambiar nombre</DialogTitle>
                 <DialogContent dividers >
                     <Typography variant="h6" color="primary">
@@ -50,7 +79,7 @@ function CambiarNombre(props) {
                     <Button onClick={handleCancel}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }}  disabled={nombre === proyectoNombre}>
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }} disabled={nombre === proyectoNombre}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -62,6 +91,7 @@ function CambiarNombre(props) {
 CambiarNombre.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired,
     proyectoNombre: PropTypes.string.isRequired,
 };
 

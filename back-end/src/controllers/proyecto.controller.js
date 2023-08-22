@@ -35,26 +35,46 @@ const obtenerEntregasPendientes = async (req, res) => {
     ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
     ee.id AS id_espacio_entrega,
     ee.nombre AS nombre_espacio_entrega,
-    r.nombre AS nombre_rol,
     p.id AS id_proyecto,
     p.nombre AS nombre_proyecto,
+    r.nombre AS nombre_rol,
     ee.descripcion,
-    ee.fecha_apertura,
-    ee.fecha_cierre
-FROM 
-    proyecto p
-INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
-INNER JOIN rol r ON ee.id_rol = r.id
-WHERE 
-    NOT EXISTS (
+    ee.fecha_apertura_entrega,
+    ee.fecha_cierre_entrega,
+    ee.fecha_apertura_calificacion,
+    ee.fecha_cierre_calificacion,
+    CASE
+      WHEN NOW() < ee.fecha_apertura_entrega THEN 'cerrado'
+      WHEN NOW() BETWEEN ee.fecha_apertura_entrega AND ee.fecha_cierre_entrega THEN 
+        CASE 
+          WHEN EXISTS (
+            SELECT 1
+            FROM documento_entrega de
+            WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+          ) THEN 'en_proceso'
+          ELSE 'pendiente'
+        END
+      WHEN NOT EXISTS (
         SELECT 1
         FROM documento_entrega de
         WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
-    )
-    AND p.id = $1
-ORDER BY 
-    ee.fecha_cierre;
-`
+      ) AND NOW() > ee.fecha_cierre_entrega THEN 'vencido'
+    END AS estado_entrega
+  FROM 
+    proyecto p
+    INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
+    INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
+    INNER JOIN rol r ON ee.id_rol = r.id
+  WHERE 
+    p.id = $1 AND
+    (NOT EXISTS (
+      SELECT 1
+      FROM documento_entrega de
+      WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+  	)
+  	OR
+    	NOW() <= ee.fecha_cierre_entrega)
+    ORDER BY ee.fecha_cierre_entrega;`
 
     await pool.query(query, [id], (error, result) => {
 
@@ -107,8 +127,10 @@ const obtenerEntregasRealizadasSinCalificar = async (req, res) => {
     ee.id AS id_espacio_entrega,
     ee.nombre AS nombre_espacio_entrega,
     r.nombre AS nombre_rol,
-    ee.fecha_apertura,
-    ee.fecha_cierre,
+    ee.fecha_apertura_entrega,
+    ee.fecha_cierre_entrega,
+    ee.fecha_apertura_calificacion,
+    ee.fecha_cierre_calificacion,        
     p.nombre AS nombre_proyecto,
     ee.descripcion,
     ur.id AS id_usuario_rol,
@@ -119,7 +141,7 @@ FROM
     documento_entrega de
 INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
 INNER JOIN proyecto p ON de.id_proyecto = p.id
-INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol 
+INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
 INNER JOIN usuario u ON ur.id_usuario = u.id 
 INNER JOIN rol r ON ur.id_rol = r.id 
 WHERE 
@@ -130,7 +152,7 @@ WHERE
     )
     AND p.id = $1 
 ORDER BY 
-    de.fecha_entrega       
+    de.fecha_entrega     
     `;
 
     await pool.query(query, [proyecto_id], (error, result) => {
@@ -139,7 +161,7 @@ ORDER BY
       }
 
       if (result.rows.length === 0) {
-        return res.status(203).json({ success: true, message: 'No se han realizado entregas.' });
+        return res.status(203).json({ success: true, message: 'No hay entregas pendientes por calificar.' });
       }
       return res.status(200).json({ success: true, espacios: result.rows });
     });
@@ -154,8 +176,10 @@ const obtenerEntregasRealizadasCalificadas = async (req, res) => {
     const query = `SELECT 
     c.id,
     ee.nombre AS nombre_espacio_entrega,
-    ee.fecha_apertura,
-    ee.fecha_cierre,
+    ee.fecha_apertura_entrega,
+    ee.fecha_cierre_entrega,
+    ee.fecha_apertura_calificacion,
+    ee.fecha_cierre_calificacion,
     r.nombre AS nombre_rol,
     p.nombre AS nombre_proyecto,
     ee.descripcion,
@@ -183,7 +207,7 @@ ORDER BY
       }
 
       if (result.rows.length === 0) {
-        return res.status(203).json({ success: true, message: 'No se han realizado entregas.' });
+        return res.status(203).json({ success: true, message: 'No se han calificado entregas.' });
       }
       return res.status(200).json({ success: true, espacios: result.rows });
     });

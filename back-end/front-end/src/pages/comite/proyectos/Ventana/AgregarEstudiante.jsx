@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-    CircularProgress,
-    Box,
     TextField,
     CssBaseline,
     Button,
@@ -14,9 +12,22 @@ import {
 } from '@mui/material';
 
 import { SaveOutlined } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
+import { useSelector } from 'react-redux';
+import { selectToken } from '../../../../store/authSlice';
 
 function AgregarEstudiante(props) {
+
     const { onClose, onSubmit, open } = props;
+
+    const id = sessionStorage.getItem('id_proyecto');
+    const token = useSelector(selectToken);
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
 
     const [nombre, setNombre] = useState("");
     const [correo, setCorreo] = useState("");
@@ -41,16 +52,33 @@ function AgregarEstudiante(props) {
         setNum_Identificacion(isOnlyWhitespace ? "" : value);
     };
 
+
     const agregarEstudiante = async (e) => {
-        const estudiante = {
-            nombre: nombre,
-            correo: correo,
-            num_identificacion: num_identificacion,
-        };
-        setCorreo('')
-        setNombre('')
-        setNum_Identificacion('')
-        onSubmit(e, estudiante);
+        e.preventDefault();
+        try {
+            const estudiante = {
+                nombre: nombre,
+                correo: correo,
+                num_identificacion: num_identificacion,
+            };
+            const response = await fetch(`http://localhost:5000/comite/estudiante/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(estudiante)
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error")
+            } else if (response.status === 200) {
+                mostrarMensaje(data.message, "success")
+                onSubmit(data.estudiantes)
+                setCorreo('')
+                setNombre('')
+                setNum_Identificacion('')
+            }
+        } catch (error) {
+          mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error") }
+
     }
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
     return (
@@ -60,7 +88,7 @@ function AgregarEstudiante(props) {
             <DialogTitle variant="h1" color="primary">
                 Agregar Estudiante
             </DialogTitle>
-            <form onSubmit={agregarEstudiante}>
+            <form onSubmit={(e) => agregarEstudiante(e)}>
                 <DialogContent dividers>
 
                     <Typography variant="h6" color="primary">
