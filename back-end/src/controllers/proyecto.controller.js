@@ -4,8 +4,24 @@ const obtenerProyecto = async (req, res) => {
   const id = req.params.id;
   try {
     const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
-    const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
-    const proyecto = result.rows
+    const result = await pool.query(`
+            SELECT 
+                p.id, 
+                p.codigo, 
+                p.nombre, 
+                he.anio_nuevo as anio,
+                he.periodo_nuevo as periodo,
+                m.nombre as modalidad, 
+                m.acronimo as acronimo, 
+                e.nombre as etapa, 
+                es.nombre as estado 
+            FROM proyecto p 
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN historial_etapas he ON p.id_ultimo_historial = he.id
+            JOIN etapa e ON he.id_etapa_nueva = e.id
+            JOIN estado es ON p.id_estado = es.id 
+            WHERE p.id = $1
+        `, [id]); const proyecto = result.rows
     if (result.rowCount === 1) {
       const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
       const usuario_director = result_director.rows[0]
@@ -31,55 +47,62 @@ const obtenerEntregasPendientes = async (req, res) => {
 
   try {
 
-    const query = `SELECT 
-    ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
-    ee.id AS id_espacio_entrega,
-    ee.nombre AS nombre_espacio_entrega,
-    p.id AS id_proyecto,
-    p.nombre AS nombre_proyecto,
-    r.nombre AS nombre_rol,
-    ee.descripcion,
-    ee.fecha_apertura_entrega,
-    ee.fecha_cierre_entrega,
-    ee.fecha_apertura_calificacion,
-    ee.fecha_cierre_calificacion,
-    CASE
-      WHEN NOW() < ee.fecha_apertura_entrega THEN 'cerrado'
-      WHEN NOW() BETWEEN ee.fecha_apertura_entrega AND ee.fecha_cierre_entrega THEN 
-        CASE 
-          WHEN EXISTS (
-            SELECT 1
-            FROM documento_entrega de
-            WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
-          ) THEN 'en_proceso'
-          ELSE 'pendiente'
-        END
-      WHEN NOT EXISTS (
+    const query = 
+    `SELECT 
+      ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
+      ee.id AS id_espacio_entrega,
+      ee.nombre AS nombre_espacio_entrega,
+      p.id AS id_proyecto,
+      p.nombre AS nombre_proyecto,
+      r.nombre AS nombre_rol,
+      ee.descripcion,
+      ee.fecha_apertura_entrega,
+      ee.fecha_cierre_entrega,
+      ee.fecha_apertura_calificacion,
+      ee.fecha_cierre_calificacion,
+      ee.anio,
+      ee.periodo,
+      ep.nombre AS etapa
+      CASE
+        WHEN NOW() < ee.fecha_apertura_entrega THEN 'cerrado'
+        WHEN NOW() BETWEEN ee.fecha_apertura_entrega AND ee.fecha_cierre_entrega THEN 
+          CASE 
+            WHEN EXISTS (
+              SELECT 1
+              FROM documento_entrega de
+              WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+            ) THEN 'en_proceso'
+            ELSE 'pendiente'
+          END
+        WHEN NOT EXISTS (
+          SELECT 1
+          FROM documento_entrega de
+          WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+        ) AND NOW() > ee.fecha_cierre_entrega THEN 'vencido'
+      END AS estado_entrega
+    FROM 
+      proyecto p
+      INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
+      INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
+      INNER JOIN rol r ON ee.id_rol = r.id
+      INNER JOIN historial_etapas he ON p.id_ultimo_historial = he.id
+      INNER JOIN etapa ep ON p.id_etapa = ep.id
+    WHERE 
+      p.id = $1 AND
+      (NOT EXISTS (
         SELECT 1
         FROM documento_entrega de
         WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
-      ) AND NOW() > ee.fecha_cierre_entrega THEN 'vencido'
-    END AS estado_entrega
-  FROM 
-    proyecto p
-    INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
-    INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
-    INNER JOIN rol r ON ee.id_rol = r.id
-  WHERE 
-    p.id = $1 AND
-    (NOT EXISTS (
-      SELECT 1
-      FROM documento_entrega de
-      WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
-  	)
-  	OR
-    	NOW() <= ee.fecha_cierre_entrega)
-    ORDER BY ee.fecha_cierre_entrega;`
+      )
+      OR
+        NOW() <= ee.fecha_cierre_entrega) AND
+      he.anio_nuevo = ee.anio AND he.periodo_nuevo = ee.periodo
+      AND he.id_etapa_nueva = ee.id_etapa
+    ORDER BY ee.fecha_cierre_entrega;`;
 
     await pool.query(query, [id], (error, result) => {
 
       if (error) {
-
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
       }
       if (result.rows.length === 0) {
@@ -133,6 +156,9 @@ const obtenerEntregasRealizadasSinCalificar = async (req, res) => {
     ee.fecha_cierre_calificacion,        
     p.nombre AS nombre_proyecto,
     ee.descripcion,
+    ee.anio,
+    ee.periodo,
+    ep.nombre AS etapa,
     ur.id AS id_usuario_rol,
     u.nombre AS evaluador,
     de.fecha_entrega,
@@ -141,6 +167,8 @@ FROM
     documento_entrega de
 INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
 INNER JOIN proyecto p ON de.id_proyecto = p.id
+INNER JOIN historial_etapas he ON p.id = he.id_proyecto
+INNER JOIN etapa ep ON he.id_etapa = ep.id
 INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
 INNER JOIN usuario u ON ur.id_usuario = u.id 
 INNER JOIN rol r ON ur.id_rol = r.id 
@@ -183,6 +211,9 @@ const obtenerEntregasRealizadasCalificadas = async (req, res) => {
     r.nombre AS nombre_rol,
     p.nombre AS nombre_proyecto,
     ee.descripcion,
+    ee.anio,
+    ee.periodo,
+    ep.nombre AS etapa,
     u.nombre AS evaluador,
     de.fecha_entrega,
     de.id AS id_doc_entrega,
@@ -192,6 +223,8 @@ FROM
     documento_entrega de
     INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
     INNER JOIN proyecto p ON de.id_proyecto = p.id
+    INNER JOIN historial_etapas he ON p.id = he.id_proyecto
+    INNER JOIN etapa ep ON he.id_etapa = ep.id
     INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
     INNER JOIN usuario u ON ur.id_usuario = u.id
     INNER JOIN rol r ON ur.id_rol = r.id 

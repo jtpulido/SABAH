@@ -403,28 +403,32 @@ const inscribirPropuesta = async (req, res) => {
     // Inicio transaccion
     await pool.query('BEGIN');
 
-    // Agregar proyecto
-    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
+      // Agregar proyecto
+    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6)', [id, codigo, nombre, id_modalidad, id_etapa, id_estado]);
     const id_proyecto = proyecto.rows[0].id;
+    
+    // Insertar el registro en historial_etapas con la etapa de propuesta
+    await pool.query('INSERT INTO historial_etapas(id_proyecto, id_etapa_nueva, anio_nuevo, periodo_nuevo) VALUES ($1, $2, $3, $4)', [id, id_etapa, anio, periodo]);
+
     // Agregar Usuario-Rol (director)
     await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, 1, $3)', [fecha_asignacion, id_usuario, id]);
 
     // Verificar si ya existe el estudiante
     const result = await pool.query('SELECT e.id FROM estudiante e WHERE LOWER(e.num_identificacion) = LOWER($1) OR LOWER(e.correo) = LOWER($2)', [num_identificacion, correo]);
-        if (result.rowCount > 0) {
-            const estudianteId = result.rows[0].id;
-            const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
-            if (resultProyecto.rowCount > 0) {
-                return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
-            } else {
-                await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
-                await pool.query('COMMIT');
-              }
-        } else {
-            const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
-            const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
-            await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
-        }
+    if (result.rowCount > 0) {
+      const estudianteId = result.rows[0].id;
+      const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
+      if (resultProyecto.rowCount > 0) {
+        return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
+      } else {
+        await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
+        await pool.query('COMMIT');
+      }
+    } else {
+      const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombreEstudiante, num_identificacion, correo]);
+      const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
+      await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
+    }
     // Agregar Inicio Sesion
     await pool.query("INSERT INTO inicio_sesion(id_proyecto, contrasena) VALUES ($1, $2)", [id, hashedPassword]);
 
@@ -457,7 +461,10 @@ const inscribirPropuestaVarios = async (req, res) => {
     await pool.query('BEGIN');
 
     // Agregar proyecto
-    await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
+    await pool.query('INSERT INTO proyecto(id, codigo, nombre, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6)', [id, codigo, nombre, id_modalidad, id_etapa, id_estado]);
+   
+    // Insertar el registro en historial_etapas con la etapa de propuesta
+    await pool.query('INSERT INTO historial_etapas(id_proyecto, id_etapa_nueva, anio_nuevo, periodo_nuevo) VALUES ($1, $2, $3, $4)', [id, id_etapa, anio, periodo]);
 
     // Agregar Usuario-Rol (director)
     await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, 1, $3)', [fecha_asignacion, id_usuario, id]);
