@@ -1,29 +1,41 @@
 import React, { useState, useEffect } from "react";
 
-import { selectToken } from "../../store/authSlice";
-import { useNavigate } from 'react-router-dom';
+import { selectToken } from "../../../store/authSlice";
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
-import { useSnackbar } from 'notistack';
 
 import {
   Box, Typography, Button, IconButton, Tooltip, Toolbar, AppBar,
 } from '@mui/material';
-import CustomDataGrid from "../layouts/DataGrid";
-
 import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
-import CrearReunion from "./VentanasReuniones/CrearReunion";
-import CancelarReunion from "./VentanasReuniones/CancelarReunion";
-import EditarReunion from "./VentanasReuniones/EditarReunion";
-import VerReunion from "./VentanasReuniones/VerReunion";
+import { useSnackbar } from 'notistack';
+import CustomDataGrid from "../../layouts/DataGrid";
+
+import CrearReunion from "./Ventanas/CrearReunion";
+import CancelarReunion from "./Ventanas/CancelarReunion";
+import EditarReunion from "./Ventanas/EditarReunion";
+import VerReunion from "./Ventanas/VerReunion";
 
 
 export default function Reuniones() {
 
-  const id = sessionStorage.getItem('id_proyecto');
+  const idUsuario = sessionStorage.getItem('user_id_usuario');
+  const idRol = sessionStorage.getItem('id_rol');
+
+  let nombreRol = '';
+  if (idRol === '1') {
+    nombreRol = 'DIRECTOR';
+  } else if (idRol === '2') {
+    nombreRol = 'LECTOR';
+  } else if (idRol === '3') {
+    nombreRol = 'JURADO';
+  }
+
   const token = useSelector(selectToken);
+
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCompletadas, setRowsCompletadas] = useState([]);
   const [rowsCanceladas, setRowsCanceladas] = useState([]);
@@ -37,9 +49,10 @@ export default function Reuniones() {
 
   const llenarTablaPendientes = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesPendientes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
       });
       const data = await response.json();
 
@@ -58,9 +71,10 @@ export default function Reuniones() {
 
   const llenarTablaCompletas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCompletas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
       });
 
       const data = await response.json();
@@ -80,9 +94,10 @@ export default function Reuniones() {
 
   const llenarTablaCanceladas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCanceladas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
       });
       const data = await response.json();
 
@@ -110,7 +125,17 @@ export default function Reuniones() {
       { field: 'fecha', headerName: 'Fecha y Hora', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'enlace', headerName: 'Link', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-      { field: 'roles_invitados', headerName: 'Invitados', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" }
+      { field: 'nombre_proyecto', headerName: 'Proyecto', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" }
+    ];
+    return [...commonColumns, ...extraColumns];
+  };
+
+  const generarColumnasCompletas = (extraColumns) => {
+    const commonColumns = [
+      { field: 'fecha', headerName: 'Fecha y Hora', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
+      { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
+      { field: 'nombre_proyecto', headerName: 'Proyecto', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
+      { field: 'nombre_asistencia', headerName: 'Asistencia', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" }
     ];
     return [...commonColumns, ...extraColumns];
   };
@@ -132,7 +157,7 @@ export default function Reuniones() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Editar Reunión">
-              <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => abrirEditarReunion(row.id)}>
+              <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => abrirEditarReunion(row.id, 'pendiente')}>
                 <Create />
               </IconButton>
             </Tooltip>
@@ -148,7 +173,7 @@ export default function Reuniones() {
     },
   ]);
 
-  const columnsCompletas = generarColumnas([
+  const columnsCompletas = generarColumnasCompletas([
     {
       field: "Acción",
       headerName: "Acción",
@@ -157,21 +182,27 @@ export default function Reuniones() {
       headerAlign: "center",
       align: "center",
       renderCell: ({ row }) => {
-        const idActa = row && row.id_acta;
+        const id = row && row.id;
+        const { has_acta } = row;
         return (
-          <Box sx={{ display: 'flex' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
             <Tooltip title="Ver Reunión">
-              <IconButton color="secondary" style={{ marginLeft: '10px' }} onClick={() => abrirVerReunion(row.id, 'completa')}>
+              <IconButton color="secondary" style={{ marginRight: '10px' }} onClick={() => abrirVerReunion(row.id, 'completa')}>
                 <Visibility />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Editar Reunión">
+              <IconButton color="secondary" style={{ marginRight: '10px' }} onClick={() => abrirEditarReunion(row.id, 'completa')}>
+                <Create />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Crear Acta de Reunión">
-              <IconButton color="secondary" onClick={() => abrirActa(row.id, 'crear')} style={{ display: idActa === null ? 'block' : 'none', marginLeft: '10px' }}>
+              <IconButton color="secondary" onClick={() => abrirActa(row.id)} disabled={has_acta}>
                 <DescriptionIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="Descargar Acta de Reunión">
-              <IconButton color="secondary" onClick={() => abrirActa(row.id, 'descargar')} style={{ display: idActa !== null ? 'block' : 'none', marginLeft: '10px' }}>
+              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
                 <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
@@ -219,7 +250,7 @@ export default function Reuniones() {
   // Cancelar reunion
   const [abrirCancelar, setAbrirCancelar] = useState(false);
   const abrirCancelarReunion = (id) => {
-    sessionStorage.setItem('proyecto_id_reunion', id);
+    sessionStorage.setItem('usuario_id_reunion', id);
     setAbrirCancelar(true);
   };
   const cerrarCancelarReunion = () => {
@@ -234,19 +265,36 @@ export default function Reuniones() {
 
   // Editar reunion
   const [abrirEditar, setAbrirEditar] = useState(false);
-  const abrirEditarReunion = (id) => {
-    const registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
-    const reunionCadena = JSON.stringify(registroEncontrado);
-    sessionStorage.setItem('info_reunion_editar', reunionCadena);
-    sessionStorage.setItem('proyecto_id_reunion', id);
-    setAbrirEditar(true);
+  const abrirEditarReunion = (id, tipo) => {
+
+    let registroEncontrado;
+    if (tipo === 'pendiente') {
+      registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
+    } else if (tipo === 'completa') {
+      registroEncontrado = rowsCompletadas.find(reunion => reunion.id === id);
+    }
+
+    if (registroEncontrado) {
+      try {
+        const reunionCadena = JSON.stringify(registroEncontrado);
+        sessionStorage.setItem('usuario_reunion_editar', reunionCadena);
+        sessionStorage.setItem('usuario_id_reunion', id);
+        setAbrirEditar(true);
+      } catch (error) {
+        mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+      }
+    } else {
+      mostrarMensaje("No se encontró la reunión con el ID proporcionado.", "error");
+    }
   };
   const cerrarEditarReunion = () => {
     llenarTablaPendientes();
+    llenarTablaCompletas();
     setAbrirEditar(false);
   };
   const cerrarReunionEditada = () => {
     llenarTablaPendientes();
+    llenarTablaCompletas();
   };
 
   // Ver reunion
@@ -264,8 +312,8 @@ export default function Reuniones() {
     if (registroEncontrado) {
       try {
         const reunionCadena = JSON.stringify(registroEncontrado);
-        sessionStorage.setItem('info_reunion_ver', reunionCadena);
-        sessionStorage.setItem('proyecto_id_reunion', id);
+        sessionStorage.setItem('usuario_reunion_ver', reunionCadena);
+        sessionStorage.setItem('usuario_id_reunion', id);
         setAbrirVer(true);
       } catch (error) {
         mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -283,15 +331,9 @@ export default function Reuniones() {
   };
 
   // Acta de Reunion
-  const abrirActa = (id, tipo) => {
-
-    if (tipo === 'crear') {
-      sessionStorage.setItem('estado_acta', 'crear');
-    } else if (tipo === 'descargar') {
-      sessionStorage.setItem('estado_acta', 'descargar');
-    }
-    sessionStorage.setItem('proyecto_id_reunion', id);
-    navigate('/proyecto/ActaReunion');
+  const abrirActa = (id) => {
+    sessionStorage.setItem('usuario_id_reunion', id);
+    navigate('/usuario/ActaReunion');
   };
 
   return (
@@ -299,7 +341,7 @@ export default function Reuniones() {
       <AppBar position="static" color="transparent" variant="contained" >
         <Toolbar >
           <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
-            REUNIONES
+            REUNIONES ASOCIADOS AL ROL {nombreRol}
           </Typography>
           <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirCrearReunion} sx={{ width: 150 }}>
             Crear Reunión

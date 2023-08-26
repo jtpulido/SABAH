@@ -19,6 +19,15 @@ export default function Proyectos() {
     const idRol = sessionStorage.getItem('id_rol');
     const navigate = useNavigate();
 
+    let nombreRol = '';
+    if (idRol === '1') {
+        nombreRol = 'DIRECTOR';
+    } else if (idRol === '2') {
+        nombreRol = 'LECTOR';
+    } else if (idRol === '3') {
+        nombreRol = 'JURADO';
+    }
+
     const columns = [
         {
             field: 'nombre', headerName: 'Nombre', flex: 0.3, minWidth: 150,
@@ -115,14 +124,12 @@ export default function Proyectos() {
         llenarTablaCerrados();
     }, [llenarTablaEnCurso, llenarTablaCerrados]);
 
-    
-
     return (
         <div>
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar>
                     <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
-                        PROYECTOS
+                        PROYECTOS ASOCIADOS AL ROL {nombreRol}
                     </Typography>
                 </Toolbar>
             </AppBar>

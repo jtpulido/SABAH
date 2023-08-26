@@ -315,7 +315,6 @@ export default function ModificarProyectos() {
 
         // Director
         if (director.id !== directorInicial.id) {
-
             // Cambiar el estado a false del anterior director y agregar el nuevo
             try {
                 const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
@@ -416,7 +415,7 @@ export default function ModificarProyectos() {
             for (let index = 0; index < juradosSeleccionados.length; index++) {
 
                 try {
-                    const response = await fetch("http://localhost:5000/admin/agregarUsuarioRol", {
+                    const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
@@ -452,7 +451,7 @@ export default function ModificarProyectos() {
             for (let index = 0; index < juradosEliminados.length; index++) {
 
                 try {
-                    const response = await fetch("http://localhost:5000/admin/agregarUsuarioRol", {
+                    const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({
@@ -481,7 +480,7 @@ export default function ModificarProyectos() {
             for (let index = 0; index < nuevosJurados.length; index++) {
 
                 try {
-                    const response = await fetch("http://localhost:5000/admin/agregarUsuarioRol", {
+                    const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({

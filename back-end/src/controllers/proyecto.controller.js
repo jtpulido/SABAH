@@ -1,5 +1,6 @@
 const pool = require('../database')
 
+
 const obtenerProyecto = async (req, res) => {
   const id = req.params.id;
   try {
@@ -41,10 +42,7 @@ const obtenerProyecto = async (req, res) => {
 };
 
 const obtenerEntregasPendientes = async (req, res) => {
-
-
   const { id } = req.params;
-
   try {
 
     const query = 
@@ -101,12 +99,10 @@ const obtenerEntregasPendientes = async (req, res) => {
     ORDER BY ee.fecha_cierre_entrega;`;
 
     await pool.query(query, [id], (error, result) => {
-
       if (error) {
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
       }
       if (result.rows.length === 0) {
-
         return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
       }
       return res.status(200).json({ success: true, espacios: result.rows });
@@ -115,24 +111,20 @@ const obtenerEntregasPendientes = async (req, res) => {
     return res.status(502).json({ success: false, message });
   }
 };
+
 const obtenerLinkProyecto = async (req, res) => {
-
-
   const { id } = req.params;
-
   try {
-
     const query = `SELECT id, artefactos, documentos FROM link WHERE id = $1`;
-
     await pool.query(query, [id], (error, result) => {
-
       if (error) {
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los links de acceso a los repositorio. Por favor, intente de nuevo más tarde.' });
       }
-      if (result.rows.length === 0) {
 
+      if (result.rows.length === 0) {
         return res.status(203).json({ success: true, message: 'No se encontraron los links, debe agregarlos.' });
       }
+
       return res.status(200).json({ success: true, link_artefacto: result.rows[0].artefactos, link_documento: result.rows[0].documentos });
     });
   } catch (error) {
@@ -143,7 +135,6 @@ const obtenerLinkProyecto = async (req, res) => {
 const obtenerEntregasRealizadasSinCalificar = async (req, res) => {
   try {
     const proyecto_id = req.params.id;
-
     const query = `SELECT 
     ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
     de.id AS id_doc_entrega,
@@ -182,7 +173,6 @@ WHERE
 ORDER BY 
     de.fecha_entrega     
     `;
-
     await pool.query(query, [proyecto_id], (error, result) => {
       if (error) {
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
@@ -197,6 +187,7 @@ ORDER BY
     return res.status(502).json({ success: false, message });
   }
 };
+
 const obtenerEntregasRealizadasCalificadas = async (req, res) => {
   try {
     const proyecto_id = req.params.id;
@@ -250,25 +241,30 @@ ORDER BY
 };
 
 const obtenerReunionesPendientes = async (req, res) => {
-
   const { id } = req.params;
-
   try {
-    const updateQuery = `
-        UPDATE reunion
-        SET id_estado = 2
-        WHERE id_proyecto = $1 AND fecha < CURRENT_DATE AND id_estado != 3;
-        `;
+    const updateQuery = `UPDATE reunion SET id_estado=(SELECT id FROM estado_reunion WHERE nombre = 'Completa') WHERE id_proyecto=$1 AND fecha<CURRENT_TIMESTAMP AND id_estado!=(SELECT id FROM estado_reunion WHERE nombre = 'Cancelada')`;
     const updateValues = [id];
     await pool.query(updateQuery, updateValues);
 
     // Obtener reunion actualizadas
-    const selectQuery = `
-        SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace
-        FROM reunion r
-        JOIN estado_reunion e ON r.id_estado = e.id
-        WHERE r.id_proyecto = $1 AND e.nombre = 'Pendiente';
-        `;
+    const selectQuery = `SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion,
+    COALESCE(
+        STRING_AGG(DISTINCT
+            CASE
+                WHEN ur.id_rol = 1 THEN 'Director'
+                WHEN ur.id_rol = 2 THEN 'Lector'
+                WHEN ur.id_rol = 3 THEN 'Jurado'
+            END
+            , ', ') || 
+        CASE 
+            WHEN MAX(CASE WHEN inv.id_cliente IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN ', Cliente' 
+            ELSE '' 
+        END,
+        ''
+    ) AS roles_invitados
+FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id
+WHERE r.id_proyecto = $1 AND e.nombre = 'Pendiente' GROUP BY r.id, r.nombre, r.fecha, r.enlace ORDER BY fecha ASC;`;
     const selectValues = [id];
     const result = await pool.query(selectQuery, selectValues);
     const pendientes = result.rows;
@@ -276,7 +272,7 @@ const obtenerReunionesPendientes = async (req, res) => {
     if (pendientes.length > 0) {
       return res.json({ success: true, pendientes });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay reuniones pendientes' });
+      return res.status(203).json({ success: true, message: 'No hay reuniones pendientes' });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -284,16 +280,30 @@ const obtenerReunionesPendientes = async (req, res) => {
 };
 
 const obtenerReunionesCompletas = async (req, res) => {
-
   const { id } = req.params;
-
   try {
-    const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id WHERE r.id_proyecto = $2 AND e.nombre = $1;', ['Completa', id])
+    const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion, ac.id AS id_acta,
+    COALESCE(
+        STRING_AGG(DISTINCT
+            CASE
+                WHEN ur.id_rol = 1 THEN 'Director'
+                WHEN ur.id_rol = 2 THEN 'Lector'
+                WHEN ur.id_rol = 3 THEN 'Jurado'
+            END
+            , ', ') || 
+        CASE 
+            WHEN MAX(CASE WHEN inv.id_cliente IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN ', Cliente' 
+            ELSE '' 
+        END,
+        ''
+    ) AS roles_invitados
+FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id LEFT JOIN acta_reunion ac ON ac.id_reunion = r.id
+WHERE r.id_proyecto = $2 AND e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.enlace, ac.id ORDER BY fecha ASC;`, ['Completa', id])
     const completas = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, completas });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay reuniones completas' })
+      return res.status(203).json({ success: true, message: 'No hay reuniones completas' })
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -301,16 +311,30 @@ const obtenerReunionesCompletas = async (req, res) => {
 };
 
 const obtenerReunionesCanceladas = async (req, res) => {
-
   const { id } = req.params;
-
   try {
-    const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id WHERE r.id_proyecto = $2 AND e.nombre = $1;', ['Cancelada', id])
+    const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion,
+    COALESCE(
+        STRING_AGG(DISTINCT
+            CASE
+                WHEN ur.id_rol = 1 THEN 'Director'
+                WHEN ur.id_rol = 2 THEN 'Lector'
+                WHEN ur.id_rol = 3 THEN 'Jurado'
+            END
+            , ', ') || 
+        CASE 
+            WHEN MAX(CASE WHEN inv.id_cliente IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN ', Cliente' 
+            ELSE '' 
+        END,
+        ''
+    ) AS roles_invitados
+FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id
+WHERE r.id_proyecto = $2 AND e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.enlace ORDER BY fecha ASC;`, ['Cancelada', id])
     const canceladas = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, canceladas });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay reuniones canceladas' })
+      return res.status(203).json({ success: true, message: 'No hay reuniones canceladas' })
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -399,6 +423,7 @@ const obtenerSolicitudesAprobadas = async (req, res) => {
     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
+
 const obtenerSolicitudesRechazadas = async (req, res) => {
   const { id } = req.params;
   try {
@@ -441,78 +466,19 @@ const obtenerSolicitudesRechazadas = async (req, res) => {
   }
 };
 
-const guardarReunion = async (req, res) => {
-
-  const { nombre, fecha, invitados, enlace, id_proyecto, id_estado } = req.body;
-  try {
-    const query = `
-        INSERT INTO public.reunion(nombre, fecha, invitados, enlace, id_proyecto, id_estado)
-        VALUES ( $1, $2, $3, $4, $5, $6)
-      `;
-    const values = [nombre, fecha, invitados, enlace, id_proyecto, id_estado];
-    await pool.query(query, values);
-
-    res.status(200).json({ message: 'Reunión guardada exitosamente' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al guardar la reunión' });
-  }
-};
-
-const obtenerReunion = async (req, res) => {
-  const { id } = req.params;
-  const id_reunion = req.headers['id_reunion'];
-  try {
-
-    const result = await pool.query('SELECT r.id, r.nombre, r.fecha, r.invitados, r.enlace FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id WHERE r.id_proyecto = $1 AND r.id = $2;', [id, id_reunion])
-    const reunion = result.rows
-    if (result.rowCount > 0) {
-      return res.json({ success: true, reunion })
-    } else {
-      return res.status(203).json({ success: false, message: 'No hay reuniones' })
-    }
-  } catch (error) {
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-  }
-
-}
-
 const cancelarReunion = async (req, res) => {
-
-  const { id } = req.body;
-
+  const { id_reunion, id_proyecto, justificacion } = req.body;
   try {
-    const query = `
-      UPDATE public.reunion
-      SET id_estado = 3
-      WHERE id = $1
-      `;
-    const values = [id];
+    const query = `UPDATE reunion SET id_estado=(SELECT id FROM estado_reunion WHERE nombre = 'Cancelada'), justificacion=$3 WHERE id=$1 AND id_proyecto=$2`;
+    const values = [id_reunion, id_proyecto, justificacion];
     await pool.query(query, values);
+    res.status(200).json({ success: true, message: 'La reunión ha sido cancelada con éxito.' });
 
-    res.status(200).json({ message: 'Reunión cancelada exitosamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al cancelar la reunión' });
+    res.status(500).json({ success: false, message: 'No se pudo completar la cancelación de la reunión.' });
   }
 };
 
-const editarReunion = async (req, res) => {
-  const { nombre, fecha, invitados, enlace, id_reunion } = req.body;
-  try {
-    const query = `
-        UPDATE public.reunion
-        SET nombre=$1, fecha=$2, invitados=$3, enlace=$4
-        WHERE id = $5
-      `;
-    const values = [nombre, fecha, invitados, enlace, id_reunion];
-
-    // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
-    await pool.query(query, values);
-
-    res.status(200).json({ message: 'Reunión editada exitosamente' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al editar la reunión' });
-  }
-};
 const obtenerTipoSolicitud = async (req, res) => {
   try {
     const query = 'SELECT * FROM tipo_solicitud';
@@ -553,135 +519,35 @@ const guardarSolicitud = async (req, res) => {
 };
 
 const guardarInfoActa = async (req, res) => {
-
   const { id_reunion, objetivos, resultados, tareas, compromisos } = req.body;
-
   try {
-    // Ejemplo usando el paquete "pg" para ejecutar la consulta SQL
-
     const query = `
-        INSERT INTO public.actasreunion(
-            id, descrip_obj, resultados_reu, tareas_ant, compromisos)
-        VALUES ( $1, $2, $3, $4, $5 )
+        INSERT INTO public.acta_reunion(descrip_obj, resultados_reu, tareas_ant, compromisos, id_reunion)
+        VALUES ($2, $3, $4, $5, $1)
       `;
     const values = [id_reunion, objetivos, resultados, tareas, compromisos];
-
-    // Ejecutar la consulta SQL usando el pool de conexiones de PostgreSQL
     await pool.query(query, values);
+    res.status(200).json({ success: true, message: 'Se ha guardado la información del acta de reunión exitosamente.' });
 
-    res.status(200).json({ message: 'Acta guardada exitosamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al guardar el acta' });
+    res.status(502).json({ success: false, message: 'Ha ocurrido un error al guardar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
+
 const obtenerInfoActa = async (req, res) => {
-
-  const { id } = req.params;
-
+  const { idReunion } = req.params;
   try {
-
-    const result = await pool.query('SELECT t1.fecha, t1.invitados,t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM public.reunion t1, public.actasreunion t2  WHERE t1.id = $1 AND t2.id = $1 ;'
-      , [id])
-    const acta = result.rows
-
+    const result = await pool.query(`SELECT TO_CHAR(t1.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM acta_reunion t2 LEFT JOIN reunion t1 ON t1.id = t2.id_reunion WHERE t2.id_reunion = $1`, [idReunion]);
+    const acta = result.rows[0];
     if (result.rowCount > 0) {
-      return res.json({ success: true, acta })
+      return res.json({ success: true, acta });
     } else {
-      return res.status(203).json({ success: false, message: 'No hay actas' })
+      return res.status(203).json({ success: false, message: 'No existe una acta para esta reunión.' });
     }
   } catch (error) {
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-  }
-
-}
-
-const generarPDF = async (req, res) => {
-  const { fecha, invitados, compromisos, objetivos, tareas, nombre } = req.body;
-  const PDFDocument = require('pdfkit');
-  const fs = require('fs');
-  try {
-
-
-    const doc = new PDFDocument();
-
-    // Agrega contenido al PDF
-    doc.text("");
-
-    const tableData = [
-      ['Fecha', fecha],
-      ['invitados', invitados],
-      ['Compromisos', compromisos],
-      ['Objetivos', objetivos],
-      ['Tareas', tareas],
-      ['Nombre', nombre]
-    ];
-
-    const table = {
-      headers: ['Nombre', 'Edad'],
-      rows: tableData
-    };
-
-    doc.moveDown();
-    drawTable(doc, table, {
-      x: 50,
-      y: doc.y,
-      width: 200,
-      height: 0,
-      cellMargin: 10
-    });
-
-    // Guarda el archivo en el sistema de archivos
-    const outputPath = nombre + '.pdf';
-    doc.pipe(fs.createWriteStream(outputPath));
-    doc.end();
-
-    return outputPath;
-  } catch (error) {
-    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    res.status(502).json({ success: false, message: 'Ha ocurrido un error al recuperar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
-
-function drawTable(doc, table, settings) {
-  const startX = settings.x;
-  const startY = settings.y;
-  const marginCell = settings.cellMargin || 0;
-
-  const columnCount = table.headers.length;
-  const columnWidth = settings.width / columnCount;
-  const rowHeight = settings.rowHeight || 20;
-  const pageHeight = doc.page.height;
-
-  doc.font('Helvetica-Bold');
-
-  // Dibuja los encabezados de la tabla
-  doc.fillColor('black');
-  doc.fontSize(12);
-
-  let currentY = startY;
-  table.headers.forEach((header, columnIndex) => {
-    const currentX = startX + columnIndex * columnWidth;
-    doc.text(header, currentX, currentY, { width: columnWidth, align: 'left' });
-  });
-
-  // Dibuja las filas de la tabla
-  doc.font('Helvetica');
-  doc.fontSize(10);
-
-  table.rows.forEach((row, rowIndex) => {
-    currentY += rowHeight;
-    let rowText = '';
-    row.forEach((cell, cellIndex) => {
-      const currentX = startX + cellIndex * columnWidth;
-      doc.text(cell, currentX, currentY, { width: columnWidth - marginCell, align: 'left' });
-    });
-  });
-
-  // Calcula la altura de la tabla
-  const tableHeight = currentY - startY + rowHeight;
-  if (tableHeight > settings.height) {
-    doc.addPage();
-  }
-}
 
 const guardarLink = async (req, res) => {
   const { id, tipol, link } = req.body;
@@ -715,12 +581,217 @@ const guardarLink = async (req, res) => {
   }
 };
 
+const obtenerInfoDirector = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=1) AND u.estado=true', [id]);
+    const director = result.rows[0];
+    if (result.rowCount > 0) {
+      return res.json({ success: true, director });
+    } else {
+      return res.status(404).json({ success: false, message: 'No hay un director asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const obtenerInfoLector = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=2) AND u.estado=true', [id]);
+    const lector = result.rows[0];
+    if (result.rowCount > 0) {
+      return res.json({ success: true, lector });
+    } else {
+      return res.status(404).json({ success: false, message: 'No hay un lector asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const obtenerInfoJurado = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=3) AND u.estado=true', [id]);
+    const jurado = result.rows;
+    if (result.rowCount > 0) {
+      return res.json({ success: true, jurado });
+    } else {
+      return res.status(404).json({ success: false, message: 'No hay jurado(s) asigando(s) a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const obtenerInfoCliente = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM cliente WHERE id IN (SELECT id_cliente FROM proyecto WHERE id=$1)', [id]);
+    const cliente = result.rows[0];
+    if (result.rowCount > 0) {
+      return res.json({ success: true, cliente });
+    } else {
+      return res.status(404).json({ success: false, message: 'No hay un cliente asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const ultIdReunion = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT MAX(id) from reunion');
+    const id = result.rows[0].max || 0;
+    if (id !== null) {
+      return res.json({ success: true, id });
+    } else {
+      return res.status(404).json({ success: true, id: 0 });
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const editarReunion = async (req, res) => {
+  const { id, id_proyecto, nombre, fecha, enlace, director, lector, cliente, jurado, added, removed } = req.body;
+  const roleIds = {
+    "director": director.id,
+    "lector": lector.id,
+    "cliente": cliente.id,
+  };
+  const rolID = {
+    "director": 1,
+    "lector": 2,
+  };
+
+  try {
+    await pool.query('BEGIN');
+    await pool.query(`UPDATE reunion SET nombre=$2, fecha=TO_TIMESTAMP($3, 'DD-MM-YYYY HH24:MI'), enlace=$4 WHERE id=$1`, [id, nombre, fecha, enlace]);
+
+    // Added
+    for (let index = 0; index < added.length; index++) {
+      const roleName = added[index];
+      if (roleName in roleIds) {
+        if (roleName === 'cliente') {
+          await pool.query(`INSERT INTO invitados(id_reunion, id_cliente) VALUES ($1, $2)`, [id, roleIds[roleName]]);
+        } else {
+          await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=$3 AND estado=true AND id_proyecto=$4))`, [id, roleIds[roleName], rolID[roleName], id_proyecto]);
+        }
+
+        // Verificar si es jurado
+      } else if (roleName.startsWith("jurado")) {
+        const juradoIndex = parseInt(roleName.split(" ")[1]);
+        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true))`, [id, jurado[juradoIndex].id]);
+      }
+    }
+
+    // Removed
+    for (let index = 0; index < removed.length; index++) {
+      const roleName = removed[index];
+      if (roleName in roleIds) {
+        if (roleName === 'cliente') {
+          await pool.query(`DELETE FROM invitados WHERE id_reunion=$1 AND id_cliente=$2`, [id, roleIds[roleName]]);
+        } else {
+          await pool.query(`DELETE FROM invitados WHERE id_reunion=$1 AND id_usuario_rol = (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=$3 AND estado=true AND id_proyecto=$4)`, [id, roleIds[roleName], rolID[roleName], id_proyecto]);
+        }
+
+        // Verificar si es jurado
+      } else if (roleName.startsWith("jurado")) {
+        const juradoIndex = parseInt(roleName.split(" ")[1]);
+        await pool.query(`DELETE FROM invitados WHERE id_reunion=$1 AND id_usuario_rol=(SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true)`, [id, jurado[juradoIndex].id]);
+      }
+    }
+
+    await pool.query('COMMIT');
+    res.status(200).json({ success: true, message: 'Reunión editada exitosamente' });
+
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+
+};
+
+const crearReunionInvitados = async (req, res) => {
+  const { id, nombre, fecha, enlace, id_proyecto, id_estado, director, lector, cliente, jurado, infoChecked } = req.body;
+
+  const roleIds = {
+    "director": director.id,
+    "lector": lector.id,
+    "cliente": cliente.id,
+  };
+
+  const rolID = {
+    "director": 1,
+    "lector": 2,
+  };
+
+  try {
+    await pool.query('BEGIN');
+
+    // Crear la nueva reunion
+    await pool.query(`INSERT INTO reunion(id, nombre, fecha, enlace, id_proyecto, id_estado) VALUES ($1, $2, TO_TIMESTAMP($3, 'DD-MM-YYYY HH24:MI'), $4, $5, $6)`, [id, nombre, fecha, enlace, id_proyecto, id_estado]);
+
+    // Agregar invitados
+    for (let index = 0; index < infoChecked.length; index++) {
+      const roleName = infoChecked[index];
+      // Verificar si es director, cliente o lector
+      if (roleName in roleIds) {
+        if (roleName === 'cliente') {
+          await pool.query(`INSERT INTO invitados(id_reunion, id_cliente) VALUES ($1, $2)`, [id, roleIds[roleName]]);
+
+        } else {
+          await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=$3 AND estado=true AND id_proyecto=$4))`, [id, roleIds[roleName], rolID[roleName], id_proyecto]);
+        }
+
+        // Verificar si es jurado
+      } else if (roleName.startsWith("jurado")) {
+        const juradoIndex = parseInt(roleName.split(" ")[1]);
+        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true))`, [id, jurado[juradoIndex].id]);
+      }
+    }
+
+    await pool.query('COMMIT');
+    res.status(201).json({ success: true, message: 'La reunión fue creada exitosamente y los invitados han sido notificados.' });
+
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const obtenerInvitados = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(`
+    SELECT i.id as id_tabla_invitados, i.id_reunion, i.id_usuario_rol, i.id_asistencia, i.id_cliente, 
+    c.id AS id_tabla_cliente, c.nombre_empresa, c.nombre_repr, c.correo_repr,
+    u.id AS id_tabla_usuario, u.nombre AS nombre_usuario, u.correo,
+    r.id AS id_tabla_rol, r.nombre AS nombre_rol
+    FROM invitados i
+    LEFT JOIN cliente c ON i.id_cliente = c.id
+    LEFT JOIN usuario_rol ur ON i.id_usuario_rol = ur.id
+    LEFT JOIN usuario u ON ur.id_usuario = u.id
+    LEFT JOIN rol r ON ur.id_rol = r.id
+    WHERE i.id_reunion=$1`, [id]);
+    const invitados = result.rows;
+    if (result.rowCount > 0) {
+      return res.json({ success: true, invitados });
+    }
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
 
 module.exports = {
   obtenerProyecto, obtenerEntregasRealizadasCalificadas, obtenerEntregasRealizadasSinCalificar, obtenerEntregasPendientes,
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
-  obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas, guardarReunion, obtenerReunion,
-  cancelarReunion, editarReunion,
-  obtenerTipoSolicitud, guardarSolicitud,
-  guardarInfoActa, generarPDF, obtenerInfoActa, guardarLink, obtenerLinkProyecto
+  obtenerSolicitudesPendientes, obtenerSolicitudesRechazadas, obtenerSolicitudesAprobadas,
+  cancelarReunion, editarReunion, obtenerInfoCliente, obtenerInvitados,
+  obtenerTipoSolicitud, guardarSolicitud, ultIdReunion, crearReunionInvitados,
+  guardarInfoActa, obtenerInfoActa, guardarLink, obtenerLinkProyecto, obtenerInfoJurado, obtenerInfoDirector, obtenerInfoLector
 }

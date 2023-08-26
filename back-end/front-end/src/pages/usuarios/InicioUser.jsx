@@ -114,6 +114,9 @@ function InicioUser() {
     dispatch(clearCookies());
     sessionStorage.removeItem('user_id_usuario');
     sessionStorage.removeItem('id_rol');
+    sessionStorage.removeItem('estadoRolDirector');
+    sessionStorage.removeItem('estadoRolLector');
+    sessionStorage.removeItem('estadoRolJurado');
     navigate('/');
   };
 
@@ -163,6 +166,18 @@ function InicioUser() {
     } else if (button === 'juradoProyectos') {
       sessionStorage.setItem('id_rol', 3);
       navigate('/user/proyectos');
+
+    } else if (button === 'directorReuniones') {
+      sessionStorage.setItem('id_rol', 1);
+      navigate('/user/reuniones');
+
+    } else if (button === 'lectorReuniones') {
+      sessionStorage.setItem('id_rol', 2);
+      navigate('/user/reuniones');
+
+    } else if (button === 'juradoReuniones') {
+      sessionStorage.setItem('id_rol', 3);
+      navigate('/user/reuniones');
     }
     window.location.reload();
   };
@@ -209,29 +224,41 @@ function InicioUser() {
   ];
 
   useEffect(() => {
+
+    const idRol = parseInt(sessionStorage.getItem('id_rol'), 10);
+
     if (location.pathname === '/user') {
       setActiveButton('menuInicio');
 
     } else if (location.pathname === '/user/solicitudes') {
-      if (sessionStorage.getItem('id_rol') === '1') {
+      if (idRol === 1) {
         setActiveButton('directorSolicitudes');
       }
 
     } else if (location.pathname === '/user/proyectos') {
-      if (sessionStorage.getItem('id_rol') === '1') {
+      if (idRol === 1) {
         setActiveButton('directorProyectos');
-      } else if (sessionStorage.getItem('id_rol') === '2') {
+      } else if (idRol === 2) {
         setActiveButton('lectorProyectos');
-      } else if (sessionStorage.getItem('id_rol') === '3') {
+      } else if (idRol === 3) {
+        setActiveButton('juradoProyectos');
+      }
+
+    } else if (location.pathname === '/user/verProyecto') {
+      if (idRol === 1) {
+        setActiveButton('directorProyectos');
+      } else if (idRol === 2) {
+        setActiveButton('lectorProyectos');
+      } else if (idRol === 3) {
         setActiveButton('juradoProyectos');
       }
 
     } else if (location.pathname === '/user/reuniones') {
-      if (sessionStorage.getItem('id_rol') === '1') {
+      if (idRol === 1) {
         setActiveButton('directorReuniones');
-      } else if (sessionStorage.getItem('id_rol') === '2') {
+      } else if (idRol === 2) {
         setActiveButton('lectorReuniones');
-      } else if (sessionStorage.getItem('id_rol') === '3') {
+      } else if (idRol === 3) {
         setActiveButton('juradoReuniones');
       }
     } else if (location.pathname === '/user/entregas') {
@@ -245,7 +272,7 @@ function InicioUser() {
       }
     }
 
-  }, [location.pathname]);
+  }, [location.pathname, sessionStorage.getItem('id_rol')]);
 
   useEffect(() => {
     const initialSubMenuStates = {
