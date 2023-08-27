@@ -10,18 +10,23 @@ const obtenerProyecto = async (req, res) => {
                 p.id, 
                 p.codigo, 
                 p.nombre, 
-                he.anio_nuevo as anio,
-                he.periodo_nuevo as periodo,
+                he.anio as anio,
+                he.periodo as periodo,
                 m.nombre as modalidad, 
                 m.acronimo as acronimo, 
                 e.nombre as etapa, 
                 es.nombre as estado 
             FROM proyecto p 
             JOIN modalidad m ON p.id_modalidad = m.id 
-            JOIN historial_etapas he ON p.id_ultimo_historial = he.id
-            JOIN etapa e ON he.id_etapa_nueva = e.id
+            JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id
             JOIN estado es ON p.id_estado = es.id 
-            WHERE p.id = $1
+            WHERE p.id = $1 AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )
         `, [id]); const proyecto = result.rows
     if (result.rowCount === 1) {
       const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
@@ -37,6 +42,7 @@ const obtenerProyecto = async (req, res) => {
       return res.status(203).json({ success: true, message: error })
     }
   } catch (error) {
+    console.log(error)
     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -45,8 +51,8 @@ const obtenerEntregasPendientes = async (req, res) => {
   const { id } = req.params;
   try {
 
-    const query = 
-    `SELECT 
+    const query =
+      `SELECT 
       ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
       ee.id AS id_espacio_entrega,
       ee.nombre AS nombre_espacio_entrega,
@@ -60,7 +66,7 @@ const obtenerEntregasPendientes = async (req, res) => {
       ee.fecha_cierre_calificacion,
       ee.anio,
       ee.periodo,
-      ep.nombre AS etapa
+      ep.nombre AS etapa,
       CASE
         WHEN NOW() < ee.fecha_apertura_entrega THEN 'cerrado'
         WHEN NOW() BETWEEN ee.fecha_apertura_entrega AND ee.fecha_cierre_entrega THEN 
@@ -83,8 +89,8 @@ const obtenerEntregasPendientes = async (req, res) => {
       INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
       INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
       INNER JOIN rol r ON ee.id_rol = r.id
-      INNER JOIN historial_etapas he ON p.id_ultimo_historial = he.id
-      INNER JOIN etapa ep ON p.id_etapa = ep.id
+      INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+      INNER JOIN etapa ep ON he.id_etapa = ep.id AND he.id_etapa = ee.id_etapa
     WHERE 
       p.id = $1 AND
       (NOT EXISTS (
@@ -93,14 +99,12 @@ const obtenerEntregasPendientes = async (req, res) => {
         WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
       )
       OR
-        NOW() <= ee.fecha_cierre_entrega) AND
-      he.anio_nuevo = ee.anio AND he.periodo_nuevo = ee.periodo
-      AND he.id_etapa_nueva = ee.id_etapa
+        NOW() <= ee.fecha_cierre_entrega)
     ORDER BY ee.fecha_cierre_entrega;`;
 
     await pool.query(query, [id], (error, result) => {
       if (error) {
-        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las entregas pendientes.' });
       }
       if (result.rows.length === 0) {
         return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
@@ -158,8 +162,8 @@ FROM
     documento_entrega de
 INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
 INNER JOIN proyecto p ON de.id_proyecto = p.id
-INNER JOIN historial_etapas he ON p.id = he.id_proyecto
-INNER JOIN etapa ep ON he.id_etapa = ep.id
+INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
 INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
 INNER JOIN usuario u ON ur.id_usuario = u.id 
 INNER JOIN rol r ON ur.id_rol = r.id 
@@ -175,9 +179,8 @@ ORDER BY
     `;
     await pool.query(query, [proyecto_id], (error, result) => {
       if (error) {
-        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las entregas pendientes por calificación.' });
       }
-
       if (result.rows.length === 0) {
         return res.status(203).json({ success: true, message: 'No hay entregas pendientes por calificar.' });
       }
@@ -214,8 +217,8 @@ FROM
     documento_entrega de
     INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
     INNER JOIN proyecto p ON de.id_proyecto = p.id
-    INNER JOIN historial_etapas he ON p.id = he.id_proyecto
-    INNER JOIN etapa ep ON he.id_etapa = ep.id
+    INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+    INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
     INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
     INNER JOIN usuario u ON ur.id_usuario = u.id
     INNER JOIN rol r ON ur.id_rol = r.id 
@@ -227,9 +230,8 @@ ORDER BY
 
     await pool.query(query, [proyecto_id], (error, result) => {
       if (error) {
-        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las entregas calificadas.' });
       }
-
       if (result.rows.length === 0) {
         return res.status(203).json({ success: true, message: 'No se han calificado entregas.' });
       }
@@ -306,6 +308,7 @@ WHERE r.id_proyecto = $2 AND e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.e
       return res.status(203).json({ success: true, message: 'No hay reuniones completas' })
     }
   } catch (error) {
+    console.log(error)
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -350,33 +353,47 @@ const obtenerSolicitudesPendientes = async (req, res) => {
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+      JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
       LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  
-      WHERE ad.aprobado = true AND ac.id IS NULL AND p.id = $1
-  
+      WHERE ad.aprobado = true AND ac.id IS NULL AND p.id = $1 
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )  
       UNION 
-  
-      SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
+        SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+      JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
       WHERE s.creado_proyecto = false AND ac.id IS NULL AND p.id = $1
-  
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )
       UNION 
-  
       SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto, NULL AS fecha_aprobado_director 
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+      JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
-      WHERE s.creado_proyecto = true AND ad.id IS NULL AND p.id = $1`, [id]);
+      WHERE s.creado_proyecto = true AND ad.id IS NULL AND p.id = $1
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )`, [id]);
     const solicitudes = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, solicitudes });
@@ -397,11 +414,17 @@ const obtenerSolicitudesAprobadas = async (req, res) => {
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
       LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  
       WHERE ad.aprobado = true AND ac.aprobado = true AND p.id = $1
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )
   
       UNION 
   
@@ -409,10 +432,16 @@ const obtenerSolicitudesAprobadas = async (req, res) => {
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
-      WHERE s.creado_proyecto = false AND ac.aprobado = true AND p.id = $1`, [id]);
+      WHERE s.creado_proyecto = false AND ac.aprobado = true AND p.id = $1
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )`, [id]);
     const solicitudes = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, solicitudes });
@@ -432,29 +461,47 @@ const obtenerSolicitudesRechazadas = async (req, res) => {
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
       LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud  
       WHERE ad.aprobado = true AND ac.aprobado = false AND p.id = $1
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )
       UNION 
       SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
       WHERE s.creado_proyecto = false AND ac.aprobado = false AND p.id = $1
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )
       UNION 
       SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud,  p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_director, NULL AS fecha_rechazado_comite 
       FROM solicitud s 
       JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
       JOIN proyecto p ON s.id_proyecto = p.id 
-      JOIN etapa e ON p.id_etapa = e.id 
+      JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
       JOIN estado es ON p.id_estado = es.id 
       JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
-      WHERE ad.aprobado = false AND p.id = $1`, [id]);
+      WHERE ad.aprobado = false AND p.id = $1
+      AND he.fecha_cambio = (
+        SELECT MAX(fecha_cambio)
+        FROM historial_etapa
+        WHERE id_proyecto = p.id
+      )`, [id]);
     const solicitudes = result.rows
     if (result.rowCount > 0) {
       return res.json({ success: true, solicitudes });
@@ -530,6 +577,7 @@ const guardarInfoActa = async (req, res) => {
     res.status(200).json({ success: true, message: 'Se ha guardado la información del acta de reunión exitosamente.' });
 
   } catch (error) {
+    console.log(error)
     res.status(502).json({ success: false, message: 'Ha ocurrido un error al guardar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -629,7 +677,7 @@ const obtenerInfoJurado = async (req, res) => {
 const obtenerInfoCliente = async (req, res) => {
   const { id } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM cliente WHERE id IN (SELECT id_cliente FROM proyecto WHERE id=$1)', [id]);
+    const result = await pool.query('SELECT * FROM cliente WHERE id_proyecto =$1', [id]);
     const cliente = result.rows[0];
     if (result.rowCount > 0) {
       return res.json({ success: true, cliente });
@@ -637,6 +685,7 @@ const obtenerInfoCliente = async (req, res) => {
       return res.status(404).json({ success: false, message: 'No hay un cliente asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   } catch (error) {
+    console.log(error)
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };

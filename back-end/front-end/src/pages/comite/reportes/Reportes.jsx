@@ -271,7 +271,6 @@ export default function Reportes() {
                                                 onChange={(event) =>
                                                     handleFiltroChange(index, 'operador', event.target.value)
                                                 }
-                                                label="Operador"
                                             >
                                                 <MenuItem value="=">Igual</MenuItem>
                                                 <MenuItem value="!=">Distinto</MenuItem>

@@ -22,7 +22,13 @@ const registro = (req, res) => {
 
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
-        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC")
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          ) ORDER BY nombre ASC`)
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -36,7 +42,13 @@ const obtenerProyectosDesarrollo = async (req, res) => {
 
 const obtenerProyectosTerminados = async (req, res) => {
     try {
-        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC")
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          ) ORDER BY nombre ASC`)
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -51,7 +63,17 @@ const obtenerProyectosTerminados = async (req, res) => {
 const obtenerProyectosDirector = async (req, res) => {
     const { id } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = 1 AND ur.estado = true', [id]);
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+        WHERE ur.id_usuario = $1 AND ur.id_rol = 1 AND ur.estado = true AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -66,7 +88,17 @@ const obtenerProyectosDirector = async (req, res) => {
 const obtenerProyectosLector = async (req, res) => {
     const { id } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = 2 AND ur.estado = true', [id]);
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+        WHERE ur.id_usuario = $1 AND ur.id_rol = 2 AND ur.estado = true AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id]);
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -81,7 +113,18 @@ const obtenerProyectosLector = async (req, res) => {
 const obtenerProyectosJurado = async (req, res) => {
     const { id } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = 3 AND ur.estado = true', [id]);
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p 
+        JOIN modalidad m ON p.id_modalidad = m.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id 
+            JOIN estado es ON p.id_estado = es.id 
+            JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+            WHERE ur.id_usuario = $1 AND ur.id_rol = 3 AND ur.estado = true AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id]);
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -95,7 +138,17 @@ const obtenerProyectosJurado = async (req, res) => {
 
 const obtenerTodosProyectos = async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id')
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, e.nombre as etapa, es.nombre as estado 
+        FROM proyecto p 
+        JOIN modalidad m ON p.id_modalidad = m.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id WHERE
+        he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`)
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -111,7 +164,13 @@ const obtenerProyecto = async (req, res) => {
     const id = req.params.proyecto_id;
     try {
         const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1 AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id])
         const proyecto = result.rows
         if (result.rowCount === 1) {
             const result_director = await pool.query("SELECT u.id, u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
@@ -134,7 +193,13 @@ const obtenerProyecto = async (req, res) => {
 const obtenerProyectosActivos = async (req, res) => {
     const { id } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = true', [id]);
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = true AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id]);
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -149,7 +214,14 @@ const obtenerProyectosActivos = async (req, res) => {
 const obtenerProyectosInactivos = async (req, res) => {
     const { id } = req.body;
     try {
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = false', [id]);
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = false AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id]);
         const proyectos = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });

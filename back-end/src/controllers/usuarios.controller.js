@@ -4,7 +4,28 @@ const pool = require('../database')
 const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
-        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
+        const result = await pool.query(`SELECT 
+        p.id, p.codigo, 
+        p.nombre, 
+        he.anio, 
+        he.periodo, 
+        m.acronimo as modalidad, 
+        e.nombre as etapa, 
+        es.nombre as estado 
+        FROM proyecto p 
+        JOIN modalidad m ON p.id_modalidad = m.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
+        JOIN estado es ON p.id_estado = es.id 
+        JOIN usuario_rol ur ON p.id = ur.id_proyecto 
+        WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado')AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      ) 
+        ORDER BY nombre ASC`
+            , [id_usuario, id_rol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -19,12 +40,18 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
 const obtenerProyectosCerradosRol = async (req, res) => {
     const { id_usuario, id_rol } = req.body;
     try {
-        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, he.anio, he.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = $2 AND ur.estado = true AND es.nombre IN('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          ) ORDER BY nombre ASC`, [id_usuario, id_rol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
         } else {
-            return res.status(404).json({ success: true, message: 'No hay proyectos actualmente' });
+            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -35,7 +62,13 @@ const obtenerProyecto = async (req, res) => {
     const id = req.params.proyecto_id;
     try {
         const error = "No se puedo encontrar toda la información relacionada al proyecto. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda."
-        const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1', [id])
+        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, he.anio, he.periodo, m.nombre as modalidad, m.acronimo as acronimo, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE p.id = $1 AND
+            he.fecha_cambio = (
+              SELECT MAX(fecha_cambio)
+              FROM historial_etapa
+              WHERE id_proyecto = p.id
+          )`, [id])
         const proyecto = result.rows[0]
         if (result.rowCount === 1) {
             const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
@@ -188,6 +221,7 @@ const obtenerReunionesPendientes = async (req, res) => {
             return res.status(203).json({ success: true, message: 'No tienes reuniones pendientes en este momento.' });
         }
     } catch (error) {
+        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -239,7 +273,6 @@ const obtenerReunionesCompletas = async (req, res) => {
             return res.status(203).json({ success: true, message: 'No tienes reuniones completas en este momento.' })
         }
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -290,7 +323,6 @@ const obtenerReunionesCanceladas = async (req, res) => {
             return res.status(203).json({ success: true, message: 'No tienes reuniones canceladas en este momento.' })
         }
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -304,13 +336,19 @@ const obtenerSolicitudesPendientesResponderDirector = async (req, res) => {
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         LEFT JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud
         JOIN usuario_rol ur ON p.id = ur.id_proyecto 
         WHERE s.creado_proyecto = true AND 
         ad.id IS NULL AND s.creado_proyecto = true AND
-        ur.id_rol = 1 AND ur.id_usuario = $1`, [id]);
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )`, [id]);
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -332,24 +370,36 @@ const obtenerSolicitudesPendientesResponderComite = async (req, res) => {
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         JOIN usuario_rol ur ON p.id = ur.id_proyecto 
         JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
         LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
         WHERE ad.aprobado = true AND ac.id IS NULL AND
-        ur.id_rol = 1 AND ur.id_usuario = $1
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )        
         UNION 
         SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director 
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id
         JOIN usuario_rol ur ON p.id = ur.id_proyecto  
         LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud 
         WHERE s.creado_proyecto = false AND ac.id IS NULL AND
-        ur.id_rol = 1 AND ur.id_usuario = $1
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )
         `, [id]);
         const solicitudes = result.rows
         if (result.rowCount > 0) {
@@ -371,26 +421,37 @@ const obtenerSolicitudesCerradasAprobadas = async (req, res) => {
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
         LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
         JOIN usuario_rol ur ON p.id = ur.id_proyecto  
         WHERE ad.aprobado = true AND ac.aprobado = true AND 
-        ur.id_rol = 1 AND ur.id_usuario = $1
-    
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )    
         UNION 
     
         SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+        JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
         JOIN usuario_rol ur ON p.id = ur.id_proyecto  
         WHERE s.creado_proyecto = false AND ac.aprobado = true AND 
-        ur.id_rol = 1 AND ur.id_usuario = $1`, [id]);
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )`, [id]);
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -410,35 +471,53 @@ const obtenerSolicitudesCerradasRechazadas = async (req, res) => {
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud 
         LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
         JOIN usuario_rol ur ON p.id = ur.id_proyecto  
         WHERE ad.aprobado = true AND ac.aprobado = false AND
-        ur.id_rol = 1 AND ur.id_usuario = $1
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )
         UNION 
         SELECT s.id,s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto, NULL AS fecha_aprobado_director, TO_CHAR(ac.fecha, 'DD/MM/YYYY') AS fecha_aprobado_comite 
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         LEFT JOIN aprobado_solicitud_comite ac ON s.id = ac.id_solicitud
         JOIN usuario_rol ur ON p.id = ur.id_proyecto 
         WHERE s.creado_proyecto = false AND ac.aprobado = false AND
-        ur.id_rol = 1 AND ur.id_usuario = $1
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )
         UNION 
         SELECT s.id, s.creado_proyecto AS creado_por, ts.nombre AS tipo_solicitud, s.fecha AS fecha_solicitud, p.codigo AS codigo_proyecto, e.nombre AS etapa_proyecto, es.nombre as estado, p.id AS id_proyecto,  TO_CHAR(ad.fecha, 'DD/MM/YYYY') AS fecha_director, NULL AS fecha_rechazado_comite 
         FROM solicitud s 
         JOIN tipo_solicitud ts ON s.id_tipo_solicitud = ts.id 
         JOIN proyecto p ON s.id_proyecto = p.id 
-        JOIN etapa e ON p.id_etapa = e.id 
+        JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id 
         JOIN estado es ON p.id_estado = es.id 
         JOIN aprobado_solicitud_director ad ON s.id = ad.id_solicitud
         JOIN usuario_rol ur ON p.id = ur.id_proyecto
         WHERE ad.aprobado = false AND
-        ur.id_rol = 1 AND ur.id_usuario = $1`, [id]);
+        ur.id_rol = 1 AND ur.id_usuario = $1 AND
+        he.fecha_cambio = (
+          SELECT MAX(fecha_cambio)
+          FROM historial_etapa
+          WHERE id_proyecto = p.id
+      )`, [id]);
         const solicitudes = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, solicitudes });
@@ -533,7 +612,6 @@ const crearReunionInvitados = async (req, res) => {
 
     } catch (error) {
         await pool.query('ROLLBACK');
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 
@@ -559,7 +637,7 @@ const obtenerAsistencia = async (req, res) => {
         if (result.rowCount > 0) {
             return res.status(200).json({ success: true, asistencia });
         } else {
-            return res.status(401).json({ success: true, message: 'No hay valores de asistencia actualmente.' })
+            return res.status(203).json({ success: true, message: 'No hay valores de asistencia actualmente.' })
         }
 
     } catch (error) {
@@ -583,7 +661,6 @@ const editarReunion = async (req, res) => {
 
     } catch (error) {
         await pool.query('ROLLBACK');
-        console.log(error)
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -633,6 +710,6 @@ const guardarCalificacion = async (req, res) => {
 module.exports = {
     obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud,
-    agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia,cancelarReunion,
-    obtenerReunion,obtenerReunionesPendientes,obtenerReunionesCompletas,obtenerReunionesCanceladas 
+    agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion,
+    obtenerReunion, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas
 }

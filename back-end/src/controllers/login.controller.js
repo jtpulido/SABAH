@@ -310,7 +310,7 @@ const generarContrasenaAleatoria = () => {
   return contrasena;
 };
 
-const mailCreacion = async (nombre, codigo, correo) => {
+const mailCreacion = async (nombre, codigo, correo,contrasena) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -328,6 +328,7 @@ const mailCreacion = async (nombre, codigo, correo) => {
 
 Nombre del proyecto: ${nombre}
 Código del proyecto: ${codigo}
+Contraseña: ${contrasena}
 
 Recuerda que puedes cambiar tu contraseña en cualquier momento accediendo a nuestro sitio web. Para hacerlo, sigue estos pasos:
   1. Ve a la página de inicio de sesión en [URL del Sitio Web].
@@ -404,11 +405,11 @@ const inscribirPropuesta = async (req, res) => {
     await pool.query('BEGIN');
 
       // Agregar proyecto
-    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6)', [id, codigo, nombre, id_modalidad, id_etapa, id_estado]);
+    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, id_modalidad,  id_estado) VALUES ($1, $2, $3, $4, $5) RETURNING id', [id, codigo, nombre, id_modalidad, id_estado]);
     const id_proyecto = proyecto.rows[0].id;
     
     // Insertar el registro en historial_etapas con la etapa de propuesta
-    await pool.query('INSERT INTO historial_etapas(id_proyecto, id_etapa_nueva, anio_nuevo, periodo_nuevo) VALUES ($1, $2, $3, $4)', [id, id_etapa, anio, periodo]);
+    await pool.query('INSERT INTO historial_etapa(id_proyecto, id_etapa, anio, periodo) VALUES ($1, $2, $3, $4)', [id, id_etapa, anio, periodo]);
 
     // Agregar Usuario-Rol (director)
     await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, 1, $3)', [fecha_asignacion, id_usuario, id]);
@@ -433,7 +434,7 @@ const inscribirPropuesta = async (req, res) => {
     await pool.query("INSERT INTO inicio_sesion(id_proyecto, contrasena) VALUES ($1, $2)", [id, hashedPassword]);
 
     // Enviar correo de bienvenida
-    await mailCreacion(nombre, codigo, correo);
+    await mailCreacion(nombre, codigo, correo,password);
 
     // Confirmar transaccion
     await pool.query('COMMIT');
@@ -442,6 +443,7 @@ const inscribirPropuesta = async (req, res) => {
 
   } catch (error) {
     // Deshacer transaccion
+    console.log(error)
     await pool.query('ROLLBACK');
     if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
       return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });

@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
+import { Typography, Box, TextField, Grid, Select, FormControl, MenuItem } from "@mui/material";
 import "./Inscribir.css";
-import { tokens } from "../../../theme";
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../../pie_de_pagina/Footer";
 import { useSnackbar } from 'notistack';
 
 export const Inscribir = () => {
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [nombre, setNombre] = useState("");
 
@@ -85,28 +81,6 @@ export const Inscribir = () => {
         }
     }, []);
 
-    // Id del ultimo estudiante en la base de datos
-    // eslint-disable-next-line
-    const [idUltEst, setIdUltEst] = useState("");
-    const getIdUltEst = useCallback(async () => {
-        try {
-            const response = await fetch("http://localhost:5000/getIdUltEst", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-                setIdUltEst(data.num);
-            }
-
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    }, []);
 
     // Valor del ultimo numero consecutivo de los codigos de proyecto
     const [consecutivo, setConsecutivo] = useState("");
@@ -121,10 +95,11 @@ export const Inscribir = () => {
 
             if (!data.success) {
                 mostrarMensaje(data.message, "error");
-            } else {
+            } else if (data.codigo) {
                 const currentConsecutivo = parseInt(data.codigo.split('-')[2], 10);
                 const newConsecutivo = (currentConsecutivo + 1).toString().padStart(2, '0');
                 setConsecutivo(newConsecutivo);
+
             }
 
         } catch (error) {
@@ -159,8 +134,7 @@ export const Inscribir = () => {
         codigoProy();
         getModalidades();
         getIdUltProy();
-        getIdUltEst();
-    }, [infoDirector, codigoProy, getModalidades, getIdUltProy, getIdUltEst]);
+    }, [infoDirector, codigoProy, getModalidades, getIdUltProy]);
 
     // Guarda el valor de la modalidad seleccionada en el select
     const [idModalidadSeleccionada, setIdModalidadSeleccionada] = useState("");
@@ -184,7 +158,7 @@ export const Inscribir = () => {
 
     const getFormattedDate = () => {
         const now = new Date();
-        const year = now.getFullYear().toString().slice(-2);
+        const year = now.getFullYear().toString();
         const month = (now.getMonth() + 1).toString().padStart(2, "0");
         return `${year}-${month}`;
     };
@@ -224,14 +198,11 @@ export const Inscribir = () => {
             const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
 
             // AUX o COT
-            if (idModalidadSeleccionada === "3" || idModalidadSeleccionada === "4") {
+            if (idModalidadSeleccionada.acronimo === "AUX" || idModalidadSeleccionada.acronimo === "COT") {
                 if (numIntegrantes === 1) {
                     // Verificar veracidad del correo
                     const emailRegex = /^\S+@unbosque\.edu\.co$/;
                     const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
-                    console.log(estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo)))
-                    console.log(validEmails.length)
-                    console.log(numIntegrantes)
                     if (validEmails.length !== numIntegrantes) {
                         mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
                     } else {
@@ -254,7 +225,7 @@ export const Inscribir = () => {
                             const periodo = getPeriodo(now.getMonth() + 1);
 
                             // Modalidad
-                            const modInt = parseInt(idModalidadSeleccionada);
+                            const modInt = parseInt(idModalidadSeleccionada.id);
 
                             // Insertar un nuevo proyecto
                             try {
@@ -302,7 +273,6 @@ export const Inscribir = () => {
                 } else {
                     mostrarMensaje("La modalidad 'Auxiliar de Investigación' y 'Coterminal' requieren un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
                 }
-
             } else {
                 // DT o PG
                 if (numIntegrantes >= 2 && numIntegrantes <= 3) {
@@ -332,7 +302,7 @@ export const Inscribir = () => {
                             const periodo = getPeriodo(now.getMonth() + 1);
 
                             // Modalidad
-                            const modInt = parseInt(idModalidadSeleccionada);
+                            const modInt = parseInt(idModalidadSeleccionada.id);
 
                             const estudiantesNoVacios = estudiantes.filter((estudiante) => {
                                 return (
@@ -390,10 +360,7 @@ export const Inscribir = () => {
 
     return (
         <div className="todo">
-            <CssBaseline />
-
             <Box sx={{ height: '100%', overflow: 'auto', paddingTop: 5, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
-
                 <Typography
                     variant="h6"
                     color="secondary"
@@ -408,22 +375,21 @@ export const Inscribir = () => {
                         <Typography variant="h6" color="primary">
                             Modalidad
                         </Typography>
-                        <Select
-                            fullWidth
-                            native
-                            onChange={handleModalidadSeleccionada}
-                            inputProps={{
-                                name: "modalidad",
-                                id: "modalidad",
-                            }}
-                        >
-                            <option value="" />
-                            {listaModalidades.map((listaModalidades) => (
-                                <option key={listaModalidades.id} value={listaModalidades.id}>
-                                    {listaModalidades.nombre}
-                                </option>
-                            ))}
-                        </Select>
+                        <FormControl fullWidth>
+                                <Select
+                                    value={idModalidadSeleccionada ||""}
+                                    onChange={handleModalidadSeleccionada}
+                                    required
+                                    fullWidth
+                                >
+                                    {listaModalidades.map((modalidad) => (
+                                        <MenuItem key={modalidad.id} value={modalidad}>
+                                            {modalidad.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={6} lg={6}>
@@ -546,6 +512,7 @@ export const Inscribir = () => {
             </Box>
             <Footer />
         </div>
+
     );
 };
 
