@@ -8,7 +8,6 @@ const generarPDF = async (req, res) => {
     const doc = new PDFDocument();
 
     const tituloParte1 = 'FACULTAD DE INGENIERÍA\nPROGRAMA INGENIERÍA DE SISTEMAS\nCOMITÉ OPCIONES DE GRADO';
-    const tituloParte2 = 'FORMATO REUNIONES REALIMENTACIÓN PROPUESTAS DE GRADO';
     const tituloParte3 = 'OPCIONES DESARROLLO TECNOLÓGICO Y PROYECTO DE GRADO';
 
     const imagePath = path.join(__dirname, 'Logo.png');
@@ -18,8 +17,6 @@ const generarPDF = async (req, res) => {
       .font('Helvetica-Bold')
       .fontSize(11)
       .text(tituloParte1, { align: 'center' })
-      .moveDown(0)
-      .text(tituloParte2, { align: 'center' })
       .moveDown(0)
       .font('Helvetica')
       .fontSize(10)
@@ -43,7 +40,11 @@ const generarPDF = async (req, res) => {
     });
 
     data_invitados.invitados.forEach((invitado) => {
+      if(invitado.id_cliente != null){
+        asistentes.push(invitado.nombre_repr);
+      }else{
       asistentes.push(invitado.nombre_usuario);
+    }
     });
     doc.moveDown(1);
 
@@ -51,35 +52,33 @@ const generarPDF = async (req, res) => {
       .font('Helvetica').text(data_proyecto.director.nombre, { continued: false, align: 'left' })
       .moveDown(1);
 
-    doc.font('Helvetica-Bold').fontSize(11).text(nombre, { continued: false, align: 'center' })
+    doc.font('Helvetica-Bold').fontSize(12).text(nombre, { continued: false, align: 'center' })
       .moveDown(1);
 
-    const tableData = [
-      [{ text: '1.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'FECHA Y HORA', font: 'Helvetica-Bold', fontSize: 10 }],
-      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: fecha, font: 'Helvetica', fontSize: 10 }],
-      [{ text: '2.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'DESCRIPCIÓN DE OBJETIVOS', font: 'Helvetica-Bold', fontSize: 10 }],
-      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: objetivos, font: 'Helvetica', fontSize: 10 }],
-      [{ text: '3.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'RESULTADOS DE REUNIÓN', font: 'Helvetica-Bold', fontSize: 10 }],
-      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: resultados, font: 'Helvetica', fontSize: 10 }],
-      [{ text: '4.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'TAREAS SESION ANTERIOR', font: 'Helvetica-Bold', fontSize: 10 }],
-      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: tareas, font: 'Helvetica', fontSize: 10 }],
-      [{ text: '5.', font: 'Helvetica-Bold', fontSize: 12 }, { text: 'COMPROMISOS', font: 'Helvetica-Bold', fontSize: 10 }],
-      [{ text: '', font: 'Helvetica-Bold', fontSize: 12 }, { text: compromisos, font: 'Helvetica', fontSize: 10 }],
-    ];
+    const marginLeft = 82; 
+    const marginlefttitles = 72;
 
-    const tableSettings = {
-      x: 80,
-      y: doc.y,
-      col1Width: 50,
-      col2Width: 400,
-      rowHeight: 40,
-      cellMargin: 5,
-    };
-
-    drawTable(doc, tableData, tableSettings);
-    doc.moveDown(1);
+    doc.font('Helvetica-Bold').fontSize(10).text('1. FECHA Y HORA', { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica').fontSize(10).text(fecha, marginLeft,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica-Bold').fontSize(10).text('2. DESCRIPCIÓN DE OBJETIVOS',marginlefttitles,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica').fontSize(10).text(objetivos, marginLeft,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica-Bold').fontSize(10).text('3. RESULTADOS DE REUNIÓN',marginlefttitles,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica').fontSize(10).text(resultados, marginLeft,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica-Bold').fontSize(10).text('4. TAREAS SESION ANTERIOR',marginlefttitles,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica').fontSize(10).text(tareas, marginLeft,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica-Bold').fontSize(10).text('5. COMPROMISOS',marginlefttitles,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
+    doc.font('Helvetica').fontSize(10).text(compromisos, marginLeft,doc.y, { continued: false, align: 'left' })
+    .moveDown(0.5);
     doc.addPage();
-
     doc.font('Helvetica-Bold').fontSize(11).text('FIRMAS ASISTENTES', { continued: false, align: 'center' })
       .moveDown(1);
     doc.moveDown(1);
@@ -117,46 +116,7 @@ const generarPDF = async (req, res) => {
   }
 };
 
-function drawTable(doc, table, settings) {
-  const { x, y, col1Width, col2Width, rowHeight, cellMargin } = settings;
 
-  doc.font('Helvetica-Bold');
-
-  // Dibujar los bordes externos de la tabla
-  doc.rect(x, y, col1Width + col2Width + cellMargin * 2, rowHeight * table.length + cellMargin * 2).stroke();
-
-  // Dibujar los bordes internos de la tabla (columnas)
-  doc.lineWidth(1);
-  doc.moveTo(x + col1Width, y + cellMargin).lineTo(x + col1Width, y + rowHeight * table.length + cellMargin).stroke();
-
-  // Dibujar los bordes internos de la tabla (filas)
-  doc.lineWidth(1);
-  for (let i = 1; i < table.length; i++) {
-    const yPos = y + i * rowHeight + cellMargin;
-    doc.moveTo(x, yPos).lineTo(x + col1Width + col2Width + cellMargin * 2, yPos).stroke();
-  }
-
-  doc.text('', x + cellMargin, y + cellMargin);
-
-  table.forEach((row, rowIndex) => {
-    row.forEach((cell, colIndex) => {
-      const xPos = x + (colIndex === 0 ? 0 : col1Width) + cellMargin;
-      const yPos = y + rowIndex * rowHeight + cellMargin + (rowHeight - cell.fontSize) / 2;
-      const { text, font, fontSize, align } = cell;
-
-      // Verificar si la primera celda de la fila contiene solo espacios en blanco
-      const isFirstCellEmpty = colIndex === 0 && text.trim().length === 0;
-
-      // Desplazar las celdas hacia arriba si la primera celda está vacía
-      const verticalOffset = isFirstCellEmpty ? -rowHeight / 4 : 0;
-
-      doc
-        .font(font || 'Helvetica')
-        .fontSize(fontSize || 12)
-        .text(text, xPos, yPos + verticalOffset, { width: colIndex === 0 ? col1Width : col2Width, align: align || (colIndex === 0 ? 'center' : 'left') });
-    });
-  });
-}
 
 function drawSignatureFields(doc, numberOfFields, settings) {
   const { x, y, width, rowHeight, signatureHeight, fontSize, signaturesPerRow } = settings;
