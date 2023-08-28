@@ -266,6 +266,7 @@ const crearEspacio = async (req, res) => {
 
         await pool.query(query, values, (error) => {
             if (error) {
+                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al crear el espacio. Por favor, intente de nuevo más tarde.' });
             }
             return res.status(200).json({ success: true, message: 'Espacio de entrega creado correctamente' });
