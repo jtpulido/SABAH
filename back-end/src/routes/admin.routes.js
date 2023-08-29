@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-const { registro, estudiantesNuevo, estudiantesEliminados, obtenerProyectosActivos, obtenerProyectosInactivos, verEstudiante, cambioUsuarioRol, obtenerEstudiantes, obtenerTodosProyectos, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, obtenerProyectosTerminados, modificarProyecto, cambiarEstado, obtenerProyectosDesarrollo, obtenerProyecto, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario } = require('../controllers/admin.controller');
+const { registro, estudiantesNuevo, estudiantesEliminados, obtenerProyectosActivos, obtenerProyectosInactivos, verEstudiante, cambioUsuarioRol, obtenerEstudiantes, obtenerTodosProyectos, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, obtenerProyectosTerminados, modificarProyecto, cambiarEstado, obtenerProyectosDesarrollo, obtenerProyecto, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, modificarUsuario } = require('../controllers/admin.controller');
 const authenticateJWT = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (error, user, info) => {
     if (error || !user) {

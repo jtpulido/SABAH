@@ -1,4 +1,7 @@
 const pool = require('../database')
+
+const { removerEstudianteProyecto, nuevoEstudianteProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioCodigo, mailCambioNombreProyecto, mailCambioEstadoProyecto, mailCambioEtapaProyecto, mailCambioFechaGraduacionProyecto } = require('../controllers/mail.controller')
+
 const obtenerUsuarios = async (req, res) => {
     try {
         const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id_tipo_usuario=2 ORDER BY nombre ASC')
@@ -62,8 +65,28 @@ const cambioUsuarioRol = async (req, res) => {
             }
         }
         if (tipo === "anterior") {
+            // Anterior
             await pool.query('UPDATE usuario_rol SET estado=false WHERE id_proyecto=$1 AND id_usuario=$2 AND id_rol=$3', [id_proyecto, id_usuario_anterior, id_rol]);
+            const resultAnterior = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, u.nombre AS nombre_usuario, u.correo FROM proyecto pr 
+            JOIN modalidad m ON m.id = pr.id_modalidad
+            JOIN estado e ON e.id = pr.id_estado
+            JOIN usuario_rol ur ON ur.id_proyecto = pr.id
+            JOIN usuario u ON ur.id_usuario = u.id
+            WHERE id_proyecto = $1 AND id_usuario = $2`, [id_proyecto, id_usuario_anterior]);
+            const infoAnterior = resultAnterior.rows[0];
+            await anteriorUsuarioRol(infoAnterior, id_rol)
+
+            // Nuevo
             await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
+            const resultInsert = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, u.nombre AS nombre_usuario, u.correo FROM proyecto pr 
+            JOIN modalidad m ON m.id = pr.id_modalidad
+            JOIN estado e ON e.id = pr.id_estado
+            JOIN usuario_rol ur ON ur.id_proyecto = pr.id
+            JOIN usuario u ON ur.id_usuario = u.id
+            WHERE id_proyecto = $1 AND id_usuario = $2`, [id_proyecto, id_usuario_nuevo]);
+            const infoNuevo = resultInsert.rows[0];
+            await nuevoUsuarioRol(infoNuevo, id_rol)
+
             await pool.query('COMMIT');
             const result = await pool.query(query, [id_proyecto, id_rol]);
             return res.json({ success: true, message: 'Se realizo el cambio correctamente.', usuarios: result.rows });
@@ -75,6 +98,7 @@ const cambioUsuarioRol = async (req, res) => {
         }
     } catch (error) {
         await pool.query('ROLLBACK');
+        console.log(error)
         res.status(500).json({ success: false, message: 'Ha ocurrido un error al cambiar o asignar el usuario. Por favor inténtelo más tarde.' });
     }
 };
@@ -194,9 +218,9 @@ const obtenerProyecto = async (req, res) => {
             const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
             const result_estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id])
             const result_cliente = await pool.query("SELECT c.nombre_empresa, c.nombre_repr, c.correo_repr FROM cliente c, proyecto p WHERE p.id = c.id_proyecto AND p.id = $1;", [id])
-            const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante":result_cliente.rows[0].nombre_repr, "correo":result_cliente.rows[0].correo_repr  } : { "existe_cliente": false };
-            return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente});
-      
+            const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante": result_cliente.rows[0].nombre_repr, "correo": result_cliente.rows[0].correo_repr } : { "existe_cliente": false };
+            return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente });
+
         } else {
             return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
         }
@@ -207,6 +231,7 @@ const obtenerProyecto = async (req, res) => {
 const asignarNuevoNombre = async (req, res) => {
     try {
         const { id, nombre } = req.body;
+        await pool.query('BEGIN');
         await pool.query(
             "UPDATE proyecto SET nombre = $1 WHERE id = $2",
             [nombre, id], async (error, result) => {
@@ -214,11 +239,16 @@ const asignarNuevoNombre = async (req, res) => {
                     return res.status(500).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                 }
                 if (result) {
+                    const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
+                    const correos = resultCorreos.rows
+                    await mailCambioNombreProyecto(correos, nombre, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
+                    await pool.query('COMMIT');
                     return res.json({ success: true })
                 }
 
             })
     } catch (error) {
+        await pool.query('ROLLBACK');
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -288,6 +318,9 @@ const cambiarEtapa = async (req, res) => {
                                 return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al realizar el cambio de estado." });
                             }
                             if (result.rowCount > 0) {
+                                const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
+                                const correos = resultCorreos.rows;
+                                await mailCambioEtapaProyecto(correos, nueva_etapa.nombre, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
                                 await pool.query('COMMIT');
                                 return res.json({ success: true, estado: result.rows[0] })
                             }
@@ -339,6 +372,7 @@ const cambiarEstado = async (req, res) => {
                 return res.status(203).json({ success: false, message: 'Para cambiar a estado Terminado debe realizarlo por medio del formulario y estar en estado Aprobado.' });
             }
         }
+        await pool.query('BEGIN');
         await pool.query(
             `
             UPDATE proyecto
@@ -350,16 +384,22 @@ const cambiarEstado = async (req, res) => {
                     return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al realizar el cambio de estado." });
                 }
                 if (result) {
+                    const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
+                    const correos = resultCorreos.rows
+                    await mailCambioEstadoProyecto(correos, nuevo_estado.nombre, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
+                    await pool.query('COMMIT')
                     return res.json({ success: true })
                 }
             })
     } catch (error) {
+        await pool.query('ROLLBACK');
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const asignarFechaGrado = async (req, res) => {
     try {
         const { id_proyecto, id_estudiante, fecha_grado } = req.body;
+        await pool.query('BEGIN');
         await pool.query(
             "UPDATE estudiante SET fecha_grado = $1 WHERE id = $2",
             [fecha_grado, id_estudiante], async (error, result) => {
@@ -367,32 +407,42 @@ const asignarFechaGrado = async (req, res) => {
                     return res.status(500).json({ success: false, message: "Lo siento, ha ocurrido un erroral actualizar la fecha." });
                 }
                 if (result) {
+                    const resultCorreos = await pool.query('SELECT correo FROM estudiante where id=$1', [id_estudiante]);
+                    const correos = resultCorreos.rows
+                    await mailCambioFechaGraduacionProyecto(correos, fecha_grado, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
                     const result_estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto])
+                    await pool.query('COMMIT');
                     return res.json({ success: true, estudiantes: result_estudiantes.rows })
                 }
             })
     } catch (error) {
+        await pool.query('ROLLBACK');
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 const asignarNuevoCodigo = async (req, res) => {
     try {
         const { id, codigo } = req.body;
-        await pool.query(
-            "UPDATE proyecto SET codigo = $1 WHERE id = $2",
-            [codigo, id], async (error, result) => {
-                if (error) {
-                    if (error.code === "23505" && error.constraint === "proyecto_codigo_key") {
-                        return res.status(203).json({ success: false, message: "El código ya está en uso." });
-                    } else {
-                        return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
-                    }
+        await pool.query('BEGIN');
+
+        await pool.query("UPDATE proyecto SET codigo = $1 WHERE id = $2", [codigo, id], async (error, result) => {
+            if (error) {
+                if (error.code === "23505" && error.constraint === "proyecto_codigo_key") {
+                    return res.status(203).json({ success: false, message: "El código ya está en uso." });
+                } else {
+                    return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
                 }
-                if (result) {
-                    return res.json({ success: true, codigo })
-                }
-            })
+            }
+            if (result) {
+                const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
+                const correos = resultCorreos.rows;
+                await mailCambioCodigo(correos, codigo, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
+                await pool.query('COMMIT');
+                return res.json({ success: true, codigo })
+            }
+        })
     } catch (error) {
+        await pool.query('ROLLBACK');
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -897,10 +947,23 @@ const removerEstudiante = async (req, res) => {
         const query = 'UPDATE estudiante_proyecto SET estado=false WHERE id=$1';
         const values = [id_estudiante_proyecto];
 
+        await pool.query('BEGIN');
         await pool.query(query, values, async (error) => {
             if (error) {
                 return res.status(502).json({ success: false, message: "Error al retirar el estudiante." });
             }
+
+            const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, est.nombre AS nombre_estudiante, est.correo
+            FROM proyecto pr 
+            JOIN modalidad m ON m.id = pr.id_modalidad
+            JOIN estado e ON e.id = pr.id_estado
+            JOIN estudiante_proyecto ep ON ep.id_proyecto = pr.id
+            JOIN estudiante est ON ep.id_estudiante = est.id
+            WHERE id_proyecto = $1 AND ep.id = $2`, [id_proyecto, id_estudiante_proyecto]);
+            const infoEstudiante = resultEstudiante.rows[0];
+            await removerEstudianteProyecto(infoEstudiante);
+
+            await pool.query('COMMIT');
 
             await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD - MM - YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto], (error, result) => {
                 if (error) {
@@ -909,9 +972,10 @@ const removerEstudiante = async (req, res) => {
                 } else if (result) {
                     return res.status(200).json({ success: true, message: 'El estudiantes ha sido retirado correctamente del proyecto.', estudiantes: result.rows });
                 }
-            })
+            });
         });
     } catch (error) {
+        await pool.query('ROLLBACK');
         return res.status(502).json({ success: false, message: 'Error en el servidor' });
     }
 };
@@ -929,12 +993,30 @@ const agregarEstudiante = async (req, res) => {
                 return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
             } else {
                 await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
+
+                const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado
+                FROM proyecto pr 
+                JOIN modalidad m ON m.id = pr.id_modalidad
+                JOIN estado e ON e.id = pr.id_estado
+                WHERE pr.id = $1`, [id_proyecto]);
+                const infoEstudiante = resultEstudiante.rows[0];
+                await nuevoEstudianteProyecto(infoEstudiante, nombre, correo);
+
                 await pool.query('COMMIT');
             }
         } else {
             const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
             const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
             await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
+
+            const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado
+            FROM proyecto pr 
+            JOIN modalidad m ON m.id = pr.id_modalidad
+            JOIN estado e ON e.id = pr.id_estado
+            WHERE pr.id = $1`, [id_proyecto]);
+            const infoEstudiante = resultEstudiante.rows[0];
+            await nuevoEstudianteProyecto(infoEstudiante, nombre, correo);
+
             await pool.query('COMMIT');
         }
 
@@ -946,9 +1028,9 @@ const agregarEstudiante = async (req, res) => {
         if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
             return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
         }
+        console.log(error)
         return res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
     }
-
 };
 
 const obtenerItemsCumplimiento = async (req, res) => {
@@ -969,6 +1051,126 @@ const obtenerItemsCumplimiento = async (req, res) => {
         });
     } catch (error) {
         return res.status(502).json({ success: false, message: 'Error en el servidor' });
+    }
+};
+
+const obtenerReunionesPendientes = async (req, res) => {
+    try {
+        const updateQuery = `UPDATE reunion SET id_estado=(SELECT id FROM estado_reunion WHERE nombre = 'Completa') WHERE fecha<CURRENT_TIMESTAMP AND id_estado!=(SELECT id FROM estado_reunion WHERE nombre = 'Cancelada')`;
+        await pool.query(updateQuery);
+
+        // Obtener reunion actualizadas
+        const selectQuery = `SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion,
+      COALESCE(
+          STRING_AGG(DISTINCT
+              CASE
+                  WHEN ur.id_rol = 1 THEN 'Director'
+                  WHEN ur.id_rol = 2 THEN 'Lector'
+                  WHEN ur.id_rol = 3 THEN 'Jurado'
+              END
+              , ', ') || 
+          CASE 
+              WHEN MAX(CASE WHEN inv.id_cliente IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN ', Cliente' 
+              ELSE '' 
+          END,
+          ''
+      ) AS roles_invitados
+  FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id
+  WHERE e.nombre = 'Pendiente' GROUP BY r.id, r.nombre, r.fecha, r.enlace ORDER BY fecha ASC;`;
+        const result = await pool.query(selectQuery);
+        const pendientes = result.rows;
+
+        if (pendientes.length > 0) {
+            return res.json({ success: true, pendientes });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones pendientes' });
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunionesCompletas = async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion, ac.id AS id_acta,
+      COALESCE(
+          STRING_AGG(DISTINCT
+              CASE
+                  WHEN ur.id_rol = 1 THEN 'Director'
+                  WHEN ur.id_rol = 2 THEN 'Lector'
+                  WHEN ur.id_rol = 3 THEN 'Jurado'
+              END
+              , ', ') || 
+          CASE 
+              WHEN MAX(CASE WHEN inv.id_cliente IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN ', Cliente' 
+              ELSE '' 
+          END,
+          ''
+      ) AS roles_invitados
+  FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id LEFT JOIN acta_reunion ac ON ac.id_reunion = r.id
+  WHERE e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.enlace, ac.id ORDER BY fecha ASC;`, ['Completa'])
+        const completas = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, completas });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones completas' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerReunionesCanceladas = async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion,
+      COALESCE(
+          STRING_AGG(DISTINCT
+              CASE
+                  WHEN ur.id_rol = 1 THEN 'Director'
+                  WHEN ur.id_rol = 2 THEN 'Lector'
+                  WHEN ur.id_rol = 3 THEN 'Jurado'
+              END
+              , ', ') || 
+          CASE 
+              WHEN MAX(CASE WHEN inv.id_cliente IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN ', Cliente' 
+              ELSE '' 
+          END,
+          ''
+      ) AS roles_invitados
+  FROM reunion r JOIN estado_reunion e ON r.id_estado = e.id LEFT JOIN invitados inv ON inv.id_reunion = r.id LEFT JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id
+  WHERE e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.enlace ORDER BY fecha ASC;`, ['Cancelada'])
+        const canceladas = result.rows
+        if (result.rowCount > 0) {
+            return res.json({ success: true, canceladas });
+        } else {
+            return res.status(203).json({ success: true, message: 'No hay reuniones canceladas' })
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerInvitados = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+      SELECT i.id as id_tabla_invitados, i.id_reunion, i.id_usuario_rol, i.id_asistencia, i.id_cliente, 
+      c.id AS id_tabla_cliente, c.nombre_empresa, c.nombre_repr, c.correo_repr,
+      u.id AS id_tabla_usuario, u.nombre AS nombre_usuario, u.correo,
+      r.id AS id_tabla_rol, r.nombre AS nombre_rol
+      FROM invitados i
+      LEFT JOIN cliente c ON i.id_cliente = c.id
+      LEFT JOIN usuario_rol ur ON i.id_usuario_rol = ur.id
+      LEFT JOIN usuario u ON ur.id_usuario = u.id
+      LEFT JOIN rol r ON ur.id_rol = r.id
+      WHERE i.id_reunion=$1`, [id]);
+        const invitados = result.rows;
+        if (result.rowCount > 0) {
+            return res.json({ success: true, invitados });
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 
@@ -1002,5 +1204,9 @@ module.exports = {
     agregarEstudiante,
     asignarFechaGrado,
     cambiarEstado,
-    obtenerItemsCumplimiento
+    obtenerItemsCumplimiento,
+    obtenerReunionesCanceladas,
+    obtenerReunionesCompletas,
+    obtenerReunionesPendientes,
+    obtenerInvitados
 }

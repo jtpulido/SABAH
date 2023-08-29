@@ -14,6 +14,7 @@ import Reportes from "./reportes/Reportes";
 import Lectores from "./usuarios_normales/lectores/Lectores";
 import Jurados from "./usuarios_normales/jurados/Jurados";
 import Directores from "./usuarios_normales/directores/Directores";
+import Reuniones from "./reuniones/Reuniones";
 
 export default function RoutesCmt() {
 
@@ -31,6 +32,7 @@ export default function RoutesCmt() {
                 <Route path="espacio" element={<Espacios />} />
                 <Route path="verProyecto" element={<VerProyecto />} />
                 <Route path="reportes" element={<Reportes />} />
+                <Route path="Reuniones" element={<Reuniones />} />
             </Route>
             <Route path="*" element={<Navigate to="" replace />} />
         </Routes></div>

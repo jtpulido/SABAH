@@ -1,5 +1,6 @@
 const pool = require('../database')
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const nuevoUsuario = async (req, res) => {
     const { nombre, correo } = req.body;
@@ -145,12 +146,12 @@ const nuevaPropuesta = async (nombre, codigo, correo) => {
         to: correo,
         subject: 'Bienvenido al sistema - Creación de cuenta exitosa',
         text: `
-  ¡Bienvenido al sistema! Nos complace informarte que la cuenta para tu propuesta ha sido creada exitosamente. Ha continuación, te porporcionamos los detalles de la propuesta:
+¡Bienvenido al sistema! Nos complace informarte que la cuenta para tu propuesta ha sido creada exitosamente. Ha continuación, te porporcionamos los detalles de la propuesta:
   
-  Nombre del proyecto: ${nombre}
-  Código del proyecto: ${codigo}
+Nombre del proyecto: ${nombre}
+Código del proyecto: ${codigo}
   
-  Recuerda que para garantizar la seguridad de la cuenta, hemos generado una contraseña temporal. Te recomendamos cambiar esta contraseña temporal por una que sea segura y única. Para hacerlo, sigue estos sencillos pasos:
+Recuerda que para garantizar la seguridad de la cuenta, hemos generado una contraseña temporal. Te recomendamos cambiar esta contraseña temporal por una que sea segura y única. Para hacerlo, sigue estos sencillos pasos:
     1. Ve a la página de inicio de sesión en [URL del Sitio Web].
     2. Haz clic en "Recuperar Contraseña".
     3. Se te mostrará una ventana emergente de recuperación de contraseña.
@@ -159,7 +160,10 @@ const nuevaPropuesta = async (nombre, codigo, correo) => {
     6. Ingresa el código de verificación y haz click en "Verificar".
     7. Ingresa la nueva contraseña.
           
-    Recuerda mantener tu contraseña en un lugar seguro y nunca compartirla con nadie más. Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
+Recuerda mantener tu contraseña en un lugar seguro y nunca compartirla con nadie más. Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
+
+Atentamente,
+El Equipo de SABAH
     `
     };
 
@@ -309,6 +313,42 @@ const cambioEstadoUsuario = async (correo, estado) => {
 Estimado(a) Usuario,
 
 Te informamos que tu estado en nuestro sistema ha sido cambiado a ${estadoTexto}.
+Si tienes alguna pregunta o inquietud, por favor contáctanos de inmediato.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
+        }
+    });
+};
+
+const prueba = async (req, res) => {
+    const nombre = 'Proyecto'
+    const correo = 'dbenavidesg@unbosque.edu.co'
+    const estadoTexto = 'habilitado'
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: correo,
+        subject: `Cambio de Estado de Usuario`,
+        text: `
+Estimado(a) Usuario,
+
+Te informamos que tu estado en nuestro sistema ha sido cambiado a ${estadoTexto}.
 
 Si tienes alguna pregunta o inquietud, por favor contáctanos de inmediato.
 
@@ -326,4 +366,387 @@ El Equipo de SABAH
     });
 };
 
-module.exports = { cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaVarios }
+const mailCambioCodigo = (correos, codigo, responsable) => {
+    const fechaHoraCambio = new Date();
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    for (let i = 0; i < correos.length; i++) {
+        const mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: correos[i].correo,
+            subject: 'Cambio de Código de Proyecto',
+            text: `
+Estimado(a) Usuario,
+
+Te informamos que se ha realizado un cambio exitoso en el código de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
+            
+    Nuevo código: ${codigo}
+    Fecha y hora del cambio: ${fechaHoraCambio.toLocaleString()}
+    Responsable: ${responsable}
+                
+Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
+                        
+Atentamente,
+El Equipo de SABAH`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+            } else {
+                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+            }
+        });
+    }
+};
+
+const mailCambioNombreProyecto = (correos, nombre, responsable) => {
+    const fechaHoraCambio = new Date();
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    for (let i = 0; i < correos.length; i++) {
+        const mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: correos[i].correo,
+            subject: 'Cambio de Nombre del Proyecto',
+            text: `
+Estimado(a) Usuario,
+
+Te informamos que se ha realizado un cambio exitoso en el nombre de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
+
+    Nuevo nombre: ${nombre}
+    Fecha y hora del cambio: ${fechaHoraCambio.toLocaleString()}
+    Responsable: ${responsable}
+    
+Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
+            
+Atentamente,
+El Equipo de SABAH`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+            } else {
+                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+            }
+        });
+    }
+};
+
+const mailCambioEstadoProyecto = (correos, estado, responsable) => {
+    const fechaHoraCambio = new Date();
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    for (let i = 0; i < correos.length; i++) {
+        const mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: correos[i].correo,
+            subject: 'Cambio de Estado del Proyecto',
+            text: `
+Estimado(a) Usuario,
+
+Te informamos que se ha realizado un cambio exitoso en el estado de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
+
+    Nuevo estado: ${estado}
+    Fecha y hora del cambio: ${fechaHoraCambio.toLocaleString()}
+    Responsable: ${responsable}
+    
+Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
+            
+Atentamente,
+El Equipo de SABAH`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+            } else {
+                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+            }
+        });
+    }
+};
+
+const mailCambioEtapaProyecto = (correos, etapa, responsable) => {
+    const fechaHoraCambio = new Date();
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    for (let i = 0; i < correos.length; i++) {
+        const mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: correos[i].correo,
+            subject: 'Cambio de Etapa del Proyecto',
+            text: `
+Estimado(a) Usuario,
+
+Te informamos que se ha realizado un cambio exitoso en la etapa de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
+
+    Nueva etapa: ${etapa}
+    Fecha y hora del cambio: ${fechaHoraCambio.toLocaleString()}
+    Responsable: ${responsable}
+    
+Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
+            
+Atentamente,
+El Equipo de SABAH`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+            } else {
+                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+            }
+        });
+    }
+};
+
+const mailCambioFechaGraduacionProyecto = (correos, fecha_grado, responsable) => {
+    const fechaHoraCambio = new Date();
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    for (let i = 0; i < correos.length; i++) {
+        const mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: correos[i].correo,
+            subject: 'Cambio de Fecha de Graduación',
+            text: `
+Estimado(a) Usuario,
+
+Te informamos que se ha realizado un cambio exitoso en tu fecha de graduación en nuestro sistema. Por favor tener en cuenta la siguiente información: 
+
+    Nueva fecha de graduación: ${fecha_grado}
+    Fecha y hora del cambio: ${fechaHoraCambio.toLocaleString()}
+    Responsable: ${responsable}
+    
+Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
+            
+Atentamente,
+El Equipo de SABAH`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+            } else {
+                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+            }
+        });
+    }
+};
+
+const nuevoUsuarioRol = (infoNuevo, id_rol) => {
+    let rol = '';
+    if (id_rol === 1) {
+        rol = 'director';
+    } else if (id_rol === 2) {
+        rol = 'lector';
+    } else if (id_rol === 3) {
+        rol = 'jurado';
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: infoNuevo.correo,
+        subject: 'Vinculación Exitosa a Rol en Proyecto',
+        text: `
+Estimado(a) ${infoNuevo.nombre_usuario},
+
+Te informamos que has sido vinculado(a) exitosamente al rol de ${rol} en el proyecto de grado con la siguiente información:
+
+    Nombre: ${infoNuevo.nombre}
+    Código: ${infoNuevo.codigo}
+    Modalidad: ${infoNuevo.nombre_modalidad}
+    Estado: ${infoNuevo.nombre_estado}
+
+Te recomendamos revisar la documentación del proyecto y ponerte en contacto con el equipo para conocer más sobre tu rol y responsabilidades. Si tienes alguna pregunta o necesitas orientación, no dudes en comunicarte con nosotros.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
+        }
+    });
+};
+
+const anteriorUsuarioRol = (infoAnterior, id_rol) => {
+    let rol = '';
+    if (id_rol === 1) {
+        rol = 'director';
+    } else if (id_rol === 2) {
+        rol = 'lector';
+    } else if (id_rol === 3) {
+        rol = 'jurado';
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: infoAnterior.correo,
+        subject: 'Desvinculación de Usuario de Rol en Proyecto',
+        text: `
+Estimado(a) ${infoAnterior.nombre_usuario},
+
+Te informamos que has sido desvinculado exitosamente del rol de ${rol} en el proyecto de grado con la siguiente información:
+
+    Nombre: ${infoAnterior.nombre}
+    Código: ${infoAnterior.codigo}
+    Modalidad: ${infoAnterior.nombre_modalidad}
+    Estado: ${infoAnterior.nombre_estado}
+
+A partir de este momento, ya no tendrás acceso a las funcionalidades y permisos asociados a este rol en el proyecto.
+
+Por favor, ten en cuenta lo siguiente:
+
+    - Si tienes alguna pregunta o inquietud sobre esta desvinculación, te recomendamos ponerte en contacto con el administrador del sistema o el equipo de soporte.
+    - Si consideras que esta desvinculación ha sido realizada por error, por favor, comunica esto a la brevedad para que podamos tomar las medidas necesarias.
+
+Agradecemos tu colaboración y participación en el proyecto hasta el momento. Esperamos que esta desvinculación no afecte negativamente tus objetivos y actividades relacionadas con el proyecto.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
+        }
+    });
+};
+
+const removerEstudianteProyecto = (infoEstudiante) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: infoEstudiante.correo,
+        subject: 'Desvinculación a Proyecto de Grado',
+        text: `
+Estimado(a) ${infoEstudiante.nombre_estudiante},
+
+Te informamos que has sido desvinculado exitosamente del siguiente proyecto de grado:
+
+    Nombre: ${infoEstudiante.nombre}
+    Código: ${infoEstudiante.codigo}
+    Modalidad: ${infoEstudiante.nombre_modalidad}
+    Estado: ${infoEstudiante.nombre_estado}
+
+Queremos agradecerte sinceramente por tu participación y contribuciones hasta la fecha. Entendemos que has dedicado tiempo y esfuerzo a este proyecto, y apreciamos tus contribuciones. Si tienes alguna pregunta o inquietud sobre esta decisión, no dudes en ponerte en contacto con nosotros. Estamos aquí para proporcionarte cualquier información adicional que puedas necesitar.
+    
+Te deseamos lo mejor en tus futuros proyectos académicos y profesionales. Agradecemos tu comprensión y cooperación en este asunto.
+    
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
+        }
+    });
+};
+
+const nuevoEstudianteProyecto = (infoEstudiante, nombre, correo) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: correo,
+        subject: 'Vinculación Exitosa al Proyecto de Grado',
+        text: `
+Estimado(a) ${nombre},
+
+Te informamos que has sido vinculado exitosamente al siguiente proyecto de grado:
+
+    Nombre: ${infoEstudiante.nombre}
+    Código: ${infoEstudiante.codigo}
+    Modalidad: ${infoEstudiante.nombre_modalidad}
+    Estado: ${infoEstudiante.nombre_estado}
+
+Tu participación en este proyecto es muy valiosa y estamos emocionados de trabajar contigo en este emocionante camino académico. Creemos que tu experiencia y habilidades serán una gran contribución al éxito del proyecto. Por favor, asegúrate de revisar la información y estar preparado para participar en las reuniones y actividades del proyecto. Si tienes alguna pregunta o necesitas más detalles, no dudes en ponerte en contacto con nosotros.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
+        }
+    });
+};
+
+module.exports = { prueba, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaVarios }

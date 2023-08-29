@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const { inicioSesion, confirmarCorreo, confirmarCodigo, inscribirPropuestaVarios, cambiarContrasenaProyecto, sendEmails, getEstados, getEtapas, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, getIdUltEst } = require('../controllers/login.controller');
-const { codigoVerificacion, codigoVerificacionEstudiantes } = require('../controllers/mail.controller');
+const { codigoVerificacion, codigoVerificacionEstudiantes, prueba } = require('../controllers/mail.controller');
 
 const authenticateJWT = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (error, user, info) => {
@@ -40,5 +40,7 @@ router.get('/getIdUltEst', getIdUltEst);
 
 router.post('/sendEmail', codigoVerificacion);
 router.post('/sendEmails', codigoVerificacionEstudiantes);
+
+router.post('/login/prueba', prueba);
 
 module.exports = router;

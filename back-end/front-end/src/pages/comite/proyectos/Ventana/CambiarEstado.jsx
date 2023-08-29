@@ -20,7 +20,6 @@ function CambiarEstado(props) {
     const [estados, setEstados] = useState([]);
 
     const handleEntering = () => {
-        console.log(proyecto)
         obtenerEstados()
     };
     useEffect(() => {

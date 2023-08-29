@@ -41,7 +41,11 @@ const {
   asignarFechaGrado,
   cambiarEtapa,
   cambiarEstado,
-  obtenerItemsCumplimiento
+  obtenerItemsCumplimiento,
+  obtenerReunionesPendientes,
+  obtenerReunionesCanceladas,
+  obtenerReunionesCompletas,
+  obtenerInvitados
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -52,7 +56,7 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
   verEntregasPendientes,
   verEntregasRealizadasCalificadas,
   verEntregasRealizadasSinCalificar,
-  verAspectosEspacio,validarModificarRubrica,  verCalificacionAspectos, obtenerEstados
+  verAspectosEspacio, validarModificarRubrica, verCalificacionAspectos, obtenerEstados
 } = require('../controllers/entregas.controller')
 
 const { verInfoDocEntregado, descargarDocumento, descargarDocumentoRetroalimentacion, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
@@ -138,5 +142,12 @@ router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, ve
 router.get('/comite/vistas-disponibles', authenticateJWT, obtenerVistasDisponibles);
 router.get('/comite/columnas-disponibles/:vista', authenticateJWT, obtenerColumnasDisponibles);
 router.post('/comite/generarReporte', authenticateJWT, generarReporte);
+
+// Reuniones
+router.get('/comite/obtenerReunionesPendientes', authenticateJWT, obtenerReunionesPendientes);
+router.get('/comite/obtenerReunionesCompletas', authenticateJWT, obtenerReunionesCompletas);
+router.get('/comite/obtenerReunionesCanceladas', authenticateJWT, obtenerReunionesCanceladas);
+router.get('/comite/obtenerInvitados/:id', passport.authenticate('jwt', { session: false }), obtenerInvitados);
+
 
 module.exports = router;

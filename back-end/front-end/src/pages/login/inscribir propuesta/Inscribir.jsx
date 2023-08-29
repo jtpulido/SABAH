@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Typography, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
+import { Typography, Box, TextField, Grid, CssBaseline, Select, MenuItem, FormControl } from "@mui/material";
 import "./Inscribir.css";
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -389,20 +389,20 @@ export const Inscribir = () => {
                             Modalidad
                         </Typography>
                         <FormControl fullWidth>
-                                <Select
-                                    value={idModalidadSeleccionada ||""}
-                                    onChange={handleModalidadSeleccionada}
-                                    required
-                                    fullWidth
-                                >
-                                    {listaModalidades.map((modalidad) => (
-                                        <MenuItem key={modalidad.id} value={modalidad}>
-                                            {modalidad.nombre}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        
+                            <Select
+                                value={idModalidadSeleccionada || ""}
+                                onChange={handleModalidadSeleccionada}
+                                required
+                                fullWidth
+                            >
+                                {listaModalidades.map((modalidad) => (
+                                    <MenuItem key={modalidad.id} value={modalidad}>
+                                        {modalidad.nombre}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={6} lg={6}>

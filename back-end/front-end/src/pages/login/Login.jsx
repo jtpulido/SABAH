@@ -91,6 +91,29 @@ export const Login = () => {
     }
   }, [usuario, navigate, setCookie]);
 
+  const prueba = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await fetch("http://localhost:5000/login/prueba", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(usuario)
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        mostrarMensaje(data.message, "error");
+
+      } else {
+        alert('funciona')
+
+      }
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
+  };
+
   // Modal 1
   const [showModal, setModalOpen] = useState(false);
 

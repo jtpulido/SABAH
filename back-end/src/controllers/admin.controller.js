@@ -23,41 +23,79 @@ const registro = (req, res) => {
 
 const obtenerProyectosDesarrollo = async (req, res) => {
     try {
-        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
-            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') AND
-            he.fecha_cambio = (
-              SELECT MAX(fecha_cambio)
-              FROM historial_etapa
-              WHERE id_proyecto = p.id
-          ) ORDER BY nombre ASC`)
-        const proyectos = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, proyectos });
-        } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
-        }
+        await pool.query(
+            `SELECT 
+            p.id, 
+            p.codigo, 
+            p.nombre, 
+            he.anio,  
+            he.periodo, 
+            m.acronimo as modalidad, 
+            e.nombre as etapa, 
+            es.nombre as estado 
+            FROM proyecto p 
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id
+            JOIN estado es ON p.id_estado = es.id 
+            WHERE es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado')
+            AND he.fecha_cambio = (
+                SELECT MAX(fecha_cambio)
+                FROM historial_etapa
+                WHERE id_proyecto = p.id
+            )`
+            , async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos en desarrollo actualmente.' })
+                }
+            })
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 
 const obtenerProyectosTerminados = async (req, res) => {
     try {
-        const result = await pool.query(`SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN historial_etapa he ON p.id = he.id_proyecto
-            JOIN etapa e ON he.id_etapa = e.id JOIN estado es ON p.id_estado = es.id WHERE es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') AND
-            he.fecha_cambio = (
-              SELECT MAX(fecha_cambio)
-              FROM historial_etapa
-              WHERE id_proyecto = p.id
-          ) ORDER BY nombre ASC`)
-        const proyectos = result.rows
-        if (result.rowCount > 0) {
-            return res.json({ success: true, proyectos });
-        } else {
-            return res.status(203).json({ success: true, message: 'No hay proyectos actualmente' })
-        }
+        await pool.query(
+            `SELECT
+            p.id,
+            p.codigo,
+            p.nombre,
+            he.anio,
+            he.periodo,
+            m.acronimo as modalidad,
+            e.nombre as etapa,
+            es.nombre as estado
+            FROM proyecto p 
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id
+            JOIN estado es ON p.id_estado = es.id 
+            WHERE es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado')
+            AND he.fecha_cambio = (
+                SELECT MAX(fecha_cambio)
+                FROM historial_etapa
+                WHERE id_proyecto = p.id
+            )`
+            , async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos terminados actualmente.' })
+                }
+            })
     } catch (error) {
-        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
 

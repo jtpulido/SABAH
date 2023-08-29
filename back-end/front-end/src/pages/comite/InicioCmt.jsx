@@ -33,6 +33,7 @@ const menuItems = [
   { label: "ENTREGAS", button: "entregas" },
   { label: "SOLICITUDES", button: "solicitudes" },
   { label: "REPORTES", button: "reportes" },
+  { label: "REUNIONES", button: "reuniones" },
   { label: "CERRAR SESIÓN", button: "cerrarSesion" }
 ];
 
