@@ -249,12 +249,12 @@ export default function Reuniones() {
   const abrirEditarReunion = (id, tipo) => {
 
     let registroEncontrado;
-    if (tipo === 'pendiente') {
+    if (tipo === 'pendiente'&& rowsPendientes.length > 0) {
       registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
-    } else if (tipo === 'completa') {
+    } else if (tipo === 'completa'&& rowsCompletadas.length > 0) {
       registroEncontrado = rowsCompletadas.find(reunion => reunion.id === id);
     }
-
+    
     if (registroEncontrado) {
       try {
         const reunionCadena = JSON.stringify(registroEncontrado);
@@ -282,11 +282,11 @@ export default function Reuniones() {
   const [abrirVer, setAbrirVer] = useState(false);
   const abrirVerReunion = (id, tipo) => {
     let registroEncontrado;
-    if (tipo === 'pendiente') {
+    if (tipo === 'pendiente' && rowsPendientes.length > 0) {
       registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
-    } else if (tipo === 'cancelada') {
+    } else if (tipo === 'cancelada'&& rowsCanceladas.length > 0) {
       registroEncontrado = rowsCanceladas.find(reunion => reunion.id === id);
-    } else if (tipo === 'completa') {
+    } else if (tipo === 'completa'&& rowsCompletadas.length > 0) {
       registroEncontrado = rowsCompletadas.find(reunion => reunion.id === id);
     }
 

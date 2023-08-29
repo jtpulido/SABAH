@@ -154,7 +154,9 @@ export default function Entregas() {
   const generarColumnas = (inicio, extraColumns) => {
     const columns = [
       { field: 'nombre_espacio_entrega', headerName: 'Nombre', flex: 0.2, minWidth: 150 },
-      { field: 'descripcion', headerName: 'Descripción', flex: 0.3, minWidth: 150 },
+      { field: 'etapa', headerName: 'Etapa', flex: 0.2, minWidth: 150 },
+      { field: 'anio', headerName: 'Año', flex: 0.2, minWidth: 150 },
+      { field: 'periodo', headerName: 'Periodo', flex: 0.2, minWidth: 150 },
       { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
       { field: 'fecha_apertura_calificacion', headerName: 'Fecha de inicio calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
@@ -165,7 +167,7 @@ export default function Entregas() {
 
   const columnasPendientes = generarColumnas([
     {
-      field: "Acción",
+      field: "",
       flex: 0.1,
       minWidth: 50,
 

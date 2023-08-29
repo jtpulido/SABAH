@@ -39,7 +39,9 @@ const {
   agregarEstudiante,
   asignarNuevoNombre,
   asignarFechaGrado,
-  cambiarEtapaEstado
+  cambiarEtapa,
+  cambiarEstado,
+  obtenerItemsCumplimiento
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -64,7 +66,8 @@ router.get('/comite/verProyecto/:proyecto_id', authenticateJWT, obtenerProyecto)
 router.post('/comite/asignarCodigo', authenticateJWT, asignarCodigoProyecto);
 router.post('/comite/cambiarCodigo', authenticateJWT, asignarNuevoCodigo);
 router.post('/comite/cambiarNombre', authenticateJWT, asignarNuevoNombre);
-router.post('/comite/cambiarEtaEsta', authenticateJWT, cambiarEtapaEstado);
+router.post('/comite/cambiarEtapa', authenticateJWT, cambiarEtapa);
+router.post('/comite/cambiarEstado', authenticateJWT, cambiarEstado);
 router.get('/comite/directoresproyectos/activos', authenticateJWT, obtenerDirectoresProyectosActivos);
 router.get('/comite/directoresproyectos/cerrados', authenticateJWT, obtenerDirectoresProyectosCerrados);
 router.get('/comite/directoresproyectos/inactivos', authenticateJWT, obtenerDirectoresProyectosInactivos);
@@ -113,7 +116,7 @@ router.put('/comite/rubrica/:rubrica_id', authenticateJWT, modificarRubrica);
 
 router.get('/comite/obtenerRubricasAspectos', authenticateJWT, obtenerRubricasConAspectos);
 
-
+router.get('/comite/cumplimiento/:acro', authenticateJWT, obtenerItemsCumplimiento);
 //Entregas proyecto
 router.get('/comite/entregasProyecto/pendientes/:proyecto_id', authenticateJWT, verEntregasPendientesProyecto);
 router.get('/comite/entregasProyecto/realizadas/calificadas/:proyecto_id', authenticateJWT, verEntregasRealizadasCalificadasProyecto);

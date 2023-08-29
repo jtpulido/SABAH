@@ -253,9 +253,13 @@ const inscribirPropuesta = async (req, res) => {
     // Inicio transaccion
     await pool.query('BEGIN');
 
-    // Agregar proyecto
-    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
+      // Agregar proyecto
+    const proyecto = await pool.query('INSERT INTO proyecto(id, codigo, nombre, id_modalidad,  id_estado) VALUES ($1, $2, $3, $4, $5) RETURNING id', [id, codigo, nombre, id_modalidad, id_estado]);
     const id_proyecto = proyecto.rows[0].id;
+    
+    // Insertar el registro en historial_etapas con la etapa de propuesta
+    await pool.query('INSERT INTO historial_etapa(id_proyecto, id_etapa, anio, periodo) VALUES ($1, $2, $3, $4)', [id, id_etapa, anio, periodo]);
+
     // Agregar Usuario-Rol (director)
     await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, 1, $3)', [fecha_asignacion, id_usuario, id]);
 
@@ -288,6 +292,7 @@ const inscribirPropuesta = async (req, res) => {
 
   } catch (error) {
     // Deshacer transaccion
+    console.log(error)
     await pool.query('ROLLBACK');
     if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
       return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
@@ -307,7 +312,10 @@ const inscribirPropuestaVarios = async (req, res) => {
     await pool.query('BEGIN');
 
     // Agregar proyecto
-    await pool.query('INSERT INTO proyecto(id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado]);
+    await pool.query('INSERT INTO proyecto(id, codigo, nombre, id_modalidad, id_etapa, id_estado) VALUES ($1, $2, $3, $4, $5, $6)', [id, codigo, nombre, id_modalidad, id_etapa, id_estado]);
+   
+    // Insertar el registro en historial_etapas con la etapa de propuesta
+    await pool.query('INSERT INTO historial_etapas(id_proyecto, id_etapa_nueva, anio_nuevo, periodo_nuevo) VALUES ($1, $2, $3, $4)', [id, id_etapa, anio, periodo]);
 
     // Agregar Usuario-Rol (director)
     await pool.query('INSERT INTO usuario_rol(estado, fecha_asignacion, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, 1, $3)', [fecha_asignacion, id_usuario, id]);

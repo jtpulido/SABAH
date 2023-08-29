@@ -217,6 +217,18 @@ function VerEntrega({ open, onClose, entrega = {}, tipo }) {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="h6" color="primary">
+                                    Etapa
+                                </Typography>
+                                <TextField value={entrega.etapa} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
+                                    Año y periodo
+                                </Typography>
+                                <TextField value={entrega.anio +"-"+ entrega.periodo} fullWidth />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="h6" color="primary">
                                     Fecha de apertura entrega
                                 </Typography>
                                 <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />

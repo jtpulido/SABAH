@@ -109,10 +109,11 @@ export const Inscribir = () => {
 
             if (!data.success) {
                 mostrarMensaje(data.message, "error");
-            } else {
+            } else if (data.codigo) {
                 const currentConsecutivo = parseInt(data.codigo.split('-')[2], 10);
                 const newConsecutivo = (currentConsecutivo + 1).toString().padStart(2, '0');
                 setConsecutivo(newConsecutivo);
+
             }
 
         } catch (error) {
@@ -146,8 +147,7 @@ export const Inscribir = () => {
         codigoProy();
         getModalidades();
         getIdUltProy();
-        getIdUltEst();
-    }, [infoDirector, codigoProy, getModalidades, getIdUltProy, getIdUltEst]);
+    }, [infoDirector, codigoProy, getModalidades, getIdUltProy]);
 
     const [idModalidadSeleccionada, setIdModalidadSeleccionada] = useState("");
     const handleModalidadSeleccionada = (event) => {
@@ -208,14 +208,11 @@ export const Inscribir = () => {
             const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
 
             // AUX o COT
-            if (idModalidadSeleccionada === "3" || idModalidadSeleccionada === "4") {
+            if (idModalidadSeleccionada.acronimo === "AUX" || idModalidadSeleccionada.acronimo === "COT") {
                 if (numIntegrantes === 1) {
                     // Verificar veracidad del correo
                     const emailRegex = /^\S+@unbosque\.edu\.co$/;
                     const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
-                    console.log(estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo)))
-                    console.log(validEmails.length)
-                    console.log(numIntegrantes)
                     if (validEmails.length !== numIntegrantes) {
                         mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
                     } else {
@@ -238,7 +235,7 @@ export const Inscribir = () => {
                             const periodo = getPeriodo(now.getMonth() + 1);
 
                             // Modalidad
-                            const modInt = parseInt(idModalidadSeleccionada);
+                            const modInt = parseInt(idModalidadSeleccionada.id);
 
                             // Insertar un nuevo proyecto
                             try {
@@ -286,7 +283,6 @@ export const Inscribir = () => {
                 } else {
                     mostrarMensaje("La modalidad 'Auxiliar de Investigación' y 'Coterminal' requieren un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
                 }
-
             } else {
                 // DT o PG
                 if (numIntegrantes >= 2 && numIntegrantes <= 3) {
@@ -316,7 +312,7 @@ export const Inscribir = () => {
                             const periodo = getPeriodo(now.getMonth() + 1);
 
                             // Modalidad
-                            const modInt = parseInt(idModalidadSeleccionada);
+                            const modInt = parseInt(idModalidadSeleccionada.id);
 
                             const estudiantesNoVacios = estudiantes.filter((estudiante) => {
                                 return (
@@ -392,22 +388,21 @@ export const Inscribir = () => {
                         <Typography variant="h6" color="primary">
                             Modalidad
                         </Typography>
-                        <Select
-                            fullWidth
-                            native
-                            onChange={handleModalidadSeleccionada}
-                            inputProps={{
-                                name: "modalidad",
-                                id: "modalidad",
-                            }}
-                        >
-                            <option value="" />
-                            {listaModalidades.map((listaModalidades) => (
-                                <option key={listaModalidades.id} value={listaModalidades.id}>
-                                    {listaModalidades.nombre}
-                                </option>
-                            ))}
-                        </Select>
+                        <FormControl fullWidth>
+                                <Select
+                                    value={idModalidadSeleccionada ||""}
+                                    onChange={handleModalidadSeleccionada}
+                                    required
+                                    fullWidth
+                                >
+                                    {listaModalidades.map((modalidad) => (
+                                        <MenuItem key={modalidad.id} value={modalidad}>
+                                            {modalidad.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={6} lg={6}>

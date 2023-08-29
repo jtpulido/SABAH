@@ -266,6 +266,7 @@ const crearEspacio = async (req, res) => {
 
         await pool.query(query, values, (error) => {
             if (error) {
+                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al crear el espacio. Por favor, intente de nuevo más tarde.' });
             }
             return res.status(200).json({ success: true, message: 'Espacio de entrega creado correctamente' });
@@ -279,7 +280,11 @@ const modificarEspacio = async (req, res) => {
     try {
         const { espacio_id } = req.params;
         const { nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
+        const formatted_fecha_apertura_entrega = moment(fecha_apertura_entrega, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
+        const formatted_fecha_cierre_entrega = moment(fecha_cierre_entrega, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
 
+        const formatted_fecha_apertura_calificacion = moment(fecha_apertura_calificacion, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
+        const formatted_fecha_cierre_calificacion = moment(fecha_cierre_calificacion, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
         const entregasQuery = 'SELECT id FROM documento_entrega WHERE id_espacio_entrega = $1 LIMIT 1';
         const entregasValues = [espacio_id];
         const entregasResult = await pool.query(entregasQuery, entregasValues);
@@ -290,7 +295,7 @@ const modificarEspacio = async (req, res) => {
             const query = `UPDATE espacio_entrega
                 SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6
                 WHERE id = $7`;
-            const values = [nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion];
+            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion];
 
             await pool.query(query, values, (error, result) => {
                 if (error) {
@@ -305,7 +310,7 @@ const modificarEspacio = async (req, res) => {
             const query = `UPDATE espacio_entrega
                 SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6, id_rol = $5, id_rubrica = $6
                 WHERE id = $7`;
-            const values = [nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_rubrica, espacio_id];
+            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_rubrica, espacio_id];
 
             await pool.query(query, values, (error, result) => {
                 if (error) {
@@ -318,10 +323,9 @@ const modificarEspacio = async (req, res) => {
             });
         } else {
             const query = `UPDATE espacio_entrega
-                SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6, id_rol = $5, id_modalidad = $6, id_etapa = $7, id_rubrica = $8
-                WHERE id = $9`;
-            const values = [nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, espacio_id];
-
+                SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion=$5, fecha_cierre_calificacion= $6, id_rol = $7, id_modalidad = $8, id_etapa = $9, id_rubrica = $10
+                WHERE id = $11`;
+            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, espacio_id];
             await pool.query(query, values, (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });
@@ -341,7 +345,7 @@ const obtenerEspacio = async (req, res) => {
     try {
         const query = `
         SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura_entrega, e.fecha_cierre_entrega, e.fecha_apertura_calificacion, e.fecha_cierre_calificacion, e.fecha_creacion,
-               r.nombre AS nombre_rol, m.nombre AS nombre_modalidad, et.nombre AS nombre_etapa, rb.nombre AS nombre_rubrica
+               r.nombre AS nombre_rol, m.nombre AS nombre_modalidad, et.nombre AS nombre_etapa, rb.nombre AS nombre_rubrica, e.anio, e.periodo
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
         INNER JOIN modalidad m ON e.id_modalidad = m.id
@@ -391,7 +395,7 @@ const obtenerEspacioPorId = async (req, res) => {
 
         const query = `
         SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura_entrega, e.fecha_cierre_entrega, e.fecha_apertura_calificacion, e.fecha_cierre_calificacion, e.fecha_creacion,
-        r.id AS id_rol,m.id AS id_modalidad, et.id AS id_etapa, rb.id AS id_rubrica 
+        r.id AS id_rol,m.id AS id_modalidad, et.id AS id_etapa, rb.id AS id_rubrica, e.anio, e.periodo
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
         INNER JOIN modalidad m ON e.id_modalidad = m.id
@@ -518,31 +522,38 @@ const verEntregasPendientesProyecto = async (req, res) => {
             p.id AS id_proyecto,
             p.nombre AS nombre_proyecto,
             r.nombre AS nombre_rol,
+            ee.anio,
+            ee.periodo,
+            ep.nombre AS etapa,
             ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion
                 FROM 
             proyecto p
-            INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
+            INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
+            INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+            INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
             INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
             INNER JOIN rol r ON ee.id_rol = r.id
-                WHERE 
-            NOT EXISTS (
-                SELECT 1
-                FROM documento_entrega de
-                WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
-            )
-            AND p.id = $1
-                ORDER BY 
-            ee.fecha_cierre_entrega;
+            WHERE 
+                (NOT EXISTS (
+                    SELECT 1
+                    FROM documento_entrega de
+                    WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+                  )
+                  OR
+                    NOW() <= ee.fecha_cierre_entrega) AND
+                  he.anio = ee.anio AND he.periodo = ee.periodo
+                AND p.id = $1
+            ORDER BY 
+                ee.fecha_cierre_entrega;
         `;
 
         await pool.query(query, [proyecto_id], (error, result) => {
             if (error) {
-                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las entregas pendiente.' });
             }
             if (result.rows.length === 0) {
                 return res.status(203).json({ success: true, message: 'No hay entregas pendientes' });
             }
-            console.log(result.rows)
             return res.status(200).json({ success: true, entregas: result.rows });
         });
     } catch (error) {
@@ -562,6 +573,10 @@ const verEntregasRealizadasSinCalificarProyecto = async (req, res) => {
             ee.id AS id_espacio_entrega,
             ee.nombre AS nombre_espacio_entrega,
             r.nombre AS nombre_rol,
+            ee.descripcion,
+            ee.anio,
+            ee.periodo,
+            ep.nombre AS etapa,
             ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
             p.nombre AS nombre_proyecto,
             ur.id AS id_usuario_rol,
@@ -571,6 +586,8 @@ const verEntregasRealizadasSinCalificarProyecto = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
@@ -612,6 +629,9 @@ const verEntregasRealizadasCalificadasProyecto = async (req, res) => {
         r.nombre AS nombre_rol,
         p.nombre AS nombre_proyecto,
         ee.descripcion,
+        ee.anio,
+        ee.periodo,
+        ep.nombre AS etapa,
         u.nombre AS evaluador,
         de.fecha_entrega,
         de.id AS id_doc_entrega,
@@ -621,6 +641,8 @@ const verEntregasRealizadasCalificadasProyecto = async (req, res) => {
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id 
@@ -654,28 +676,52 @@ const verEntregasPendientes = async (req, res) => {
             p.id AS id_proyecto,
             p.nombre AS nombre_proyecto,
             r.nombre AS nombre_rol,
+            ee.descripcion,
             ee.fecha_apertura_entrega,
             ee.fecha_cierre_entrega,
             ee.fecha_apertura_calificacion,
-            ee.fecha_cierre_calificacion
-        FROM 
-            proyecto p
-        INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
-        INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
-        INNER JOIN rol r ON ee.id_rol = r.id
-        WHERE 
-            NOT EXISTS (
+            ee.fecha_cierre_calificacion,
+            ee.anio,
+            ee.periodo,
+            ep.nombre AS etapa,
+            CASE
+              WHEN NOW() < ee.fecha_apertura_entrega THEN 'cerrado'
+              WHEN NOW() BETWEEN ee.fecha_apertura_entrega AND ee.fecha_cierre_entrega THEN 
+                CASE 
+                  WHEN EXISTS (
+                    SELECT 1
+                    FROM documento_entrega de
+                    WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+                  ) THEN 'en_proceso'
+                  ELSE 'pendiente'
+                END
+              WHEN NOT EXISTS (
                 SELECT 1
                 FROM documento_entrega de
                 WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+              ) AND NOW() > ee.fecha_cierre_entrega THEN 'vencido'
+            END AS estado_entrega
+          FROM 
+            proyecto p
+            INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
+            INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
+            INNER JOIN rol r ON ee.id_rol = r.id
+            INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+            INNER JOIN etapa ep ON he.id_etapa = ep.id AND he.id_etapa = ee.id_etapa
+          WHERE 
+            (NOT EXISTS (
+              SELECT 1
+              FROM documento_entrega de
+              WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
             )
-        ORDER BY 
-            ee.fecha_cierre_entrega;        
-        `;
+            OR
+              NOW() <= ee.fecha_cierre_entrega)
+          ORDER BY ee.fecha_cierre_entrega;
+              `;
 
         await pool.query(query, (error, result) => {
             if (error) {
-                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las entregas pendientes.' });
             }
 
             if (result.rows.length === 0) {
@@ -696,6 +742,10 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
             ee.id AS id_espacio_entrega,
             ee.nombre AS nombre_espacio_entrega,
             r.nombre AS nombre_rol,
+            ee.descripcion,
+            ee.anio,
+            ee.periodo,
+            ep.nombre AS etapa,
             ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
             p.nombre AS nombre_proyecto,
             ur.id AS id_usuario_rol,
@@ -705,6 +755,8 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
@@ -737,7 +789,14 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
             `SELECT 
         c.id,
         ee.nombre AS nombre_espacio_entrega,
-        ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
+        ee.descripcion,
+        ee.anio,
+        ee.periodo,
+        ep.nombre AS etapa,
+        ee.fecha_apertura_entrega,
+        ee.fecha_cierre_entrega,
+        ee.fecha_apertura_calificacion,
+        ee.fecha_cierre_calificacion,
         r.nombre AS nombre_rol,
         p.nombre AS nombre_proyecto,
         u.nombre AS evaluador,
@@ -748,6 +807,8 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
         INNER JOIN rol r ON ur.id_rol = r.id
@@ -779,6 +840,10 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
             ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
             ee.id AS id_espacio_entrega,
             ee.nombre AS nombre_espacio_entrega,
+            ee.descripcion,
+            ee.anio,
+            ee.periodo,
+            ep.nombre AS etapa,
             p.id AS id_proyecto,
             p.nombre AS nombre_proyecto,
             r.nombre AS nombre_rol,
@@ -800,9 +865,10 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
               WHERE de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
             ) AND NOW() > ee.fecha_cierre_entrega THEN 'vencido'
           END AS estado_entrega
-            FROM 
-            proyecto p
-        INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad AND p.id_etapa = ee.id_etapa
+        FROM proyecto p
+        INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN rol r ON ee.id_rol = r.id
         INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
         INNER JOIN usuario_rol ur ON p.id=ur.id_proyecto AND ur.id_usuario=$1 AND ur.id_rol=$2
@@ -818,8 +884,7 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
-                console.log(error)
-                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de las entregas pendientes.' });
             }
 
             if (result.rows.length === 0) {
@@ -835,31 +900,39 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
     try {
         const { id_usuario, id_rol } = req.params;
         const query =
-            `SELECT 
+        `SELECT 
             ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
             de.id AS id_doc_entrega,
             ee.id AS id_espacio_entrega,
             ee.nombre AS nombre_espacio_entrega,
+            ee.descripcion,
+            ee.anio,
+            ee.periodo,
+            ep.nombre AS etapa,
             r.nombre AS nombre_rol,
-            ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
+            ee.fecha_apertura_entrega, ee.fecha_cierre_entrega,
+            ee.fecha_apertura_calificacion,
+            ee.fecha_cierre_calificacion,
             p.nombre AS nombre_proyecto,
             ur.id AS id_usuario_rol,
             u.nombre AS evaluador,
             de.fecha_entrega,
             de.id AS id_doc_entrega,
             CASE
-            WHEN NOW() < ee.fecha_apertura_calificacion THEN 'cerrado'
-            WHEN NOW() BETWEEN ee.fecha_apertura_calificacion AND ee.fecha_cierre_calificacion THEN 'pendiente'
-            WHEN de.id NOT IN (
-              SELECT id_doc_entrega 
-              FROM calificacion 
-              WHERE id_usuario_rol = ur.id
-            ) AND NOW() > ee.fecha_cierre_calificacion THEN 'vencido'
-          END AS estado
+                WHEN NOW() < ee.fecha_apertura_calificacion THEN 'cerrado'
+                WHEN NOW() BETWEEN ee.fecha_apertura_calificacion AND ee.fecha_cierre_calificacion THEN 'pendiente'
+                WHEN de.id NOT IN (
+                SELECT id_doc_entrega 
+                FROM calificacion 
+                WHERE id_usuario_rol = ur.id
+                ) AND NOW() > ee.fecha_cierre_calificacion THEN 'vencido'
+            END AS estado
         FROM 
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
         INNER JOIN rol r ON ur.id_rol = r.id AND r.id=$2
@@ -874,6 +947,8 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
+                
+        console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 
@@ -893,6 +968,10 @@ const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
             `SELECT 
         c.id,
         ee.nombre AS nombre_espacio_entrega,
+        ee.descripcion,
+        ee.anio,
+        ee.periodo,
+        ep.nombre AS etapa,
         ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
         r.nombre AS nombre_rol,
         p.nombre AS nombre_proyecto,
@@ -905,6 +984,8 @@ const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
         INNER JOIN rol r ON ur.id_rol = r.id AND r.id=$2
@@ -994,5 +1075,5 @@ module.exports = {
     verEntregasPendientesProyecto, verEntregasRealizadasCalificadasProyecto, verEntregasRealizadasSinCalificarProyecto,
     verEntregasPendientes, verEntregasRealizadasSinCalificar, verEntregasRealizadasCalificadas,
     verEntregasPendientesUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol,
-    verAspectosEspacio, verCalificacionAspectos,obtenerEstados
+    verAspectosEspacio, verCalificacionAspectos, obtenerEstados
 }

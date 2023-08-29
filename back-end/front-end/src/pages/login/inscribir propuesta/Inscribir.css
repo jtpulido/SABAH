@@ -4,6 +4,12 @@
     align-items: center;
 }
 
+.todo {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+    
 .boton {
     align-content: center;
     text-align: center;

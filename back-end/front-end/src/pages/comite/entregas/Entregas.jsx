@@ -67,8 +67,12 @@ export default function Entregas() {
     const columns = [
       { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
       { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
-      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
+      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 },
+      { field: 'etapa', headerName: 'Etapa', flex: 0.1, minWidth: 150 },
+      { field: 'anio', headerName: 'Año', flex: 0.1, minWidth: 100 },
+      { field: 'periodo', headerName: 'Periodo', flex: 0.1, minWidth: 100 }
     ]
+   
     return [...inicio, ...columns, ...extraColumns];
   };
 
@@ -93,6 +97,7 @@ export default function Entregas() {
     { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
     { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'estado_entrega', headerName: 'Estado', flex: 0.2, minWidth: 100 },
   ]);
   const columnaPorCalificar = generarColumnas([{
     field: "calificar",
