@@ -49,24 +49,26 @@ function FinalizarProyecto(props) {
         if (!allCheckboxesMarked) {
             mostrarMensaje("Solo podrá finalizar el proyecto si cumple con todos los requisitos.", "info");
         } else {
-
-            try {
-                const response = await fetch(`http://localhost:5000/comite/terminarproyecto/${proyecto.id}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ proyecto: proyecto })
-                });
-                const data = await response.json();
-                if (response.status === 203) {
-                    mostrarMensaje(data.message, "warning");
-                } else if (data.success) {
-                    mostrarMensaje("Ok", "success");
-                } else {
-                    mostrarMensaje(data.message, "error");
-                }
-            } catch (error) {
-                mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error");
-            }
+            mostrarMensaje("Intentalo más tarde.", "warning"); 
+            /** 
+                        try {
+                            const response = await fetch(`http://localhost:5000/comite/terminarproyecto/${proyecto.id}`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ proyecto: proyecto })
+                            });
+                            const data = await response.json();
+                            if (response.status === 203) {
+                                mostrarMensaje(data.message, "warning");
+                            } else if (data.success) {
+                                mostrarMensaje("Ok", "success");
+                            } else {
+                                mostrarMensaje(data.message, "error");
+                            }
+                        } catch (error) {
+                            mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error");
+                        }
+                        */
         }
     };
 
