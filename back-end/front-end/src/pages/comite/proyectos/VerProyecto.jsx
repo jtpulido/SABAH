@@ -56,7 +56,9 @@ export default function VerProyectos() {
   const [info, setInfo] = useState({});
   const [accion, setAccion] = useState("");
   const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
-
+  const [existeCliente, setExisteCliente] = useState([]);
+  const [listaCliente, setListaCliente] = useState([]);
+ 
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
@@ -98,6 +100,8 @@ export default function VerProyectos() {
         setLector(data.lector.lector);
         setExisteJurados(data.jurados.existe_jurado)
         setListaJurado(data.jurados.existe_jurado ? data.jurados.jurados : []);
+        setExisteCliente(data.cliente.existe_cliente)
+        setListaCliente(data.cliente.existe_cliente ? data.cliente : []);
         setExiste(true)
       }
     }
@@ -608,7 +612,48 @@ export default function VerProyectos() {
               )}
             </Grid>
           </Box>
+           {proyecto.acronimo == "DT" && (
+            <> <Box>
 
+              <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
+                Cliente
+              </Typography>
+              {existeCliente ? (
+                <Grid container spacing={2}>
+                  <Grid item  sm={6} md={4} lg={4} xl={3}>
+                    <Typography variant="h6" color="primary">
+                    Nombre Cliente
+                    </Typography>
+                    <TextField
+                      value={listaCliente.empresa || ''}
+                      fullWidth
+                    />
+                    </Grid>
+                    <Grid item  sm={6} md={4} lg={4} xl={3}>
+                    <Typography variant="h6" color="primary">
+                      Representante Cliente
+                    </Typography>
+                    <TextField
+                      value={listaCliente.representante || ''}
+                      fullWidth
+                    />
+                    </Grid>
+                    <Grid item   sm={6} md={4} lg={4} xl={3}>
+                    <Typography variant="h6" color="primary">
+                      Correo Representante
+                    </Typography>
+                    <TextField
+                      value={listaCliente.correo || ''}
+                      fullWidth
+                    />
+                    </Grid>
+                   </Grid>
+
+              ) : (<Typography variant="h6" color="primary">No se han asignado cliente</Typography>
+              )}
+            </Box>
+            </>
+          )}
           <Box>
             <div style={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
               <Typography variant="h4" color="secondary" sx={{ mt: "20px", mb: "20px", flexGrow: 1, maxWidth: '98%' }}>

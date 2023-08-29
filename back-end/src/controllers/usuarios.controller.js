@@ -69,7 +69,7 @@ const obtenerProyecto = async (req, res) => {
               FROM historial_etapa
               WHERE id_proyecto = p.id
           )`, [id])
-        const proyecto = result.rows[0]
+        const proyecto = result.rows
         if (result.rowCount === 1) {
             const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
             const usuario_director = result_director.rows[0]
@@ -78,7 +78,9 @@ const obtenerProyecto = async (req, res) => {
             const result_jurado = await pool.query("SELECT u.nombre, u.id FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('jurado')AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
             const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
             const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
-            return res.json({ success: true, proyecto: proyecto, director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows });
+            const result_cliente = await pool.query("SELECT c.nombre_empresa, c.nombre_repr, c.correo_repr FROM cliente c, proyecto p WHERE p.id = c.id_proyecto AND p.id = $1;", [id])
+            const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante":result_cliente.rows[0].nombre_repr, "correo":result_cliente.rows[0].correo_repr  } : { "existe_cliente": false };
+            return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente});
 
         } else {
             return res.status(203).json({ success: true, message: error })
