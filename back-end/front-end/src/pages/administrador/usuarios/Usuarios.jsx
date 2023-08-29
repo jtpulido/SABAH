@@ -17,7 +17,15 @@ import CustomDataGrid from "../../layouts/DataGrid";
 
 export default function Usuarios() {
 
+    const token = useSelector(selectToken);
     const navigate = useNavigate();
+    const [rowsUsuarios, setRowsUsuarios] = useState([]);
+
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
+
     const columns = [
         {
             field: 'nombre', headerName: 'Nombre Completo', flex: 0.2, minWidth: 100,
@@ -71,14 +79,6 @@ export default function Usuarios() {
 
     const handleAgregarUsuario = () => {
         navigate(`/admin/agregarUsuario`)
-    };
-
-    const token = useSelector(selectToken);
-    const [rowsUsuarios, setRowsUsuarios] = useState([]);
-
-    const { enqueueSnackbar } = useSnackbar();
-    const mostrarMensaje = (mensaje, variante) => {
-        enqueueSnackbar(mensaje, { variant: variante });
     };
 
     const llenarTablaUsuarios = useCallback(async () => {

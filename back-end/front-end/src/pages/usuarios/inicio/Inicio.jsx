@@ -9,12 +9,12 @@ import { useSnackbar } from 'notistack';
 export default function Inicio() {
 
     const id = sessionStorage.getItem('user_id_usuario');
-    const estadoRolDirector = JSON.parse(sessionStorage.getItem('estadoRolDirector'));
-    const estadoRolLector = JSON.parse(sessionStorage.getItem('estadoRolLector'));
-    const estadoRolJurado = JSON.parse(sessionStorage.getItem('estadoRolJurado'));
 
     const token = useSelector(selectToken);
     const [existe, setExiste] = useState([]);
+    const [estadoRolDirector, setEstadoRolDirector] = useState(null);
+    const [estadoRolLector, setEstadoRolLector] = useState(null);
+    const [estadoRolJurado, setEstadoRolJurado] = useState(null);
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
@@ -27,12 +27,63 @@ export default function Inicio() {
         estado: null
     });
 
+    useEffect(() => {
+        const obtenerRoles = async () => {
+            const idUsuario = id;
+            try {
+                const responseDirector = await fetch(`http://localhost:5000/usuario/rolDirector/${idUsuario}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+                });
+
+                const responseLector = await fetch(`http://localhost:5000/usuario/rolLector/${idUsuario}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+                });
+
+                const responseJurado = await fetch(`http://localhost:5000/usuario/rolJurado/${idUsuario}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+                });
+
+                const dataDirector = await responseDirector.json();
+                const dataLector = await responseLector.json();
+                const dataJurado = await responseJurado.json();
+
+                if (!dataDirector.success) {
+                    sessionStorage.setItem('estadoRolDirector', false.toString());
+                    setEstadoRolDirector(false);
+                } else {
+                    sessionStorage.setItem('estadoRolDirector', true.toString());
+                    setEstadoRolDirector(true);
+                }
+
+                if (!dataLector.success) {
+                    sessionStorage.setItem('estadoRolLector', false.toString());
+                    setEstadoRolLector(false);
+                } else {
+                    sessionStorage.setItem('estadoRolLector', true.toString());
+                    setEstadoRolLector(true);
+                }
+
+                if (!dataJurado.success) {
+                    setEstadoRolJurado(false);
+                    sessionStorage.setItem('estadoRolJurado', false.toString());
+                } else {
+                    setEstadoRolJurado(true);
+                    sessionStorage.setItem('estadoRolJurado', true.toString());
+                }
+            } catch (error) { }
+        };
+
+        obtenerRoles();
+    }, [id, token]);
+
     const infoUsuario = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/usuario/verUsuario", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/usuario/verUsuario/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
@@ -51,8 +102,10 @@ export default function Inicio() {
     }, [id, token]);
 
     useEffect(() => {
-        infoUsuario();
-    }, [infoUsuario]);
+        if (estadoRolDirector !== null || estadoRolLector !== null || estadoRolJurado !== null) {
+            infoUsuario();
+        }
+    }, [infoUsuario, estadoRolDirector, estadoRolLector, estadoRolJurado]);
 
     return (
         <div style={{ margin: "15px" }} >

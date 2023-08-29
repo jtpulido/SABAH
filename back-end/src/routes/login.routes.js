@@ -2,6 +2,8 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const { inicioSesion, confirmarCorreo, confirmarCodigo, inscribirPropuestaVarios, cambiarContrasenaProyecto, sendEmails, getEstados, getEtapas, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, getIdUltEst } = require('../controllers/login.controller');
+const { codigoVerificacion, codigoVerificacionEstudiantes } = require('../controllers/mail.controller');
+
 const authenticateJWT = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (error, user, info) => {
     if (error || !user) {
@@ -22,8 +24,7 @@ router.get('/perfil', authenticateJWT, (req, res) => {
 
 router.post('/confirmarCorreo', confirmarCorreo);
 router.post('/login/confirmarCodigo', confirmarCodigo);
-router.post('/sendEmail', sendEmail);
-router.post('/sendEmails', sendEmails);
+
 router.post('/verificarCodigo', verificarCodigo);
 router.post('/cambiarContrasena', cambiarContrasena);
 router.post('/cambiarContrasenaProyecto', cambiarContrasenaProyecto);
@@ -36,5 +37,8 @@ router.post('/inscribirPropuesta', inscribirPropuesta);
 router.post('/inscribirPropuestaVarios', inscribirPropuestaVarios);
 router.get('/getIdUltProy', getIdUltProy);
 router.get('/getIdUltEst', getIdUltEst);
+
+router.post('/sendEmail', codigoVerificacion);
+router.post('/sendEmails', codigoVerificacionEstudiantes);
 
 module.exports = router;

@@ -37,9 +37,9 @@ function CrearReunion(props) {
     const [ultIdReunion, setUltIdReunion] = useState([]);
 
     const { enqueueSnackbar } = useSnackbar();
-    const mostrarMensaje = useCallback((mensaje, variante) => {
+    const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
-    }, [enqueueSnackbar]);
+    };
 
     const obtenerUltIdReunion = useCallback(async () => {
         try {
@@ -59,11 +59,11 @@ function CrearReunion(props) {
     }, [token, mostrarMensaje]);
 
     const obtenerProyectos = useCallback(async () => {
+        const idUsuario = id;
         try {
-            const response = await fetch("http://localhost:5000/usuario/obtenerProyectosDesarrolloRol", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 'id_usuario': id, 'id_rol': idRol })
+            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectosDesarrolloRol/${idUsuario}/${idRol}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (!data.success) {
@@ -77,7 +77,7 @@ function CrearReunion(props) {
         catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
-    }, [token, id, idRol, mostrarMensaje]);
+    }, [token, id, idRol]);
 
     const handleEntering = async () => {
         obtenerUltIdReunion();

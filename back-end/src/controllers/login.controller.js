@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const pool = require('../database')
 const { JWT_SECRET } = require('../config')
 
-const nodemailer = require('nodemailer');
+const { nuevaPropuestaVarios, nuevaPropuesta } = require('../controllers/mail.controller');
+
 const crypto = require('crypto');
 
 const inicioSesion = async (req, res) => {
@@ -87,75 +88,6 @@ const confirmarCodigo = async (req, res) => {
   }
 };
 
-// Enviar el correo con el codigo de verificacion
-const sendEmail = async (req, res) => {
-  const { correo } = req.body;
-  const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
-
-  // Almacenar el código generado en req.app.locals
-  req.app.locals.codigoCreado = codigoCreado;
-  req.app.locals.correo = correo;
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USERNAME,
-    to: correo,
-    subject: 'Código de verificación para restablecer tu contraseña',
-    text: `Tu código de verificación es: ${codigoCreado}`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-    } else {
-      return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico con el código de verificación.' });
-    }
-  });
-};
-
-// Enviar el correo con el codigo de verificacion a todos los estudiantes de un proyecto
-const sendEmails = async (req, res) => {
-  const correos = req.body;
-  const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
-
-  // Almacenar el código generado y la lista de correos en req.app.locals
-  req.app.locals.codigoCreado = codigoCreado;
-  req.app.locals.correos = correos;
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
-
-  for (let i = 0; i < correos.length; i++) {
-    const mailOptions = {
-      from: process.env.EMAIL_USERNAME,
-      to: correos[i].correo,
-      subject: 'Código de verificación para restablecer tu contraseña',
-      text: `Tu código de verificación es: ${codigoCreado}.
-Utiliza este código para verificar tu cuenta.`
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-      } else {
-        return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico con el código de verificación.' });
-      }
-    });
-  }
-};
-
 const verificarCodigo = async (req, res) => {
   const { codigo } = req.body;
   const codigoCreado = req.app.locals.codigoCreado;
@@ -198,27 +130,29 @@ const cambiarContrasenaProyecto = async (req, res) => {
 
 const getIdUltProy = async (req, res) => {
   try {
-    const result = await pool.query("SELECT max(id) FROM proyecto");
-    if (result.rowCount > 0) {
-      const num = result.rows[0].max;
+    const result = await pool.query("SELECT MAX(id) FROM proyecto");
+    const num = result.rows[0].max || 0;
+    if (num !== null) {
       return res.json({ success: true, num });
     } else {
-      return res.status(401).json({ success: true, message: 'No hay proyectos actualmente.' })
+      return res.status(404).json({ success: true, num: 0 });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
+
+  const id = result.rows[0].max || 0;
+
 };
 
 const getIdUltEst = async (req, res) => {
   try {
-    const result = await pool.query("SELECT max(id) FROM estudiante");
-
-    if (result.rowCount > 0) {
-      const num = result.rows[0].max;
+    const result = await pool.query("SELECT MAX(id) FROM estudiante");
+    const num = result.rows[0].max || 0;
+    if (num !== null) {
       return res.json({ success: true, num });
     } else {
-      return res.status(401).json({ success: true, message: 'No hay estudiantes actualmente.' })
+      return res.status(404).json({ success: true, num: 0 });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -227,12 +161,12 @@ const getIdUltEst = async (req, res) => {
 
 const codigoProy = async (req, res) => {
   try {
-    const result = await pool.query("SELECT max(codigo) FROM proyecto WHERE codigo LIKE 'TEM%'");
-    if (result.rowCount > 0) {
-      const codigo = result.rows[0].max;
+    const result = await pool.query("SELECT MAX(codigo) FROM proyecto WHERE codigo LIKE 'TEM%'");
+    const codigo = result.rows[0].max || 0;
+    if (codigo !== null) {
       return res.json({ success: true, codigo });
     } else {
-      return res.status(401).json({ success: true, message: 'No hay proyectos actualmente.' })
+      return res.status(404).json({ success: true, codigo: 0 });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -310,90 +244,6 @@ const generarContrasenaAleatoria = () => {
   return contrasena;
 };
 
-const mailCreacion = async (nombre, codigo, correo) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USERNAME,
-    to: correo,
-    subject: 'Bienvenido al sistema - Creación de cuenta exitosa',
-    text: `
-¡Bienvenido al sistema! Nos complace informarte que la cuenta para tu propuesta ha sido creada exitosamente. Ha continuación, te porporcionamos los detalles de la propuesta:
-
-Nombre del proyecto: ${nombre}
-Código del proyecto: ${codigo}
-
-Recuerda que puedes cambiar tu contraseña en cualquier momento accediendo a nuestro sitio web. Para hacerlo, sigue estos pasos:
-  1. Ve a la página de inicio de sesión en [URL del Sitio Web].
-  2. Haz clic en "Recuperar Contraseña".
-  3. Se te mostrará una ventana emergente de recuperación de contraseña.
-  4. Ingresa tu dirección de correo electrónico asociada a tu cuenta y haz clic en "Enviar Código".
-  5. Recibirás un correo electrónico con un código de verificación para restablecer tu contraseña.
-  6. Ingresa el código de verificación y haz click en "Verificar".
-  7. Ingresa la nueva contraseña.
-        
-Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
-      `
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-    } else {
-      return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico de bienvenida.' });
-    }
-  });
-};
-
-const mailCreacionVarios = async (nombre, codigo, infoEstudiantes) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
-
-  for (let i = 0; i < infoEstudiantes.length; i++) {
-    const mailOptions = {
-      from: process.env.EMAIL_USERNAME,
-      to: infoEstudiantes[i].correo,
-      subject: 'Bienvenido al sistema - Creación de cuenta exitosa',
-      text: `
-¡Bienvenido al sistema! Nos complace informarte que la cuenta para tu propuesta ha sido creada exitosamente. Ha continuación, te porporcionamos los detalles de la propuesta:
-      
-Nombre del proyecto: ${nombre}
-Código del proyecto: ${codigo}
-      
-Recuerda que puedes cambiar tu contraseña en cualquier momento accediendo a nuestro sitio web. Para hacerlo, sigue estos pasos:
-  1. Ve a la página de inicio de sesión en [URL del Sitio Web].
-  2. Haz clic en "Recuperar Contraseña".
-  3. Se te mostrará una ventana emergente de recuperación de contraseña.
-  4. Ingresa tu dirección de correo electrónico asociada a tu cuenta y haz clic en "Enviar Código".
-  5. Recibirás un correo electrónico con un código de verificación para restablecer tu contraseña.
-  6. Ingresa el código de verificación y haz click en "Verificar".
-  7. Ingresa la nueva contraseña.
-              
-Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
-    `
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-      } else {
-        return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-      }
-    });
-  }
-};
-
 const inscribirPropuesta = async (req, res) => {
   const { id, codigo, nombre, anio, periodo, id_modalidad, id_etapa, id_estado, fecha_asignacion, id_usuario, nombreEstudiante, num_identificacion, correo } = req.body;
   const password = generarContrasenaAleatoria();
@@ -411,25 +261,25 @@ const inscribirPropuesta = async (req, res) => {
 
     // Verificar si ya existe el estudiante
     const result = await pool.query('SELECT e.id FROM estudiante e WHERE LOWER(e.num_identificacion) = LOWER($1) OR LOWER(e.correo) = LOWER($2)', [num_identificacion, correo]);
-        if (result.rowCount > 0) {
-            const estudianteId = result.rows[0].id;
-            const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
-            if (resultProyecto.rowCount > 0) {
-                return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
-            } else {
-                await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
-                await pool.query('COMMIT');
-              }
-        } else {
-            const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
-            const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
-            await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
-        }
+    if (result.rowCount > 0) {
+      const estudianteId = result.rows[0].id;
+      const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
+      if (resultProyecto.rowCount > 0) {
+        return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + ' ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
+      } else {
+        await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
+        await pool.query('COMMIT');
+      }
+    } else {
+      const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
+      const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
+      await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
+    }
     // Agregar Inicio Sesion
     await pool.query("INSERT INTO inicio_sesion(id_proyecto, contrasena) VALUES ($1, $2)", [id, hashedPassword]);
 
     // Enviar correo de bienvenida
-    await mailCreacion(nombre, codigo, correo);
+    await nuevaPropuesta(nombre, codigo, correo);
 
     // Confirmar transaccion
     await pool.query('COMMIT');
@@ -494,7 +344,7 @@ const inscribirPropuestaVarios = async (req, res) => {
     }
 
     // Enviar correos de bienvenida
-    await mailCreacionVarios(nombre, codigo, infoEstudiantes);
+    await nuevaPropuestaVarios(nombre, codigo, infoEstudiantes);
 
     // Confirmar transaccion
     await pool.query('COMMIT');
@@ -508,4 +358,4 @@ const inscribirPropuestaVarios = async (req, res) => {
 
 };
 
-module.exports = { inicioSesion, mailCreacion, inscribirPropuestaVarios, mailCreacionVarios, generarContrasenaAleatoria, confirmarCorreo, cambiarContrasenaProyecto, confirmarCodigo, sendEmails, getEstados, getEtapas, sendEmail, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, getIdUltEst }
+module.exports = { inicioSesion, inscribirPropuestaVarios, generarContrasenaAleatoria, confirmarCorreo, cambiarContrasenaProyecto, confirmarCodigo, getEstados, getEtapas, verificarCodigo, cambiarContrasena, codigoProy, getModalidades, getDirectores, inscribirPropuesta, getIdUltProy, getIdUltEst }

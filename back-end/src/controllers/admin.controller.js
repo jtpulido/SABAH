@@ -1,8 +1,9 @@
-
 const bcrypt = require('bcrypt');
 const pool = require('../database')
 
 const nodemailer = require('nodemailer');
+
+const { cambioEstadoUsuario } = require('../controllers/mail.controller');
 
 const registro = (req, res) => {
     const { nombre, contrasena, correo, estado, id_tipo_usuario } = req.body;
@@ -49,7 +50,7 @@ const obtenerProyectosTerminados = async (req, res) => {
 };
 
 const obtenerProyectosDirector = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = 1 AND ur.estado = true', [id]);
         const proyectos = result.rows;
@@ -64,7 +65,7 @@ const obtenerProyectosDirector = async (req, res) => {
 };
 
 const obtenerProyectosLector = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = 2 AND ur.estado = true', [id]);
         const proyectos = result.rows
@@ -79,7 +80,7 @@ const obtenerProyectosLector = async (req, res) => {
 };
 
 const obtenerProyectosJurado = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario = $1 AND ur.id_rol = 3 AND ur.estado = true', [id]);
         const proyectos = result.rows
@@ -132,7 +133,7 @@ const obtenerProyecto = async (req, res) => {
 };
 
 const obtenerProyectosActivos = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = true', [id]);
         const proyectos = result.rows
@@ -147,7 +148,7 @@ const obtenerProyectosActivos = async (req, res) => {
 };
 
 const obtenerProyectosInactivos = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN estudiante_proyecto ep ON p.id = ep.id_proyecto WHERE ep.id_estudiante=$1  AND ep.estado = false', [id]);
         const proyectos = result.rows
@@ -192,7 +193,7 @@ const obtenerEstudiantes = async (req, res) => {
 };
 
 const verEstudiante = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.num_identificacion FROM estudiante u WHERE u.id = $1', [id]);
         const estudiante = result.rows;
@@ -208,7 +209,7 @@ const verEstudiante = async (req, res) => {
 };
 
 const verUsuario = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id = $1', [id]);
         const infoUsuario = result.rows;
@@ -224,7 +225,7 @@ const verUsuario = async (req, res) => {
 };
 
 const rolDirector = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=1 AND id_usuario = $1 AND estado=true', [id]);
         if (result.rowCount > 0) {
@@ -239,7 +240,7 @@ const rolDirector = async (req, res) => {
 };
 
 const rolLector = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=2 AND id_usuario = $1 AND estado=true', [id]);
         if (result.rowCount > 0) {
@@ -254,7 +255,7 @@ const rolLector = async (req, res) => {
 };
 
 const rolJurado = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=3 AND id_usuario = $1 AND estado=true', [id]);
         if (result.rowCount > 0) {
@@ -296,48 +297,6 @@ const generarContrasenaAleatoria = () => {
     return contrasena;
 };
 
-const sendEmail = async (req, res) => {
-
-    const { nombre, correo } = req.body;
-
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USERNAME,
-            pass: process.env.EMAIL_PASSWORD
-        }
-    });
-
-    const mailOptions = {
-        from: process.env.EMAIL_USERNAME,
-        to: correo,
-        subject: 'Bienvenido al sistema - Creación de cuenta exitosa',
-        text: `
-Estimado(a) ${nombre},
-¡Bienvenido al sistema! Nos complace informarte que tu cuenta ha sido creada exitosamente.
-
-Recuerda que puedes cambiar tu contraseña en cualquier momento accediendo a nuestro sitio web. Para hacerlo, sigue estos pasos:
-    1. Ve a la página de inicio de sesión en [URL del Sitio Web].
-    2. Haz clic en "Recuperar Contraseña".
-    3. Se te mostrará una ventana emergente de recuperación de contraseña.
-    4. Ingresa tu dirección de correo electrónico asociada a tu cuenta y haz clic en "Enviar Código".
-    5. Recibirás un correo electrónico con un código de verificación para restablecer tu contraseña.
-    6. Ingresa el código de verificación y haz click en "Verificar".
-    7. Ingresa la nueva contraseña.
-          
-Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
-        `
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
-        }
-    });
-};
-
 const modificarUsuario = async (req, res) => {
     const { id, nombre, correo } = req.body;
     try {
@@ -352,10 +311,17 @@ const modificarUsuario = async (req, res) => {
 const cambiarEstado = async (req, res) => {
     const { id, estado } = req.body;
     try {
+        await pool.query('BEGIN');
         await pool.query('UPDATE usuario SET estado=$1 WHERE id=$2', [estado, id]);
+        const correo = await pool.query('SELECT correo FROM usuario WHERE id = $1', [id]);
+        await cambioEstadoUsuario(correo, estado);
+
+        await pool.query('COMMIT');
         res.status(201).json({ success: true, message: 'Fue modificado el estado del usuario exitosamente.' });
 
     } catch (error) {
+        await pool.query('ROLLBACK');
+        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -461,4 +427,4 @@ const estudiantesNuevo = async (req, res) => {
     }
 };
 
-module.exports = { estudiantesNuevo, obtenerProyectosInactivos, obtenerProyectosActivos, verEstudiante, obtenerEstudiantes, cambioUsuarioRol, estudiantesEliminados, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, registro, modificarProyecto, obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, sendEmail, modificarUsuario, cambiarEstado }
+module.exports = { estudiantesNuevo, obtenerProyectosInactivos, obtenerProyectosActivos, verEstudiante, obtenerEstudiantes, cambioUsuarioRol, estudiantesEliminados, obtenerProyectosDirector, obtenerProyectosJurado, obtenerProyectosLector, registro, modificarProyecto, obtenerProyecto, obtenerTodosProyectos, obtenerProyectosTerminados, obtenerProyectosDesarrollo, obtenerUsuarios, verUsuario, rolDirector, rolLector, rolJurado, agregarUsuario, modificarUsuario, cambiarEstado }

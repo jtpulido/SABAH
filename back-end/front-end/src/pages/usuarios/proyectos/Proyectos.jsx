@@ -12,7 +12,6 @@ import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../../layouts/DataGrid";
 
 
-
 export default function Proyectos() {
 
     const idUsuario = sessionStorage.getItem('user_id_usuario');
@@ -79,10 +78,9 @@ export default function Proyectos() {
 
     const llenarTablaEnCurso = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/usuario/obtenerProyectosDesarrolloRol", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 'id_usuario': idUsuario, 'id_rol': idRol })
+            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectosDesarrolloRol/${idUsuario}/${idRol}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (!data.success) {
@@ -100,10 +98,9 @@ export default function Proyectos() {
 
     const llenarTablaCerrados = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/usuario/obtenerProyectosCerradosRol", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 'id_usuario': idUsuario, 'id_rol': idRol })
+            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectosCerradosRol/${idUsuario}/${idRol}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (!data.success) {

@@ -12,10 +12,18 @@ import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../../layouts/DataGrid";
 
 
-
 export default function Estudiantes() {
 
     const navigate = useNavigate();
+
+    const token = useSelector(selectToken);
+    const [rowsEstudiantes, setRowsEstudiantes] = useState([]);
+
+    const { enqueueSnackbar } = useSnackbar();
+    const mostrarMensaje = (mensaje, variante) => {
+        enqueueSnackbar(mensaje, { variant: variante });
+    };
+
     const columns = [
         {
             field: 'nombre', headerName: 'Nombre Completo', flex: 0.2, minWidth: 100,
@@ -54,14 +62,6 @@ export default function Estudiantes() {
     const verEstudiante = (id) => {
         sessionStorage.setItem('admin_id_estudiante', id);
         navigate(`/admin/verEstudiante`)
-    };
-
-    const token = useSelector(selectToken);
-    const [rowsEstudiantes, setRowsEstudiantes] = useState([]);
-
-    const { enqueueSnackbar } = useSnackbar();
-    const mostrarMensaje = (mensaje, variante) => {
-        enqueueSnackbar(mensaje, { variant: variante });
     };
 
     const llenarTablaEstudiantes = useCallback(async () => {

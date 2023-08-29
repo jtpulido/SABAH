@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, IconButton, useTheme, Box, TextField, Grid, CssBaseline, Toolbar, AppBar } from "@mui/material";
-import { tokens } from "../../../theme";
+import { Typography, IconButton, Box, TextField, Grid, CssBaseline, Toolbar, AppBar } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -14,11 +13,11 @@ import { Visibility } from '@mui/icons-material';
 import CustomDataGrid from "../../layouts/DataGrid";
 
 
-
 export default function VerEstudiante() {
 
     const id = sessionStorage.getItem('admin_id_estudiante');
     const token = useSelector(selectToken);
+    const navigate = useNavigate();
     const [existe, setExiste] = useState([]);
 
     const { enqueueSnackbar } = useSnackbar();
@@ -68,8 +67,6 @@ export default function VerEstudiante() {
         }
     ];
 
-    const navigate = useNavigate();
-
     const verProyecto = (id) => {
         sessionStorage.setItem('admin_id_proyecto', id);
         navigate(`/admin/verProyecto`);
@@ -77,10 +74,9 @@ export default function VerEstudiante() {
 
     const infoEstudiante = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/verEstudiante", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/admin/verEstudiante/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
@@ -100,10 +96,9 @@ export default function VerEstudiante() {
 
     const llenarProyectosActivos = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/obtenerProyectosActivos", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/admin/obtenerProyectosActivos/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (!data.success) {
@@ -121,10 +116,9 @@ export default function VerEstudiante() {
 
     const llenarProyectosInactivos = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/obtenerProyectosInactivos", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/admin/obtenerProyectosInactivos/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             if (!data.success) {
@@ -145,14 +139,6 @@ export default function VerEstudiante() {
         llenarProyectosActivos();
         llenarProyectosInactivos();
     }, [infoEstudiante, llenarProyectosActivos, llenarProyectosInactivos]);
-
-    const CustomNoRowsMessage = (mensaje) => {
-        return (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                {mensaje}
-            </div>
-        );
-    }
 
     return (
         <div >

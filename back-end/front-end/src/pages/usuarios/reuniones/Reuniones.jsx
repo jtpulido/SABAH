@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 
 import { selectToken } from "../../../store/authSlice";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 
 import {
   Box, Typography, Button, IconButton, Tooltip, Toolbar, AppBar,
 } from '@mui/material';
 import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
-import DescriptionIcon from '@mui/icons-material/Description';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../../layouts/DataGrid";
@@ -45,14 +43,11 @@ export default function Reuniones() {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-  const navigate = useNavigate();
-
   const llenarTablaPendientes = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesPendientes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesPendientes/${idUsuario}/${idRol}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
 
@@ -71,10 +66,9 @@ export default function Reuniones() {
 
   const llenarTablaCompletas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCompletas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCompletas/${idUsuario}/${idRol}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
 
       const data = await response.json();
@@ -94,10 +88,9 @@ export default function Reuniones() {
 
   const llenarTablaCanceladas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCanceladas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: idUsuario, idRol: idRol }),
+      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCanceladas/${idUsuario}/${idRol}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
 
@@ -182,8 +175,6 @@ export default function Reuniones() {
       headerAlign: "center",
       align: "center",
       renderCell: ({ row }) => {
-        const id = row && row.id;
-        const { has_acta } = row;
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
             <Tooltip title="Ver Reunión">
@@ -194,16 +185,6 @@ export default function Reuniones() {
             <Tooltip title="Editar Reunión">
               <IconButton color="secondary" style={{ marginRight: '10px' }} onClick={() => abrirEditarReunion(row.id, 'completa')}>
                 <Create />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Crear Acta de Reunión">
-              <IconButton color="secondary" onClick={() => abrirActa(row.id)} disabled={has_acta}>
-                <DescriptionIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Descargar Acta de Reunión">
-              <IconButton color="secondary" component={Link} to={`/proyecto/ActaReunion/${id}`} disabled={!has_acta}>
-                <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
           </Box >
@@ -328,12 +309,6 @@ export default function Reuniones() {
   };
   const cerrarReunionVer = () => {
     llenarTablaPendientes();
-  };
-
-  // Acta de Reunion
-  const abrirActa = (id) => {
-    sessionStorage.setItem('usuario_id_reunion', id);
-    navigate('/usuario/ActaReunion');
   };
 
   return (

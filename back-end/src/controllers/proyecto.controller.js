@@ -751,7 +751,6 @@ const obtenerInvitados = async (req, res) => {
   }
 };
 
-
 module.exports = {
   obtenerProyecto, obtenerEntregasRealizadasCalificadas, obtenerEntregasRealizadasSinCalificar, obtenerEntregasPendientes,
   obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,

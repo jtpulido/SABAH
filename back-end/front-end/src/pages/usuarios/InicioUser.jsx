@@ -37,6 +37,10 @@ function InicioUser() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
+  const [isDirector, setIsDirector] = useState(false);
+  const [isLector, setIsLector] = useState(false);
+  const [isJurado, setIsJurado] = useState(false);
+
   const [subMenuStates, setSubMenuStates] = useState({
     proyectos: false,
     reuniones: false,
@@ -51,29 +55,22 @@ function InicioUser() {
     }));
   };
 
-  const [isDirector, setIsDirector] = useState(false);
-  const [isLector, setIsLector] = useState(false);
-  const [isJurado, setIsJurado] = useState(false);
-
   useEffect(() => {
     const obtenerRoles = async () => {
       try {
-        const responseDirector = await fetch('http://localhost:5000/usuario/rolDirector', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ id: idUsuario }),
+        const responseDirector = await fetch(`http://localhost:5000/usuario/rolDirector/${idUsuario}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
         });
 
-        const responseLector = await fetch('http://localhost:5000/usuario/rolLector', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ id: idUsuario }),
+        const responseLector = await fetch(`http://localhost:5000/usuario/rolLector/${idUsuario}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
         });
 
-        const responseJurado = await fetch('http://localhost:5000/usuario/rolJurado', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ id: idUsuario }),
+        const responseJurado = await fetch(`http://localhost:5000/usuario/rolJurado/${idUsuario}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
         });
 
         const dataDirector = await responseDirector.json();
@@ -141,28 +138,34 @@ function InicioUser() {
     if (button === 'menuInicio') {
       setActiveButton('menuInicio');
       navigate('');
-    } else if (button === 'reuniones') {
-      navigate('/user/reuniones');
+
     } else if (button === 'directorSolicitudes') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/solicitudes');
+
     } else if (button === 'directorEntregas') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/entregas');
+
     } else if (button === 'lectorEntregas') {
       sessionStorage.setItem('id_rol', 2);
       navigate('/user/entregas');
+
     } else if (button === 'juradoEntregas') {
       sessionStorage.setItem('id_rol', 3);
       navigate('/user/entregas');
+
     } else if (button === 'cerrarSesion') {
       cerrarSesion();
+
     } else if (button === 'directorProyectos') {
       sessionStorage.setItem('id_rol', 1);
       navigate('/user/proyectos');
+
     } else if (button === 'lectorProyectos') {
       sessionStorage.setItem('id_rol', 2);
       navigate('/user/proyectos');
+
     } else if (button === 'juradoProyectos') {
       sessionStorage.setItem('id_rol', 3);
       navigate('/user/proyectos');
@@ -181,8 +184,6 @@ function InicioUser() {
     }
     window.location.reload();
   };
-
-
 
   const menuItems = [
     { label: 'INICIO', button: 'menuInicio' },

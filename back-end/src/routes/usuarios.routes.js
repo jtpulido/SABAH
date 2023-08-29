@@ -37,13 +37,13 @@ router.post('/usuario/documento/guardarCalificacion', upload.single('file'), asy
 });
 router.get('/usuario/documento/:id', authenticateJWT, verInfoDocRetroalimentacion);
 
-router.post('/usuario/obtenerProyectosDesarrolloRol', authenticateJWT, obtenerProyectosDesarrolloRol);
-router.post('/usuario/obtenerProyectosCerradosRol', authenticateJWT, obtenerProyectosCerradosRol);
+router.get('/usuario/obtenerProyectosDesarrolloRol/:idUsuario/:idRol', authenticateJWT, obtenerProyectosDesarrolloRol);
+router.get('/usuario/obtenerProyectosCerradosRol/:idUsuario/:idRol', authenticateJWT, obtenerProyectosCerradosRol);
 router.get('/usuario/obtenerProyecto/:proyecto_id', authenticateJWT, obtenerProyecto);
 
-router.post('/usuario/rolDirector', authenticateJWT, rolDirector);
-router.post('/usuario/rolLector', authenticateJWT, rolLector);
-router.post('/usuario/rolJurado', authenticateJWT, rolJurado);
+router.get('/usuario/rolDirector/:idUsuario', authenticateJWT, rolDirector);
+router.get('/usuario/rolLector/:idUsuario', authenticateJWT, rolLector);
+router.get('/usuario/rolJurado/:idUsuario', authenticateJWT, rolJurado);
 
 router.get('/usuario/obtenerSolicitudesPendientes/:id', authenticateJWT, obtenerSolicitudesPendientesResponderDirector);
 router.get('/usuario/obtenerSolicitudesPendientesComite/:id', authenticateJWT, obtenerSolicitudesPendientesResponderComite);
@@ -57,11 +57,11 @@ router.get('/usuario/entregas/pendientes/:id_usuario/:id_rol', authenticateJWT, 
 router.get('/usuario/entregas/realizadas/calificadas/:id_usuario/:id_rol', authenticateJWT, verEntregasRealizadasCalificadasUsuarioRol);
 router.get('/usuario/entregas/realizadas/porCalificar/:id_usuario/:id_rol', authenticateJWT, verEntregasRealizadasSinCalificarUsuarioRol);
 
-router.post('/usuario/verUsuario', authenticateJWT, verUsuario);
+router.get('/usuario/verUsuario/:id', authenticateJWT, verUsuario);
 
-router.post('/usuario/obtenerReunionesPendientes', passport.authenticate('jwt', { session: false }), obtenerReunionesPendientes);
-router.post('/usuario/obtenerReunionesCompletas', passport.authenticate('jwt', { session: false }), obtenerReunionesCompletas);
-router.post('/usuario/obtenerReunionesCanceladas', passport.authenticate('jwt', { session: false }), obtenerReunionesCanceladas);
+router.get('/usuario/obtenerReunionesPendientes/:idUsuario/:idRol', passport.authenticate('jwt', { session: false }), obtenerReunionesPendientes);
+router.get('/usuario/obtenerReunionesCompletas/:idUsuario/:idRol', passport.authenticate('jwt', { session: false }), obtenerReunionesCompletas);
+router.get('/usuario/obtenerReunionesCanceladas/:idUsuario/:idRol', passport.authenticate('jwt', { session: false }), obtenerReunionesCanceladas);
 
 router.post('/usuario/crearReunionInvitados', passport.authenticate('jwt', { session: false }), crearReunionInvitados);
 router.post('/usuario/cancelarReunion', passport.authenticate('jwt', { session: false }), cancelarReunion);

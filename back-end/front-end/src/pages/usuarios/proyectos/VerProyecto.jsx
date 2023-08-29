@@ -163,6 +163,7 @@ export default function VerProyectos() {
         { field: 'fecha_cierre', headerName: 'Fecha de cierre', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
     ]);
+
     const columnaPorCalificar = generarColumnas([
         {
             field: "calificar",
@@ -187,6 +188,7 @@ export default function VerProyectos() {
         { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
     ]);
+
     const columnaCalificadas = generarColumnas([{
         field: "calificado",
         headerName: "",
@@ -210,6 +212,7 @@ export default function VerProyectos() {
         { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
 
     ]);
+
     const generarColumnasSol = (extraColumns) => {
         const commonColumns = [
             {
@@ -240,10 +243,12 @@ export default function VerProyectos() {
     const columnsSolPendientes = generarColumnasSol([{
         field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1
     }]);
+
     const columnsSolAprobadas = generarColumnasSol([
         { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
         { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.1 }
     ]);
+    
     const columnsSolRechazadas = generarColumnasSol([
         { field: 'fecha_director', headerName: 'Respuesta Director', flex: 0.1 },
         { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1 }

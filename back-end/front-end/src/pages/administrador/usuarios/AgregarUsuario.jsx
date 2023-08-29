@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
-import { tokens } from "../../../theme";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -12,7 +11,6 @@ export default function AgregarUsuario() {
 
     const token = useSelector(selectToken);
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const navigate = useNavigate();
 
@@ -58,7 +56,7 @@ export default function AgregarUsuario() {
                         } else {
 
                             try {
-                                const response1 = await fetch("http://localhost:5000/admin/sendEmail", {
+                                const response1 = await fetch("http://localhost:5000/admin/mailNuevoUsuario", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                                     body: JSON.stringify(usuario)

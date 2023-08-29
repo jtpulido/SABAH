@@ -2,9 +2,9 @@ const pool = require('../database')
 
 
 const obtenerProyectosDesarrolloRol = async (req, res) => {
-    const { id_usuario, id_rol } = req.body;
+    const { idUsuario, idRol } = req.params;
     try {
-        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
+        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre NOT IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [idUsuario, idRol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -17,9 +17,9 @@ const obtenerProyectosDesarrolloRol = async (req, res) => {
 };
 
 const obtenerProyectosCerradosRol = async (req, res) => {
-    const { id_usuario, id_rol } = req.body;
+    const { idUsuario, idRol } = req.params;
     try {
-        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [id_usuario, id_rol]);
+        const result = await pool.query("SELECT p.id, p.codigo, p.nombre, p.anio, p.periodo, m.acronimo as modalidad, e.nombre as etapa, es.nombre as estado FROM proyecto p JOIN modalidad m ON p.id_modalidad = m.id JOIN etapa e ON p.id_etapa = e.id JOIN estado es ON p.id_estado = es.id JOIN usuario_rol ur ON p.id = ur.id_proyecto WHERE ur.id_usuario=$1 AND ur.id_rol=$2 AND ur.estado=true AND es.nombre IN ('Rechazado', 'Aprobado comité', 'Cancelado', 'Terminado') ORDER BY nombre ASC", [idUsuario, idRol]);
         const proyectos = result.rows;
         if (result.rowCount > 0) {
             return res.json({ success: true, proyectos });
@@ -56,9 +56,9 @@ const obtenerProyecto = async (req, res) => {
 };
 
 const rolDirector = async (req, res) => {
-    const { id } = req.body;
+    const { idUsuario } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=1 AND id_usuario = $1 AND estado=true', [id]);
+        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=1 AND id_usuario = $1 AND estado=true', [idUsuario]);
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
@@ -71,9 +71,9 @@ const rolDirector = async (req, res) => {
 };
 
 const rolLector = async (req, res) => {
-    const { id } = req.body;
+    const { idUsuario } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=2 AND id_usuario = $1 AND estado=true', [id]);
+        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=2 AND id_usuario = $1 AND estado=true', [idUsuario]);
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
@@ -86,9 +86,9 @@ const rolLector = async (req, res) => {
 };
 
 const rolJurado = async (req, res) => {
-    const { id } = req.body;
+    const { idUsuario } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=3 AND id_usuario = $1 AND estado=true', [id]);
+        const result = await pool.query('SELECT * FROM usuario_rol WHERE id_rol=3 AND id_usuario = $1 AND estado=true', [idUsuario]);
         if (result.rowCount > 0) {
             return res.json({ success: true });
         } else {
@@ -101,7 +101,7 @@ const rolJurado = async (req, res) => {
 };
 
 const verUsuario = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT u.id, u.nombre, u.correo, u.estado FROM usuario u WHERE u.id = $1', [id]);
         const infoUsuario = result.rows;
@@ -135,7 +135,7 @@ const obtenerReunion = async (req, res) => {
 };
 
 const obtenerReunionesPendientes = async (req, res) => {
-    const { id, idRol } = req.body;
+    const { idUsuario, idRol } = req.params;
 
     let rol = '';
     if (idRol === '1') {
@@ -148,7 +148,7 @@ const obtenerReunionesPendientes = async (req, res) => {
 
     try {
         const updateQuery = `UPDATE reunion SET id_estado=(SELECT id FROM estado_reunion WHERE nombre = 'Completa') WHERE id_proyecto=$1 AND fecha<CURRENT_TIMESTAMP AND id_estado!=(SELECT id FROM estado_reunion WHERE nombre = 'Cancelada')`;
-        const updateValues = [id];
+        const updateValues = [idUsuario];
         await pool.query(updateQuery, updateValues);
 
         // Obtener reunion actualizadas
@@ -178,7 +178,7 @@ const obtenerReunionesPendientes = async (req, res) => {
           ) AS subconsulta
           WHERE subconsulta.roles_invitados ILIKE $2
           ORDER BY subconsulta.fecha ASC;`;
-        const selectValues = [id, `%${rol}%`];
+        const selectValues = [idUsuario, `%${rol}%`];
         const result = await pool.query(selectQuery, selectValues);
         const pendientes = result.rows;
 
@@ -193,7 +193,7 @@ const obtenerReunionesPendientes = async (req, res) => {
 };
 
 const obtenerReunionesCompletas = async (req, res) => {
-    const { id, idRol } = req.body;
+    const { idUsuario, idRol } = req.params;
 
     let rol = '';
     if (idRol === '1') {
@@ -231,7 +231,7 @@ const obtenerReunionesCompletas = async (req, res) => {
             GROUP BY r.id, r.nombre, r.fecha, r.enlace, pr.id, pr.nombre, asi.id, asi.nombre
           ) AS subconsulta
           WHERE subconsulta.roles_invitados ILIKE $2
-          ORDER BY subconsulta.fecha ASC;`, [id, `%${rol}%`]);
+          ORDER BY subconsulta.fecha ASC;`, [idUsuario, `%${rol}%`]);
         const completas = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, completas });
@@ -245,7 +245,7 @@ const obtenerReunionesCompletas = async (req, res) => {
 };
 
 const obtenerReunionesCanceladas = async (req, res) => {
-    const { id, idRol } = req.body;
+    const { idUsuario, idRol } = req.parans;
 
     let rol = '';
     if (idRol === '1') {
@@ -282,7 +282,7 @@ const obtenerReunionesCanceladas = async (req, res) => {
             GROUP BY r.id, r.nombre, r.fecha, r.enlace, pr.id, pr.nombre
           ) AS subconsulta
           WHERE subconsulta.roles_invitados ILIKE $2
-          ORDER BY subconsulta.fecha ASC;`, [id, `%${rol}%`]);
+          ORDER BY subconsulta.fecha ASC;`, [idUsuario, `%${rol}%`]);
         const canceladas = result.rows
         if (result.rowCount > 0) {
             return res.json({ success: true, canceladas });
@@ -602,7 +602,6 @@ const ultIdReunion = async (req, res) => {
     }
 };
 
-
 const guardarCalificacion = async (req, res) => {
     try {
         const { id_doc_entrega, id_usuario_rol, calificacion_aspecto } = req.body;
@@ -630,9 +629,10 @@ const guardarCalificacion = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Error guardar la calificación' });
     }
 };
+
 module.exports = {
     obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud,
-    agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia,cancelarReunion,
-    obtenerReunion,obtenerReunionesPendientes,obtenerReunionesCompletas,obtenerReunionesCanceladas 
+    agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion,
+    obtenerReunion, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas
 }

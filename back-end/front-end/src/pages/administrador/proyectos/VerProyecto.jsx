@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline } from "@mui/material";
+import { Typography, Box, TextField, Grid, CssBaseline } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import { useSnackbar } from 'notistack';
+
 
 export default function VerProyectos() {
 
@@ -32,8 +33,9 @@ export default function VerProyectos() {
   };
 
   const infoProyecto = useCallback(async () => {
+    const proyecto_id = id;
     try {
-      const response = await fetch(`http://localhost:5000/admin/verProyecto/${id}`, {
+      const response = await fetch(`http://localhost:5000/admin/verProyecto/${proyecto_id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

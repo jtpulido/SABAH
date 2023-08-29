@@ -12,7 +12,6 @@ export default function ModificarProyectos() {
     const id = sessionStorage.getItem('admin_id_proyecto');
     const token = useSelector(selectToken);
     
-
     const navigate = useNavigate();
 
     const { enqueueSnackbar } = useSnackbar();

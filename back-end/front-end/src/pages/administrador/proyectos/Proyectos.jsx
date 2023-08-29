@@ -5,7 +5,6 @@ import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
 import Tooltip from '@mui/material/Tooltip';
 
 import { Visibility } from '@mui/icons-material';
-import "./Proyectos.css";
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
@@ -13,7 +12,17 @@ import CustomDataGrid from "../../layouts/DataGrid";
 
 
 export default function Proyectos() {
+
   const navigate = useNavigate();
+  const token = useSelector(selectToken);
+  const [rowsEnCurso, setRowsEnCurso] = useState([]);
+  const [rowsTerminados, setRowsTerminados] = useState([]);
+
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
+
   const columns = [
     { field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150, headerAlign: "center", align: "center" },
     { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
@@ -51,15 +60,6 @@ export default function Proyectos() {
     sessionStorage.setItem('admin_id_proyecto', id);
     navigate(`/admin/verProyecto`)
   }
-
-  const token = useSelector(selectToken);
-  const [rowsEnCurso, setRowsEnCurso] = useState([]);
-  const [rowsTerminados, setRowsTerminados] = useState([]);
-
-  const { enqueueSnackbar } = useSnackbar();
-  const mostrarMensaje = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, { variant: variante });
-  };
 
   const llenarTablaEnCurso = useCallback(async () => {
     try {
@@ -106,30 +106,29 @@ export default function Proyectos() {
     llenarTablaCerrados()
   }, [llenarTablaEnCurso, llenarTablaCerrados]);
 
-
   return (
     <div>
-    <AppBar position="static" color="transparent" variant="contained" >
+      <AppBar position="static" color="transparent" variant="contained" >
         <Toolbar>
-            <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
-                PROYECTOS
-            </Typography>
+          <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
+            PROYECTOS
+          </Typography>
         </Toolbar>
-    </AppBar>
-    <Box sx={{ m: 3 }}>
+      </AppBar>
+      <Box sx={{ m: 3 }}>
         <Typography variant="h2" color="primary"
-            sx={{ mt: "30px" }}>
-            En desarrollo
+          sx={{ mt: "30px" }}>
+          En desarrollo
         </Typography>
         <CustomDataGrid rows={rowsEnCurso || []} columns={columns} mensaje="No hay proyectos" />
 
         <Typography variant="h2" color="primary"
-            sx={{ mt: "30px" }}>
-            Cerrados
+          sx={{ mt: "30px" }}>
+          Cerrados
         </Typography>
         <CustomDataGrid rows={rowsTerminados || []} columns={columns} mensaje="No hay proyectos" />
 
-    </Box>
-</div>
+      </Box>
+    </div>
   );
 }

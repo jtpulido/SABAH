@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
+import { Typography, Box, TextField, Grid, CssBaseline, Select } from "@mui/material";
 import "./Inscribir.css";
-import { tokens } from "../../../theme";
 import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../../pie_de_pagina/Footer";
 import { useSnackbar } from 'notistack';
 
 export const Inscribir = () => {
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [nombre, setNombre] = useState("");
 
@@ -25,12 +21,8 @@ export const Inscribir = () => {
     ]);
 
     const handleEstudianteChange = (index, field, value) => {
-        //Crear una copia del arreglo anterior de estudiantes
         const newEstudiantes = [...estudiantes];
-
-        //Actualizar el campo del estudiante especificado por index
         newEstudiantes[index][field] = value;
-
         setEstudiantes(newEstudiantes);
     }
 
@@ -41,7 +33,6 @@ export const Inscribir = () => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
-    // Lista de todos los usuarios con tipo usuario normal
     const [listaDirectores, setListaDirectores] = useState([]);
     const infoDirector = useCallback(async () => {
         try {
@@ -63,7 +54,6 @@ export const Inscribir = () => {
         }
     }, []);
 
-    // Id del ultimo proyecto en la base de datos
     const [idUltProy, setIdUltProy] = useState("");
     const getIdUltProy = useCallback(async () => {
         try {
@@ -85,7 +75,6 @@ export const Inscribir = () => {
         }
     }, []);
 
-    // Id del ultimo estudiante en la base de datos
     // eslint-disable-next-line
     const [idUltEst, setIdUltEst] = useState("");
     const getIdUltEst = useCallback(async () => {
@@ -108,7 +97,6 @@ export const Inscribir = () => {
         }
     }, []);
 
-    // Valor del ultimo numero consecutivo de los codigos de proyecto
     const [consecutivo, setConsecutivo] = useState("");
     const codigoProy = useCallback(async () => {
         try {
@@ -132,7 +120,6 @@ export const Inscribir = () => {
         }
     }, []);
 
-    // Lista de todas las modalidades de la base de datos
     const [listaModalidades, setListaModalidades] = useState([]);
     const getModalidades = useCallback(async () => {
         try {
@@ -162,7 +149,6 @@ export const Inscribir = () => {
         getIdUltEst();
     }, [infoDirector, codigoProy, getModalidades, getIdUltProy, getIdUltEst]);
 
-    // Guarda el valor de la modalidad seleccionada en el select
     const [idModalidadSeleccionada, setIdModalidadSeleccionada] = useState("");
     const handleModalidadSeleccionada = (event) => {
         if (event.target.value !== "") {
@@ -172,7 +158,6 @@ export const Inscribir = () => {
         }
     };
 
-    // Guarda el id del director seleccionado en el select
     const [idDirectorSeleccionado, setIdDirectorSeleccionado] = useState("");
     const handleDirectorSeleccionado = (event) => {
         if (event.target.value !== "") {
@@ -184,7 +169,7 @@ export const Inscribir = () => {
 
     const getFormattedDate = () => {
         const now = new Date();
-        const year = now.getFullYear().toString().slice(-2);
+        const year = now.getFullYear().toString();
         const month = (now.getMonth() + 1).toString().padStart(2, "0");
         return `${year}-${month}`;
     };
@@ -213,9 +198,8 @@ export const Inscribir = () => {
     };
 
     const handleSubmit = async (event) => {
-
         event.preventDefault();
-        // Información General
+
         if (idModalidadSeleccionada === "" || idDirectorSeleccionado === "" || nombre === "") {
             mostrarMensaje("Por favor, complete todos los campos.", "error");
 
@@ -389,13 +373,13 @@ export const Inscribir = () => {
     };
 
     return (
-        <div className="todo">
+        <>
             <CssBaseline />
 
-            <Box sx={{ height: '100%', overflow: 'auto', paddingTop: 5, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
+            <Box sx={{ height: '100%', paddingTop: 5, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
 
                 <Typography
-                    variant="h6"
+                    variant="h5"
                     color="secondary"
                     sx={{ mt: "20px", mb: "20px" }}
                 >
@@ -458,7 +442,7 @@ export const Inscribir = () => {
                 </Grid>
 
                 <Typography
-                    variant="h6"
+                    variant="h5"
                     color="secondary"
                     sx={{ mt: "30px", mb: "20px" }}
                 >
@@ -532,7 +516,7 @@ export const Inscribir = () => {
 
                 </Grid>
 
-                <div style={{ justifyContent: 'center', display: 'flex' }}>
+                <div style={{ justifyContent: 'center', display: 'flex', paddingTop: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', width: '35%' }}>
                         <Button className="boton" onClick={handleBack}>
                             Atrás
@@ -544,8 +528,9 @@ export const Inscribir = () => {
                 </div>
 
             </Box>
+
             <Footer />
-        </div>
+        </>
     );
 };
 

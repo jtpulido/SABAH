@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
-import { tokens } from "../../../theme";
+import { Typography, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -13,8 +12,6 @@ export default function ModificarUsuario() {
 
     const id = sessionStorage.getItem('admin_id_usuario');
     const token = useSelector(selectToken);
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const navigate = useNavigate();
     const [usuarioInicial, setUsuarioInicial] = useState([]);
@@ -87,10 +84,9 @@ export default function ModificarUsuario() {
 
     const infoUsuario = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/verUsuario", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
