@@ -8,10 +8,26 @@ import { useSnackbar } from 'notistack';
 
 export const Inscribir = () => {
 
-    const [nombre, setNombre] = useState("");
+    const navigate = useNavigate();
 
+    const [nombre, setNombre] = useState("");
     const handleNombre = (e) => {
         setNombre(e.target.value);
+    };
+
+    const [nombreEmpresa, setNombreEmpresa] = useState("");
+    const handleNombreEmpresa = (e) => {
+        setNombreEmpresa(e.target.value);
+    };
+
+    const [correoEmpresa, setCorreoEmpresa] = useState("");
+    const handleCorreoEmpresa = (e) => {
+        setCorreoEmpresa(e.target.value);
+    };
+
+    const [nombreRepr, setNombreRepr] = useState("");
+    const handleNombreRepr = (e) => {
+        setNombreRepr(e.target.value);
     };
 
     const [estudiantes, setEstudiantes] = useState([
@@ -19,14 +35,11 @@ export const Inscribir = () => {
         { nombre: "", num_identificacion: "", correo: "" },
         { nombre: "", num_identificacion: "", correo: "" },
     ]);
-
     const handleEstudianteChange = (index, field, value) => {
         const newEstudiantes = [...estudiantes];
         newEstudiantes[index][field] = value;
         setEstudiantes(newEstudiantes);
-    }
-
-    const navigate = useNavigate();
+    };
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
@@ -54,49 +67,6 @@ export const Inscribir = () => {
         }
     }, []);
 
-    const [idUltProy, setIdUltProy] = useState("");
-    const getIdUltProy = useCallback(async () => {
-        try {
-            const response = await fetch("http://localhost:5000/getIdUltProy", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-                setIdUltProy(data.num);
-            }
-
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    }, []);
-
-    // eslint-disable-next-line
-    const [idUltEst, setIdUltEst] = useState("");
-    const getIdUltEst = useCallback(async () => {
-        try {
-            const response = await fetch("http://localhost:5000/getIdUltEst", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-                setIdUltEst(data.num);
-            }
-
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    }, []);
-
     const [consecutivo, setConsecutivo] = useState("");
     const codigoProy = useCallback(async () => {
         try {
@@ -113,7 +83,6 @@ export const Inscribir = () => {
                 const currentConsecutivo = parseInt(data.codigo.split('-')[2], 10);
                 const newConsecutivo = (currentConsecutivo + 1).toString().padStart(2, '0');
                 setConsecutivo(newConsecutivo);
-
             }
 
         } catch (error) {
@@ -146,14 +115,19 @@ export const Inscribir = () => {
         infoDirector();
         codigoProy();
         getModalidades();
-        getIdUltProy();
-    }, [infoDirector, codigoProy, getModalidades, getIdUltProy]);
+    }, [infoDirector, codigoProy, getModalidades]);
 
     const [idModalidadSeleccionada, setIdModalidadSeleccionada] = useState("");
     const handleModalidadSeleccionada = (event) => {
         if (event.target.value !== "") {
             setIdModalidadSeleccionada(event.target.value);
         } else {
+            if (event.target.value === 3 || event.target.value === 4) {
+                const updatedEstudiantes = [...estudiantes];
+                updatedEstudiantes[1] = { nombre: "", num_identificacion: "", correo: "" };
+                updatedEstudiantes[2] = { nombre: "", num_identificacion: "", correo: "" };
+                setEstudiantes(updatedEstudiantes);
+            }
             setIdModalidadSeleccionada("")
         }
     };
@@ -187,178 +161,99 @@ export const Inscribir = () => {
         }
     };
 
-    const fechaSistema = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = (today.getMonth() + 1).toString().padStart(2, '0');
-        const day = today.getDate().toString().padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day}`;
+    const terminar = async () => {
+        const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
 
-        return formattedDate;
+        // Verificar el correo
+        const emailRegex = /^\S+@unbosque\.edu\.co$/;
+        const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
+        if (validEmails.length !== numIntegrantes) {
+            mostrarMensaje("Ingrese una dirección de correo electrónico institucional válida.", "error");
+        } else {
+
+            // Verificar que el numero de identificacion no tenga caracteres especiales
+            const idRegex = /^[a-zA-Z0-9]+$/;
+            const validIds = estudiantes.filter((estudiante) => idRegex.test(estudiante.num_identificacion));
+            if (validIds.length !== numIntegrantes) {
+                mostrarMensaje("El número de identificación no es válido. Debe contener solo letras y/o dígitos.", "error");
+            } else {
+
+                // Código
+                const codigoProyecto = generateCode(consecutivo);
+
+                // Anio
+                const now = new Date();
+                const year = now.getFullYear().toString();
+
+                // Periodo
+                const periodo = getPeriodo(now.getMonth() + 1);
+
+                // Insertar un nuevo proyecto
+                try {
+                    const response = await fetch("http://localhost:5000/inscribirPropuesta", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            codigo: codigoProyecto,
+                            nombre: nombre,
+                            anio: year,
+                            periodo: periodo,
+                            id_modalidad: parseInt(idModalidadSeleccionada),
+                            id_etapa: 1,
+                            id_estado: 1,
+                            id_usuario: parseInt(idDirectorSeleccionado),
+                            estudiantes: estudiantes,
+                            nombre_empresa: nombreEmpresa,
+                            correo_repr: correoEmpresa,
+                            nombre_repr: nombreRepr
+                        }),
+                    });
+
+                    const data = await response.json();
+                    if (!data.success) {
+                        mostrarMensaje(data.message, "error");
+                    } else {
+                        mostrarMensaje("El proyecto fue creado con éxito.", "success");
+                        // Delay
+                        setTimeout(() => {
+                            navigate('/');
+                        }, 2000);
+                    }
+                } catch (error) {
+                    mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+                }
+            }
+        }
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         if (idModalidadSeleccionada === "" || idDirectorSeleccionado === "" || nombre === "") {
             mostrarMensaje("Por favor, complete todos los campos.", "error");
 
         } else {
-            // Verificar integrantes por modalidad
             const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
-
             // AUX o COT
-            if (idModalidadSeleccionada.acronimo === "AUX" || idModalidadSeleccionada.acronimo === "COT") {
+            if (idModalidadSeleccionada === 3 || idModalidadSeleccionada === 4) {
                 if (numIntegrantes === 1) {
-                    // Verificar veracidad del correo
-                    const emailRegex = /^\S+@unbosque\.edu\.co$/;
-                    const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
-                    if (validEmails.length !== numIntegrantes) {
-                        mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
-                    } else {
-
-                        // Verificar que el numero de identificacion no tenga caracteres especiales
-                        const idRegex = /^[a-zA-Z0-9]+$/;
-                        const validIds = estudiantes.filter((estudiante) => idRegex.test(estudiante.num_identificacion));
-                        if (validIds.length !== numIntegrantes) {
-                            mostrarMensaje("El número de identificación no es válido. Debe contener solo letras y/o dígitos.", "error");
-                        } else {
-
-                            // Código
-                            const codigoProyecto = generateCode(consecutivo);
-
-                            // Anio
-                            const now = new Date();
-                            const year = now.getFullYear().toString();
-
-                            // Periodo
-                            const periodo = getPeriodo(now.getMonth() + 1);
-
-                            // Modalidad
-                            const modInt = parseInt(idModalidadSeleccionada.id);
-
-                            // Insertar un nuevo proyecto
-                            try {
-                                let response;
-                                for (let index = 0; index < estudiantes.length; index++) {
-                                    if (estudiantes[index].nombre !== "") {
-                                        response = await fetch("http://localhost:5000/inscribirPropuesta", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                "id": parseInt(idUltProy) + 1,
-                                                "codigo": codigoProyecto,
-                                                "nombre": nombre,
-                                                "anio": year,
-                                                "periodo": periodo,
-                                                "id_modalidad": modInt,
-                                                "id_etapa": 1,
-                                                "id_estado": 1,
-                                                "fecha_asignacion": fechaSistema(),
-                                                "id_usuario": parseInt(idDirectorSeleccionado),
-                                                "nombreEstudiante": estudiantes[index].nombre.toString(),
-                                                "num_identificacion": estudiantes[index].num_identificacion.toString(),
-                                                "correo": estudiantes[index].correo.toString()
-                                            }),
-                                        });
-                                    }
-                                }
-
-                                const data = await response.json();
-                                if (!data.success) {
-                                    mostrarMensaje(data.message, "error");
-                                } else {
-                                    mostrarMensaje("El proyecto fue creado con éxito.", "success");
-                                    // Delay
-                                    setTimeout(() => {
-                                        navigate('/');
-                                    }, 2000);
-                                }
-                            } catch (error) {
-                                mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-                            }
-                        }
-                    }
+                    terminar();
 
                 } else {
-                    mostrarMensaje("La modalidad 'Auxiliar de Investigación' y 'Coterminal' requieren un integrante con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
+                    mostrarMensaje("Proporcione la información completa del integrante antes de proceder.", "error");
                 }
             } else {
                 // DT o PG
                 if (numIntegrantes >= 2 && numIntegrantes <= 3) {
 
-                    // Verificar veracidad del correo
-                    const emailRegex = /^\S+@unbosque\.edu\.co$/;
-                    const validEmails = estudiantes.filter((estudiante) => emailRegex.test(estudiante.correo));
-                    if (validEmails.length !== numIntegrantes) {
-                        mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
+                    if (idModalidadSeleccionada === 1 && (nombreEmpresa === '' || nombreRepr === '' || correoEmpresa === '')) {
+                        mostrarMensaje("Proporcione la información completa de la empresa antes de proceder.", "error");
+
                     } else {
-
-                        // Verificar que el numero de identificacion no tenga caracteres especiales
-                        const idRegex = /^[a-zA-Z0-9]+$/;
-                        const validIds = estudiantes.filter((estudiante) => idRegex.test(estudiante.num_identificacion));
-                        if (validIds.length !== numIntegrantes) {
-                            mostrarMensaje("El número de identificación no es válido. Debe contener solo letras y/o dígitos.", "error");
-                        } else {
-
-                            // Código
-                            const codigoProyecto = generateCode(consecutivo);
-
-                            // Anio
-                            const now = new Date();
-                            const year = now.getFullYear().toString();
-
-                            // Periodo
-                            const periodo = getPeriodo(now.getMonth() + 1);
-
-                            // Modalidad
-                            const modInt = parseInt(idModalidadSeleccionada.id);
-
-                            const estudiantesNoVacios = estudiantes.filter((estudiante) => {
-                                return (
-                                    estudiante.nombre !== "" &&
-                                    estudiante.num_identificacion !== "" &&
-                                    estudiante.correo !== ""
-                                );
-                            });
-
-                            // Insertar un nuevo proyecto
-                            try {
-                                const response = await fetch("http://localhost:5000/inscribirPropuestaVarios", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        "id": parseInt(idUltProy) + 1,
-                                        "codigo": codigoProyecto,
-                                        "nombre": nombre,
-                                        "anio": year,
-                                        "periodo": periodo,
-                                        "id_modalidad": modInt,
-                                        "id_etapa": 1,
-                                        "id_estado": 1,
-                                        "fecha_asignacion": fechaSistema(),
-                                        "id_usuario": parseInt(idDirectorSeleccionado),
-                                        "infoEstudiantes": estudiantesNoVacios
-                                    }),
-                                });
-
-                                const data = await response.json();
-                                if (!data.success) {
-                                    mostrarMensaje(data.message, "error");
-                                } else {
-                                    mostrarMensaje("El proyecto fue creado con éxito.", "success");
-                                    // Delay
-                                    setTimeout(() => {
-                                        navigate('/');
-                                    }, 2000);
-                                }
-                            } catch (error) {
-                                mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-                            }
-                        }
+                        terminar();
                     }
+
                 } else {
-                    mostrarMensaje("La modalidad 'Desarrollo Tecnológico' y 'Proyecto de Grado' requieren de 2 a 3 integrantes con toda la información completa. Por favor asegúrese de llenar todos los campos requeridos antes de continuar.", "error");
+                    mostrarMensaje("Proporcione la información completa de los integrantes antes de proceder.", "error");
                 }
             }
         }
@@ -369,11 +264,9 @@ export const Inscribir = () => {
     };
 
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <CssBaseline />
-
-            <Box sx={{ height: '100%', paddingTop: 5, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
-
+            <Box sx={{ flex: '1', paddingTop: 5, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
                 <Typography
                     variant="h5"
                     color="secondary"
@@ -383,48 +276,42 @@ export const Inscribir = () => {
                 </Typography>
 
                 <Grid container spacing={3}>
-
                     <Grid item xs={12} sm={6} md={6} lg={6}>
                         <Typography variant="h6" color="primary">
                             Modalidad
                         </Typography>
-                        <FormControl fullWidth>
-                            <Select
-                                value={idModalidadSeleccionada || ""}
-                                onChange={handleModalidadSeleccionada}
-                                required
-                                fullWidth
-                            >
-                                {listaModalidades.map((modalidad) => (
-                                    <MenuItem key={modalidad.id} value={modalidad}>
-                                        {modalidad.nombre}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
+                        <Select
+                            value={idModalidadSeleccionada || ""}
+                            onChange={handleModalidadSeleccionada}
+                            required
+                            fullWidth
+                        >
+                            {listaModalidades.map((modalidad) => (
+                                <MenuItem key={modalidad.id} value={modalidad.id}>
+                                    {modalidad.nombre}
+                                </MenuItem>
+                            ))}
+                        </Select>
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={6} lg={6}>
                         <Typography variant="h6" color="primary">
                             Director
                         </Typography>
-                        <Select
-                            fullWidth
-                            native
-                            onChange={handleDirectorSeleccionado}
-                            inputProps={{
-                                name: "director",
-                                id: "director",
-                            }}
-                        >
-                            <option value="" />
-                            {listaDirectores.map((listaDirectores) => (
-                                <option key={listaDirectores.id} value={listaDirectores.id}>
-                                    {listaDirectores.nombre}
-                                </option>
-                            ))}
-                        </Select>
+                        <FormControl fullWidth>
+                            <Select
+                                value={idDirectorSeleccionado || ""}
+                                required
+                                fullWidth
+                                onChange={handleDirectorSeleccionado}
+                            >
+                                {listaDirectores.map((listaDirectores) => (
+                                    <MenuItem key={listaDirectores.id} value={listaDirectores.id}>
+                                        {listaDirectores.nombre}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                     </Grid>
 
                     <Grid item xs={12}>
@@ -433,6 +320,31 @@ export const Inscribir = () => {
                         </Typography>
                         <TextField value={nombre} onChange={handleNombre} fullWidth />
                     </Grid>
+
+                    {idModalidadSeleccionada === 1 && (
+                        <>
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                <Typography variant="h6" color="primary">
+                                    Nombre Empresa
+                                </Typography>
+                                <TextField value={nombreEmpresa} onChange={handleNombreEmpresa} fullWidth />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                <Typography variant="h6" color="primary">
+                                    Nombre Representante
+                                </Typography>
+                                <TextField value={nombreRepr} onChange={handleNombreRepr} fullWidth />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6} md={4} lg={4}>
+                                <Typography variant="h6" color="primary">
+                                    Correo Electrónico Representante
+                                </Typography>
+                                <TextField value={correoEmpresa} onChange={handleCorreoEmpresa} fullWidth />
+                            </Grid>
+                        </>
+                    )}
 
                 </Grid>
 
@@ -443,71 +355,103 @@ export const Inscribir = () => {
                 >
                     Integrantes
                 </Typography>
-
                 <Grid container spacing={3}>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Nombre Completo Integrante 1
-                        </Typography>
-                        <TextField value={estudiantes[0].nombre} onChange={(event) => handleEstudianteChange(0, 'nombre', event.target.value)} fullWidth />
-                    </Grid>
+                    {idModalidadSeleccionada !== '' && (
+                        <>
+                            {(idModalidadSeleccionada === 3 || idModalidadSeleccionada === 4) && (
+                                <>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Nombre Completo Integrante 1
+                                        </Typography>
+                                        <TextField value={estudiantes[0].nombre} onChange={(event) => handleEstudianteChange(0, 'nombre', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Número de Identificación Integrante 1
-                        </Typography>
-                        <TextField value={estudiantes[0].num_identificacion} onChange={(event) => handleEstudianteChange(0, 'num_identificacion', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Número de Identificación Integrante 1
+                                        </Typography>
+                                        <TextField value={estudiantes[0].num_identificacion} onChange={(event) => handleEstudianteChange(0, 'num_identificacion', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Correo Electrónico Integrante 1
-                        </Typography>
-                        <TextField value={estudiantes[0].correo} onChange={(event) => handleEstudianteChange(0, 'correo', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Correo Electrónico Integrante 1
+                                        </Typography>
+                                        <TextField value={estudiantes[0].correo} onChange={(event) => handleEstudianteChange(0, 'correo', event.target.value)} fullWidth />
+                                    </Grid>
+                                </>
+                            )}
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Nombre Completo Integrante 2
-                        </Typography>
-                        <TextField value={estudiantes[1].nombre} onChange={(event) => handleEstudianteChange(1, 'nombre', event.target.value)} fullWidth />
-                    </Grid>
+                            {(idModalidadSeleccionada === 1 || idModalidadSeleccionada === 2) && (
+                                <>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Nombre Completo Integrante 1
+                                        </Typography>
+                                        <TextField value={estudiantes[0].nombre} onChange={(event) => handleEstudianteChange(0, 'nombre', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Número de Identificación Integrante 2
-                        </Typography>
-                        <TextField value={estudiantes[1].num_identificacion} onChange={(event) => handleEstudianteChange(1, 'num_identificacion', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Número de Identificación Integrante 1
+                                        </Typography>
+                                        <TextField value={estudiantes[0].num_identificacion} onChange={(event) => handleEstudianteChange(0, 'num_identificacion', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Correo Electrónico Integrante 2
-                        </Typography>
-                        <TextField value={estudiantes[1].correo} onChange={(event) => handleEstudianteChange(1, 'correo', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Correo Electrónico Integrante 1
+                                        </Typography>
+                                        <TextField value={estudiantes[0].correo} onChange={(event) => handleEstudianteChange(0, 'correo', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Nombre Completo Integrante 3
-                        </Typography>
-                        <TextField value={estudiantes[2].nombre} onChange={(event) => handleEstudianteChange(2, 'nombre', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Nombre Completo Integrante 2
+                                        </Typography>
+                                        <TextField value={estudiantes[1].nombre} onChange={(event) => handleEstudianteChange(1, 'nombre', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Número de Identificación Integrante 3
-                        </Typography>
-                        <TextField value={estudiantes[2].num_identificacion} onChange={(event) => handleEstudianteChange(2, 'num_identificacion', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Número de Identificación Integrante 2
+                                        </Typography>
+                                        <TextField value={estudiantes[1].num_identificacion} onChange={(event) => handleEstudianteChange(1, 'num_identificacion', event.target.value)} fullWidth />
+                                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                        <Typography variant="h6" color="primary">
-                            Correo Electrónico Integrante 3
-                        </Typography>
-                        <TextField value={estudiantes[2].correo} onChange={(event) => handleEstudianteChange(2, 'correo', event.target.value)} fullWidth />
-                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Correo Electrónico Integrante 2
+                                        </Typography>
+                                        <TextField value={estudiantes[1].correo} onChange={(event) => handleEstudianteChange(1, 'correo', event.target.value)} fullWidth />
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Nombre Completo Integrante 3
+                                        </Typography>
+                                        <TextField value={estudiantes[2].nombre} onChange={(event) => handleEstudianteChange(2, 'nombre', event.target.value)} fullWidth />
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Número de Identificación Integrante 3
+                                        </Typography>
+                                        <TextField value={estudiantes[2].num_identificacion} onChange={(event) => handleEstudianteChange(2, 'num_identificacion', event.target.value)} fullWidth />
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={6} md={4} lg={4}>
+                                        <Typography variant="h6" color="primary">
+                                            Correo Electrónico Integrante 3
+                                        </Typography>
+                                        <TextField value={estudiantes[2].correo} onChange={(event) => handleEstudianteChange(2, 'correo', event.target.value)} fullWidth />
+                                    </Grid>
+                                </>
+                            )}
+                        </>
+                    )}
 
                 </Grid>
 
@@ -522,10 +466,10 @@ export const Inscribir = () => {
                     </div>
                 </div>
 
-            </Box>
+            </Box >
 
             <Footer />
-        </>
+        </div>
     );
 };
 

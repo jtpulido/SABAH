@@ -132,7 +132,7 @@ El Equipo de SABAH
     }
 };
 
-const nuevaPropuesta = async (nombre, codigo, correo) => {
+const nuevaPropuesta = async (nombre, nombre_estudiante, codigo, correo) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -146,6 +146,8 @@ const nuevaPropuesta = async (nombre, codigo, correo) => {
         to: correo,
         subject: 'Bienvenido al sistema - Creación de cuenta exitosa',
         text: `
+Hola ${nombre_estudiante},
+
 ¡Bienvenido al sistema! Nos complace informarte que la cuenta para tu propuesta ha sido creada exitosamente. Ha continuación, te porporcionamos los detalles de la propuesta:
   
 Nombre del proyecto: ${nombre}
@@ -167,16 +169,15 @@ El Equipo de SABAH
     `
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico de bienvenida.' });
-        }
-    });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true, message: 'Se ha enviado un correo electrónico de bienvenida.' };
+    } catch (error) {
+        return { success: false, message: 'Hubo un error al enviar el correo electrónico.' };
+    }
 };
 
-const nuevaPropuestaVarios = async (nombre, codigo, infoEstudiantes) => {
+const nuevaPropuestaDirector = async (nombre, codigo, correo) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -185,37 +186,30 @@ const nuevaPropuestaVarios = async (nombre, codigo, infoEstudiantes) => {
         }
     });
 
-    for (let i = 0; i < infoEstudiantes.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: infoEstudiantes[i].correo,
-            subject: 'Bienvenido al sistema - Creación de cuenta exitosa',
-            text: `
-  ¡Bienvenido al sistema! Nos complace informarte que la cuenta para tu propuesta ha sido creada exitosamente. Ha continuación, te porporcionamos los detalles de la propuesta:
-        
-  Nombre del proyecto: ${nombre}
-  Código del proyecto: ${codigo}
-        
-  Recuerda que para garantizar la seguridad de la cuenta, hemos generado una contraseña temporal. Te recomendamos cambiar esta contraseña temporal por una que sea segura y única. Para hacerlo, sigue estos sencillos pasos:
-    1. Ve a la página de inicio de sesión en [URL del Sitio Web].
-    2. Haz clic en "Recuperar Contraseña".
-    3. Se te mostrará una ventana emergente de recuperación de contraseña.
-    4. Ingresa tu dirección de correo electrónico asociada a tu cuenta y haz clic en "Enviar Código".
-    5. Recibirás un correo electrónico con un código de verificación para restablecer tu contraseña.
-    6. Ingresa el código de verificación y haz click en "Verificar".
-    7. Ingresa la nueva contraseña.
-          
-    Recuerda mantener tu contraseña en un lugar seguro y nunca compartirla con nadie más. Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
-    `
-        };
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: correo,
+        subject: 'Nuevo Proyecto de Grado Asignado',
+        text: `
+Te informamos que has sido asignado como director a un nuevo proyecto. A continuación, te proporcionamos los detalles del proyecto:
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+Nombre del proyecto: ${nombre}
+Código del proyecto: ${codigo}
+  
+Te invitamos a acceder al sistema para acceder a más información y realizar las acciones necesarias para el éxito del proyecto.
+
+Si tienes alguna pregunta o necesitas ayuda adicional, no dudes en contactarnos.
+
+Atentamente,
+El Equipo de SABAH
+    `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true, message: 'Se ha enviado un correo electrónico de bienvenida.' };
+    } catch (error) {
+        return { success: false, message: 'Hubo un error al enviar el correo electrónico.' };
     }
 };
 
@@ -749,4 +743,4 @@ El Equipo de SABAH
     });
 };
 
-module.exports = { prueba, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaVarios }
+module.exports = { prueba, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaDirector }
