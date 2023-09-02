@@ -385,7 +385,7 @@ const cambiarEstado = async (req, res) => {
                 }
                 if (result) {
                     const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
-                    const correos = resultCorreos.rows
+                    const correos = resultCorreos.rows;
                     await mailCambioEstadoProyecto(correos, nuevo_estado.nombre, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
                     await pool.query('COMMIT')
                     return res.json({ success: true })
@@ -408,8 +408,8 @@ const asignarFechaGrado = async (req, res) => {
                 }
                 if (result) {
                     const resultCorreos = await pool.query('SELECT correo FROM estudiante where id=$1', [id_estudiante]);
-                    const correos = resultCorreos.rows
-                    await mailCambioFechaGraduacionProyecto(correos, fecha_grado, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
+                    const correo = resultCorreos.rows[0].correo;
+                    await mailCambioFechaGraduacionProyecto(correo, fecha_grado, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
                     const result_estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto])
                     await pool.query('COMMIT');
                     return res.json({ success: true, estudiantes: result_estudiantes.rows })

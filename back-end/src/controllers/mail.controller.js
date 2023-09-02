@@ -2,7 +2,7 @@ const pool = require('../database')
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-const nuevoUsuario = async (req, res) => {
+const nuevoUsuario = async (req) => {
     const { nombre, correo } = req.body;
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -37,16 +37,15 @@ El Equipo de SABAH
         `
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
-        }
-    });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
 };
 
-const codigoVerificacion = async (req, res) => {
+const codigoVerificacion = async (req) => {
     const { correo } = req.body;
     const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -79,16 +78,15 @@ El Equipo de SABAH
 `
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico con el código de verificación.' });
-        }
-    });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
 };
 
-const codigoVerificacionEstudiantes = async (req, res) => {
+const codigoVerificacionEstudiantes = async (req) => {
     const correos = req.body;
     const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -104,12 +102,16 @@ const codigoVerificacionEstudiantes = async (req, res) => {
         }
     });
 
-    for (let i = 0; i < correos.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: correos[i].correo,
-            subject: 'Código de verificación para restablecer tu contraseña',
-            text: `
+    const recipients = [];
+    correos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Código de verificación para restablecer tu contraseña',
+        text: `
 Estimado(a) Usuario,
 
 Recientemente has solicitado restablecer tu contraseña en nuestro sistema. Para continuar con el proceso de restablecimiento, por favor utiliza el siguiente código de verificación: ${codigoCreado}
@@ -120,15 +122,13 @@ Si no solicitaste restablecer tu contraseña, puedes ignorar este mensaje.
 Atentamente,
 El Equipo de SABAH
 `
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico con el código de verificación.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
@@ -171,9 +171,9 @@ El Equipo de SABAH
 
     try {
         await transporter.sendMail(mailOptions);
-        return { success: true, message: 'Se ha enviado un correo electrónico de bienvenida.' };
+        return { success: true };
     } catch (error) {
-        return { success: false, message: 'Hubo un error al enviar el correo electrónico.' };
+        return { success: false };
     }
 };
 
@@ -207,13 +207,13 @@ El Equipo de SABAH
 
     try {
         await transporter.sendMail(mailOptions);
-        return { success: true, message: 'Se ha enviado un correo electrónico de bienvenida.' };
+        return { success: true };
     } catch (error) {
-        return { success: false, message: 'Hubo un error al enviar el correo electrónico.' };
+        return { success: false };
     }
 };
 
-const cambioContrasena = async (req, res) => {
+const cambioContrasena = async (req) => {
     const { correo } = req.body;
     const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -244,13 +244,12 @@ El Equipo de SABAH
 `
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado un correo electrónico.' });
-        }
-    });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
 };
 
 const cambioContrasenaVarios = async (infoEstudiantes) => {
@@ -262,12 +261,16 @@ const cambioContrasenaVarios = async (infoEstudiantes) => {
         }
     });
 
-    for (let i = 0; i < infoEstudiantes.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: infoEstudiantes[i].correo,
-            subject: 'Cambio de Contraseña Exitoso',
-            text: `
+    const recipients = [];
+    infoEstudiantes.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Cambio de Contraseña Exitoso',
+        text: `
 Estimado(a) Usuario,
 
 Te informamos que se ha realizado un cambio exitoso de tu contraseña en nuestro sistema. 
@@ -275,15 +278,13 @@ Si no has realizado este cambio, por favor contáctanos de inmediato.
             
 Atentamente,
 El Equipo de SABAH`
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
@@ -314,16 +315,15 @@ El Equipo de SABAH
         `
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
-        }
-    });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
 };
 
-const mailCambioCodigo = (correos, codigo, responsable) => {
+const mailCambioCodigo = async (correos, codigo, responsable) => {
     const fechaHoraCambio = new Date();
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -333,12 +333,16 @@ const mailCambioCodigo = (correos, codigo, responsable) => {
         }
     });
 
-    for (let i = 0; i < correos.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: correos[i].correo,
-            subject: 'Cambio de Código de Proyecto',
-            text: `
+    const recipients = [];
+    correos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Cambio de Código de Proyecto',
+        text: `
 Estimado(a) Usuario,
 
 Te informamos que se ha realizado un cambio exitoso en el código de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
@@ -351,19 +355,17 @@ Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
                         
 Atentamente,
 El Equipo de SABAH`
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
-const mailCambioNombreProyecto = (correos, nombre, responsable) => {
+const mailCambioNombreProyecto = async (correos, nombre, responsable) => {
     const fechaHoraCambio = new Date();
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -373,12 +375,16 @@ const mailCambioNombreProyecto = (correos, nombre, responsable) => {
         }
     });
 
-    for (let i = 0; i < correos.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: correos[i].correo,
-            subject: 'Cambio de Nombre del Proyecto',
-            text: `
+    const recipients = [];
+    correos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Cambio de Nombre del Proyecto',
+        text: `
 Estimado(a) Usuario,
 
 Te informamos que se ha realizado un cambio exitoso en el nombre de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
@@ -391,19 +397,17 @@ Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
             
 Atentamente,
 El Equipo de SABAH`
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
-const mailCambioEstadoProyecto = (correos, estado, responsable) => {
+const mailCambioEstadoProyecto = async (correos, estado, responsable) => {
     const fechaHoraCambio = new Date();
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -413,12 +417,16 @@ const mailCambioEstadoProyecto = (correos, estado, responsable) => {
         }
     });
 
-    for (let i = 0; i < correos.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: correos[i].correo,
-            subject: 'Cambio de Estado del Proyecto',
-            text: `
+    const recipients = [];
+    correos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Cambio de Estado del Proyecto',
+        text: `
 Estimado(a) Usuario,
 
 Te informamos que se ha realizado un cambio exitoso en el estado de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
@@ -431,19 +439,17 @@ Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
             
 Atentamente,
 El Equipo de SABAH`
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
-const mailCambioEtapaProyecto = (correos, etapa, responsable) => {
+const mailCambioEtapaProyecto = async (correos, etapa, responsable) => {
     const fechaHoraCambio = new Date();
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -453,12 +459,16 @@ const mailCambioEtapaProyecto = (correos, etapa, responsable) => {
         }
     });
 
-    for (let i = 0; i < correos.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: correos[i].correo,
-            subject: 'Cambio de Etapa del Proyecto',
-            text: `
+    const recipients = [];
+    correos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Cambio de Etapa del Proyecto',
+        text: `
 Estimado(a) Usuario,
 
 Te informamos que se ha realizado un cambio exitoso en la etapa de tu proyecto en nuestro sistema. Por favor tener en cuenta la siguiente información: 
@@ -471,19 +481,17 @@ Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
             
 Atentamente,
 El Equipo de SABAH`
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
-const mailCambioFechaGraduacionProyecto = (correos, fecha_grado, responsable) => {
+const mailCambioFechaGraduacionProyecto = async (correo, fecha_grado, responsable) => {
     const fechaHoraCambio = new Date();
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -493,12 +501,11 @@ const mailCambioFechaGraduacionProyecto = (correos, fecha_grado, responsable) =>
         }
     });
 
-    for (let i = 0; i < correos.length; i++) {
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,
-            to: correos[i].correo,
-            subject: 'Cambio de Fecha de Graduación',
-            text: `
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: correo,
+        subject: 'Cambio de Fecha de Graduación',
+        text: `
 Estimado(a) Usuario,
 
 Te informamos que se ha realizado un cambio exitoso en tu fecha de graduación en nuestro sistema. Por favor tener en cuenta la siguiente información: 
@@ -511,27 +518,18 @@ Por favor, revisa este cambio en el sistema para asegurarte de que sea correcto.
             
 Atentamente,
 El Equipo de SABAH`
-        };
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-            } else {
-                return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
-            }
-        });
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 };
 
 const nuevoUsuarioRol = (infoNuevo, id_rol) => {
-    let rol = '';
-    if (id_rol === 1) {
-        rol = 'director';
-    } else if (id_rol === 2) {
-        rol = 'lector';
-    } else if (id_rol === 3) {
-        rol = 'jurado';
-    }
+    const rol = { 1: 'Director', 2: 'Lector', 3: 'Jurado' }[id_rol];
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -572,14 +570,7 @@ El Equipo de SABAH
 };
 
 const anteriorUsuarioRol = (infoAnterior, id_rol) => {
-    let rol = '';
-    if (id_rol === 1) {
-        rol = 'director';
-    } else if (id_rol === 2) {
-        rol = 'lector';
-    } else if (id_rol === 3) {
-        rol = 'jurado';
-    }
+    const rol = { 1: 'Director', 2: 'Lector', 3: 'Jurado' }[id_rol];
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -755,7 +746,6 @@ El Equipo de SABAH
         await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
-        console.error(error);
         return { success: false };
     }
 };
@@ -804,7 +794,6 @@ El Equipo de SABAH
         await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
-        console.error(error);
         return { success: false };
     }
 };
@@ -891,7 +880,6 @@ El Equipo de SABAH
         await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
-        console.error(error);
         return { success: false };
     }
 };
@@ -937,7 +925,6 @@ El Equipo de SABAH
         await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
-        console.error(error);
         return { success: false };
     }
 
