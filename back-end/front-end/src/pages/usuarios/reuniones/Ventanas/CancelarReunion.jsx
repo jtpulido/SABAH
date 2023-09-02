@@ -12,6 +12,8 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 function CancelarReunion(props) {
 
+    const id = sessionStorage.getItem('user_id_usuario');
+    const idRol = sessionStorage.getItem('id_rol');
     const idReunion = sessionStorage.getItem('usuario_id_reunion');
     const token = useSelector(selectToken);
 
@@ -44,7 +46,9 @@ function CancelarReunion(props) {
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
                     id_reunion: parseInt(idReunion),
-                    justificacion: justificacion
+                    justificacion: justificacion,
+                    id_usuario: id, 
+                    id_rol: idRol
                 })
             });
             const data = await response.json();

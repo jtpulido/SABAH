@@ -26,7 +26,6 @@ export default function Entregas() {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-
   const llenarTabla = async (url, setData) => {
     try {
       const response = await fetch(`http://localhost:5000/usuario/entregas/${url}/${id_usuario}/${id_rol}`, {
@@ -37,7 +36,7 @@ export default function Entregas() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "warning")
+        mostrarMensaje(data.message, "info")
       } else if (response.status === 200) {
         setData(data.entregas);
       }
@@ -61,11 +60,11 @@ export default function Entregas() {
     llenarTabla("realizadas/calificadas", setRowsCalificadas);
     llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
     setOpenCalificar(false);
-  }
+  };
   const cerrarDialogCalificar = () => {
     setEntrega({})
     setOpenCalificar(false);
-  }
+  };
   useEffect(() => {
     llenarTabla("pendientes", setRowsPendientes);
     llenarTabla("realizadas/calificadas", setRowsCalificadas);
@@ -185,6 +184,7 @@ export default function Entregas() {
     { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
 
   ]);
+  
   return (
     <div>
       <AppBar position="static" color="transparent" variant="contained" >

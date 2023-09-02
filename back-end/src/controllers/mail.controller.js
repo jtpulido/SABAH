@@ -323,43 +323,6 @@ El Equipo de SABAH
     });
 };
 
-const prueba = async (req, res) => {
-    const nombre = 'Proyecto'
-    const correo = 'dbenavidesg@unbosque.edu.co'
-    const estadoTexto = 'habilitado'
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USERNAME,
-            pass: process.env.EMAIL_PASSWORD
-        }
-    });
-
-    const mailOptions = {
-        from: process.env.EMAIL_USERNAME,
-        to: correo,
-        subject: `Cambio de Estado de Usuario`,
-        text: `
-Estimado(a) Usuario,
-
-Te informamos que tu estado en nuestro sistema ha sido cambiado a ${estadoTexto}.
-
-Si tienes alguna pregunta o inquietud, por favor contáctanos de inmediato.
-
-Atentamente,
-El Equipo de SABAH
-        `
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
-        } else {
-            return res.status(200).json({ success: true, message: 'Se ha enviado el correo electrónico.' });
-        }
-    });
-};
-
 const mailCambioCodigo = (correos, codigo, responsable) => {
     const fechaHoraCambio = new Date();
     const transporter = nodemailer.createTransport({
@@ -720,14 +683,16 @@ const nuevoEstudianteProyecto = (infoEstudiante, nombre, correo) => {
         text: `
 Estimado(a) ${nombre},
 
-Te informamos que has sido vinculado exitosamente al siguiente proyecto de grado:
+Le informamos que ha sido vinculado exitosamente al siguiente proyecto de grado:
 
     Nombre: ${infoEstudiante.nombre}
     Código: ${infoEstudiante.codigo}
     Modalidad: ${infoEstudiante.nombre_modalidad}
     Estado: ${infoEstudiante.nombre_estado}
 
-Tu participación en este proyecto es muy valiosa y estamos emocionados de trabajar contigo en este emocionante camino académico. Creemos que tu experiencia y habilidades serán una gran contribución al éxito del proyecto. Por favor, asegúrate de revisar la información y estar preparado para participar en las reuniones y actividades del proyecto. Si tienes alguna pregunta o necesitas más detalles, no dudes en ponerte en contacto con nosotros.
+Su participación en este proyecto es muy valiosa y estamos emocionados de trabajar contigo en este emocionante camino académico. Creemos que su experiencia y habilidades serán una gran contribución al éxito del proyecto. Por favor, asegúrase de revisar la información y estar preparado para participar en las reuniones y actividades del proyecto. 
+
+Si tiene alguna pregunta o necesitas más detalles, no dudes en ponerte en contacto con nosotros.
 
 Atentamente,
 El Equipo de SABAH
@@ -743,4 +708,239 @@ El Equipo de SABAH
     });
 };
 
-module.exports = { prueba, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaDirector }
+const nuevaReunionEstudiantes = () => {
+
+};
+
+const nuevaReunionUser = async (nombre, fecha, enlace, proyecto, rol, nombre_usuario, correo_usuario, infoCorreos) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    recipients.push(correo_usuario);
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Nueva Reunión Agendada',
+        text: `
+Estimado(a) Usuario,
+    
+Le confirmamos que se ha creado una nueva reunión con los siguientes detalles:
+    
+- Nombre: ${nombre}
+- Fecha: ${fecha}
+- Enlace: ${enlace}
+- Proyecto: ${proyecto}
+- Invitado: ${rol} ${nombre_usuario}
+
+Ten en cuenta que después de completar la reunión, el proyecto tendrá la opción de generar una acta de reunión para registrar los detalles importantes discutidos y compartirlos con los demás participantes. Asimismo, los directores, lectores y jurados tendrán la opción de editar su asistencia.
+    
+Por favor, asegúrate de marcar esta fecha y hora en su calendario. Esperamos contar con su presencia en la reunión y agradecemos tu cooperación.
+    
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
+};
+
+const cancelarReunionUser = async (nombre, fecha, enlace, proyecto, rol, nombre_usuario, correo_usuario, infoCorreos, justificacion) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    recipients.push(correo_usuario);
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Cancelación de Reunión',
+        text: `
+Estimado(a) Usuario,
+    
+Le informamos que se ha cancelado una reunión. A continuación, se detallan los aspectos clave:
+    
+- Nombre: ${nombre}
+- Fecha: ${fecha}
+- Enlace: ${enlace}
+- Proyecto: ${proyecto}
+- Invitado: ${rol} ${nombre_usuario}
+- Justificación: ${justificacion}
+
+Esperamos poder reprogramarla en una fecha futura y te mantendremos informado(a) sobre los detalles.
+
+Disculpa las molestias y gracias por tu comprensión.
+    
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
+};
+
+const cambioAsistencia = async (nombre, fecha, proyecto, rol, nombre_usuario, correo_usuario, asistencia) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: correo_usuario,
+        subject: 'Cambio de Asistencia',
+        text: `
+Estimado(a) ${nombre_usuario},
+    
+Le confirmamos que se ha actualizado su estado de asistencia de la siguiente reunión:
+    
+- Nombre: ${nombre}
+- Fecha: ${fecha}
+- Proyecto: ${proyecto}
+- Asistencia: ${asistencia}
+- Rol: ${rol}
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true, message: 'Se ha enviado el correo electrónico.' };
+    } catch (error) {
+        return { success: false, message: 'Hubo un error al enviar el correo electrónico.' };
+    }
+};
+
+const editarReunionUser = async (nombre, fecha, enlace, proyecto, rol, nombre_usuario, correo_usuario, infoCorreos) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    recipients.push(correo_usuario);
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Actualización de Reunión Pendiente',
+        text: `
+Estimado(a) Usuario,
+    
+Le informamos que se ha actualizado la información de una reunión pendiente.
+    
+Los cambios realizados en la reunión pueden incluir actualizaciones en la fecha, hora, nombre y/o enlace. Queremos asegurarnos de que esté al tanto de estos cambios para que pueda estar preparado/a.
+
+A continuación se detalla la información actualizada de la reunión: 
+
+- Nombre: ${nombre}
+- Fecha: ${fecha}
+- Enlace: ${enlace}
+- Proyecto: ${proyecto}
+- Invitado(s): ${rol} ${nombre_usuario}
+
+Por favor, revísalos con atención y asegúrate de que estos cambios sean convenientes. Si tienes alguna pregunta o necesitas aclaraciones adicionales, no dudes en ponerte en contacto con nosotros.
+    
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
+};
+
+const nuevaSolicitudUser = async (tipo, descripcion, proyecto, nombre_usuario, correo_usuario, infoCorreos) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    recipients.push('dbenavidesg@unbosque.edu.co'); //opcionesdegrado.sistemas@unbosque.edu.co
+    recipients.push(correo_usuario);
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Nueva Solicitud',
+        text: `
+Estimado(a) Usuario,
+    
+Le informamos que se ha registrado una nueva solicitud. A continuación, se detallan los aspectos clave:
+    
+- Proyecto: ${proyecto}
+- Tipo: ${tipo}
+- Descripción: ${descripcion}
+- Responsable: ${nombre_usuario}
+
+Si desea acceder a más detalles sobre esta solicitud, pueden hacerlo a través del sistema de SABAH en la sección de solicitudes.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
+
+};
+
+module.exports = { nuevaSolicitudUser, editarReunionUser, cambioAsistencia, nuevaReunionEstudiantes, cancelarReunionUser, nuevaReunionUser, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaDirector }

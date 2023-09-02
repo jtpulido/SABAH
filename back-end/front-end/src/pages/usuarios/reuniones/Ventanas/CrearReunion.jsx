@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
-import { TextField, Button, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid, Select } from "@mui/material";
+import { TextField, Button, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid, Select, MenuItem } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 
@@ -273,20 +273,15 @@ function CrearReunion(props) {
                             </Typography>
                             <Select
                                 fullWidth
-                                native
+                                value={idProyectoSeleccionado || ""}
                                 onChange={handleProyectoSeleccionado}
-                                inputProps={{
-                                    name: "proyecto",
-                                    id: "proyecto",
-                                }}
                             >
-                                <option value="" />
                                 {proyectos.map((listaProyectos) => (
-                                    <option key={listaProyectos.id} value={listaProyectos.id}>
+                                    <MenuItem key={listaProyectos.id} value={listaProyectos.id}>
                                         {listaProyectos.nombre.length > 80
                                             ? `${listaProyectos.nombre.slice(0, 80)}...`
                                             : listaProyectos.nombre}
-                                    </option>
+                                    </MenuItem>
                                 ))}
                             </Select>
                         </Grid>
