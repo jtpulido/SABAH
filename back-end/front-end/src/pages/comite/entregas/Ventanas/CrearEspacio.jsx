@@ -171,6 +171,8 @@ function CrearEspacio(props) {
             mostrarMensaje("La fecha de cierre para calificar debe ser mayor a la fecha de inicio de calificación.", "error");
             return;
         }
+
+        
         const espacioData = {
             nombre,
             descripcion,

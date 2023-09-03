@@ -220,25 +220,45 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             mostrarMensaje('Lo siento, ha ocurrido un error.', 'error');
         }
     };
+    const cambiarEstado = async () => {
+        try {
+            const proyecto = {
+                id: entrega.id_proyecto,
+                id_etapa: entrega.id_etapa,
+                id_modalidad: entrega.id_modalidad,
+                nombre: entrega.nombre_proyecto
+            };
 
+            const response = await fetch(`http://localhost:5000/verificar-calificaciones/cambiar-estado`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ proyecto })
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error");
+            } else {
+
+                mostrarMensaje(data.message, "success")
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+        }
+    };
     const validarCambioEstado = async () => {
         try {
             const pendientes = await validarEntregasPendientes();
             if (pendientes === false) {
-
                 const aprobo = await validarAproboEtapa();
                 if (aprobo === true) {
-                    mostrarMensaje('El proyecto cambio a etapa 2', 'success');
-                }else{
-                    mostrarMensaje('Cambio a estado rechazado', 'success');
+                    await cambiarEstado()
                 }
-            }else{
-                mostrarMensaje('hay entregas pendientes', 'success');
             }
         } catch (error) {
             mostrarMensaje('Ocurrió un error al validar las entregas pendientes:', 'error');
         }
     };
+
     const guardarCalificacion = async (event) => {
         setLoading(true);
         event.preventDefault();
