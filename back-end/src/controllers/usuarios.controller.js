@@ -1,6 +1,6 @@
 const pool = require('../database')
 
-const { nuevaReunionUser, cancelarReunionUser, cambioAsistencia, editarReunionUser, nuevaSolicitudUser } = require('../controllers/mail.controller');
+const { nuevaReunionUser, cancelarReunionUser, cambioAsistencia, editarReunionUser, nuevaSolicitudUser, mailCambioEstadoProyecto } = require('../controllers/mail.controller');
 
 const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { idUsuario, idRol } = req.params;
@@ -848,10 +848,192 @@ const guardarCalificacion = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Error guardar la calificación' });
     }
 };
+const verificarCalificacionesPendientes = async (req, res) => {
+    const { proyectoId, etapaId, anio, periodo, modalidadId } = req.params;
 
+    try {
+        const query = `
+        SELECT COUNT(*) AS cantidad_registros
+        FROM proyecto p
+        INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo 
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND he.id_etapa = ee.id_etapa
+        INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
+        LEFT JOIN documento_entrega de ON de.id_proyecto = p.id AND de.id_espacio_entrega = ee.id
+        LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
+        WHERE
+            (
+                (
+                    (de.id IS NULL AND NOW() > ee.fecha_cierre_entrega) OR
+                    (de.id IS NULL AND NOW() <= ee.fecha_cierre_entrega)
+                )
+                OR
+                (
+                    (de.id IS NOT NULL AND de.id NOT IN (
+                        SELECT id_doc_entrega
+                        FROM calificacion
+                        WHERE id_usuario_rol = ur.id
+                    ))
+                )
+            )
+        AND p.id = $1
+        AND he.anio = $2
+        AND he.periodo = $3
+        AND he.id_etapa = $4
+        AND p.id_modalidad = $5
+        AND ee.final = true
+        AND (he.anio, he.periodo) = (
+            SELECT anio, periodo
+            FROM historial_etapa
+            WHERE id_proyecto = p.id
+            ORDER BY fecha_cambio DESC
+            LIMIT 1
+        )`;
+        const values = [proyectoId, anio, periodo, etapaId, modalidadId];
+        await pool.query(query, values, (error, result) => {
+            if (error) {
+                return res.status(502).json({ success: false, message: 'Ha ocurrido un error al validar las entregas.' });
+            }
+            console.log(result)
+            if (result) {
+                const pendientes = result.rows[0].cantidad_registros;
+
+                if (pendientes === '0') {
+                    console.log("nO HAY ENTREGAS PERNDIENTES")
+                    return res.status(200).json({ success: true, pendientes: false });
+                } else {
+                    console.log("HAY HAY ENTREGAS PERNDIENTES")
+                    return res.status(203).json({ success: true, pendientes: true });
+                }
+            }
+        });
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Error al verificar si tiene calificaciones pendientes' });
+    }
+};
+const verificarAproboEntregasCalificadas = async (req, res) => {
+    const { proyectoId, etapaId, anio, periodo, modalidadId } = req.params;
+
+    try {
+        const query =
+            `SELECT
+                p.id AS id_proyecto,
+                CASE
+                    WHEN COUNT(*) = SUM(CASE WHEN c.nota_final >= 3.0 THEN 1 ELSE 0 END) THEN true
+                    ELSE false
+                END AS aprobo
+            FROM 
+                proyecto p
+                INNER JOIN documento_entrega de ON p.id = de.id_proyecto
+                INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
+                INNER JOIN calificacion c ON de.id = c.id_doc_entrega
+                INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo 
+                INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
+            WHERE
+                p.id = $1
+                AND he.anio = $2
+                AND he.periodo = $3
+                AND he.id_etapa = $4
+                AND p.id_modalidad = $5
+                AND ee.final = true
+                AND (he.anio, he.periodo) = (
+                    SELECT anio, periodo
+                    FROM historial_etapa
+                    WHERE id_proyecto = p.id
+                    ORDER BY fecha_cambio DESC
+                    LIMIT 1
+                )
+            GROUP BY p.id`;
+
+        const values = [proyectoId, anio, periodo, etapaId, modalidadId];
+        const result = await pool.query(query, values);
+        console.log(result)
+        if (result.rowCount === 0) {
+            return res.status(203).json({ success: false, message: 'No se encontró el proyecto.' });
+        }
+        const aprobo = result.rows[0].aprobo;
+        return res.status(200).json({ success: true, aprobo });
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Error interno del servidor.' });
+    }
+};
+const cambiarEstadoEntregasFinales = async (req, res) => {
+    try {
+        const { proyecto} = req.body;
+        const { id, id_etapa, id_modalidad ,nombre} = proyecto;
+        let id_nuevo_estado = "";
+
+        // Consultar la modalidad actual del proyecto
+        const resultModalidad = await pool.query('SELECT id, nombre FROM modalidad WHERE id = $1', [id_modalidad]);
+        const modalidad = resultModalidad.rows[0];
+
+        // Consultar la etapa actual del proyecto
+        const resultEtapa = await pool.query('SELECT id, nombre FROM etapa WHERE id = $1', [id_etapa]);
+        const etapa = resultEtapa.rows[0];
+
+        // Consultar el estado actual del proyecto
+        const resultEstado = await pool.query('SELECT id, nombre FROM estado');
+        const estados = resultEstado.rows;
+
+       // Determinar el nuevo estado basado en la modalidad y la etapa
+       let nuevoEstadoFiltrado = [];
+
+       if (modalidad.nombre === 'Coterminal') {
+           // Filtrar el estado "Aprobado proyecto de grado 1"
+           nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado propuesta");
+       } else {
+           switch (etapa.nombre) {
+               case 'Propuesta':
+                   // Filtrar el estado "Aprobado propuesta"
+                   nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado propuesta");
+                   break;
+               case 'Proyecto de grado 1':
+                   // Filtrar el estado "Aprobado proyecto de grado 1"
+                   nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado proyecto de grado 1");
+                   break;
+               case 'Proyecto de grado 2':
+                   // Filtrar el estado "Aprobado"
+                   nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado");
+                   break;
+               default:
+                   // Manejar otro caso si es necesario
+                   break;
+           }
+       }
+
+       if (nuevoEstadoFiltrado.length > 0) {
+           id_nuevo_estado = nuevoEstadoFiltrado[0].id;
+       }
+        await pool.query('BEGIN');
+        await pool.query(
+            `
+            UPDATE proyecto
+            SET id_estado = $1
+            WHERE id = $2
+        `,
+            [id_nuevo_estado, id], async (error, result) => {
+                if (error) {
+                    console.log(error)
+                    return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al realizar el cambio de estado." });
+                }
+                if (result) {
+                    const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
+                    const correos = resultCorreos.rows
+                    await mailCambioEstadoProyecto(correos,  nuevoEstadoFiltrado[0].nombre, `Entregas finales - ${etapa.nombre}`);
+                    await pool.query('COMMIT')
+                    return res.json({ success: true, message: `El proyecto ${nombre} aprobo la etapa ${etapa.nombre}` })
+                }
+            })
+    } catch (error) {
+        console.log(error)
+        await pool.query('ROLLBACK');
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
 module.exports = {
     obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud,
     agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion,
-    obtenerReunion, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas
+    obtenerReunion, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
+    verificarCalificacionesPendientes, verificarAproboEntregasCalificadas,cambiarEstadoEntregasFinales
 }

@@ -343,7 +343,7 @@ const cambiarEstado = async (req, res) => {
         }
 
         if (acronimo === 'COT') {
-            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado comité' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
+            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado propuesta' && nuevo_estado.nombre !== 'Aprobado comité' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para la modalidad COT son: En desarrollo, Aprobado comité, Rechazado, Cancelado.' });
             }
         }
@@ -357,8 +357,7 @@ const cambiarEstado = async (req, res) => {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para Propuesta son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
             }
         }
-
-
+        
         if (etapa === 'Proyecto de grado 1') {
             if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado proyecto de grado 1' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para Proyecto de grado 2 son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
