@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
-import { TextField, Button, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid, Select } from "@mui/material";
+import { TextField, Button, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid, Select, MenuItem } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 
@@ -155,7 +155,9 @@ function EditarReunion(props) {
                                     id: idReunion,
                                     nombre: nombre,
                                     fecha: fechaHoraFormateada,
-                                    enlace: link
+                                    enlace: link,
+                                    idUsuario: id,
+                                    idRol: idRol
                                 })
                             });
                             const data = await response.json();
@@ -163,7 +165,7 @@ function EditarReunion(props) {
                                 mostrarMensaje(data.message, "error");
                             } else {
                                 mostrarMensaje(data.message, "success");
-                                onSubmit();
+                                handleCancel();
                             }
                         } catch (error) {
                             mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -193,7 +195,7 @@ function EditarReunion(props) {
                         mostrarMensaje(data.message, "error");
                     } else {
                         mostrarMensaje(data.message, "success");
-                        onSubmit()
+                        handleCancel();
                     }
                 } catch (error) {
                     mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -211,116 +213,107 @@ function EditarReunion(props) {
 
                 <DialogContent dividers >
                     <Grid container spacing={2}>
-                        {reunion === 1 && (
+                        {idEstado === 1 && (
                             <>
-                                {idEstado === 1 && (
-                                    <>
-                                        <Grid item xs={6} >
-                                            <Typography variant="h6" color="primary">
-                                                Fecha
-                                            </Typography>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <DatePicker
-                                                    required
-                                                    value={fecha}
-                                                    onChange={(newValue) => setFecha(newValue)}
-                                                    format="DD-MM-YYYY"
-                                                    error={!fecha}
-                                                    shouldDisableDate={shouldDisableDate}
-                                                    fullWidth
-                                                    sx={{ minWidth: '100%' }}
-                                                    components={{
-                                                        openPickerIcon: () => (
-                                                            <CalendarMonthIcon sx={{ color: '#576a3d', marginRight: '20px' }} />
-                                                        ),
-                                                    }}
-                                                />
-                                            </LocalizationProvider>
-                                        </Grid>
-
-                                        <Grid item xs={6} >
-                                            <Typography variant="h6" color="primary">
-                                                Hora
-                                            </Typography>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <TimePicker
-                                                    required
-                                                    value={selectedTime}
-                                                    error={!selectedTime}
-                                                    onChange={handleTimeChange}
-                                                    renderInput={(params) => <input {...params} />}
-                                                    ampm={false}
-                                                    viewRenderers={{
-                                                        hours: renderTimeViewClock,
-                                                        minutes: renderTimeViewClock,
-                                                        seconds: renderTimeViewClock,
-                                                    }}
-                                                    sx={{ minWidth: '100%' }}
-                                                    components={{
-                                                        openPickerIcon: () => (
-                                                            <AccessTimeIcon sx={{ color: '#576a3d', marginRight: '20px' }} />
-                                                        ),
-                                                    }}
-                                                />
-                                            </LocalizationProvider>
-                                        </Grid>
-
-
-                                        <Grid item xs={6} >
-                                            <Typography variant="h6" color="primary">
-                                                Nombre
-                                            </Typography>
-                                            <TextField
-                                                value={nombre}
-                                                onChange={handleNombreChange}
-                                                multiline
-                                                rows={1}
-                                                required
-                                                fullWidth
-                                                error={!nombre}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="h6" color="primary">
-                                                Link
-                                            </Typography>
-                                            <TextField
-                                                value={link}
-                                                onChange={handleLinkChange}
-                                                multiline
-                                                rows={1}
-                                                required
-                                                fullWidth
-                                                error={!link}
-                                            />
-                                        </Grid>
-                                    </>
-                                )}
-
-                                {idEstado !== 1 && (
-                                    <Grid item xs={12}>
-                                        <Typography variant="h6" color="primary">
-                                            Asistencia
-                                        </Typography>
-                                        <Select
+                                <Grid item xs={6} >
+                                    <Typography variant="h6" color="primary">
+                                        Fecha
+                                    </Typography>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker
+                                            required
+                                            value={fecha}
+                                            onChange={(newValue) => setFecha(newValue)}
+                                            format="DD-MM-YYYY"
+                                            error={!fecha}
+                                            shouldDisableDate={shouldDisableDate}
                                             fullWidth
-                                            native
-                                            onChange={handleAsistenciaSeleccionada}
-                                            inputProps={{
-                                                name: "asistencia",
-                                                id: "asistencia",
+                                            sx={{ minWidth: '100%' }}
+                                            components={{
+                                                openPickerIcon: () => (
+                                                    <CalendarMonthIcon sx={{ color: '#576a3d', marginRight: '20px' }} />
+                                                ),
                                             }}
-                                        >
-                                            <option value="" />
-                                            {asistencia.map((listaAsistencia) => (
-                                                <option key={listaAsistencia.id} value={listaAsistencia.id}>
-                                                    {listaAsistencia.nombre}
-                                                </option>
-                                            ))}
-                                        </Select>
-                                    </Grid>
-                                )}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+
+                                <Grid item xs={6} >
+                                    <Typography variant="h6" color="primary">
+                                        Hora
+                                    </Typography>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <TimePicker
+                                            required
+                                            value={selectedTime}
+                                            error={!selectedTime}
+                                            onChange={handleTimeChange}
+                                            renderInput={(params) => <input {...params} />}
+                                            ampm={false}
+                                            viewRenderers={{
+                                                hours: renderTimeViewClock,
+                                                minutes: renderTimeViewClock,
+                                                seconds: renderTimeViewClock,
+                                            }}
+                                            sx={{ minWidth: '100%' }}
+                                            components={{
+                                                openPickerIcon: () => (
+                                                    <AccessTimeIcon sx={{ color: '#576a3d', marginRight: '20px' }} />
+                                                ),
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+
+
+                                <Grid item xs={6} >
+                                    <Typography variant="h6" color="primary">
+                                        Nombre
+                                    </Typography>
+                                    <TextField
+                                        value={nombre}
+                                        onChange={handleNombreChange}
+                                        multiline
+                                        rows={1}
+                                        required
+                                        fullWidth
+                                        error={!nombre}
+                                    />
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Link
+                                    </Typography>
+                                    <TextField
+                                        value={link}
+                                        onChange={handleLinkChange}
+                                        multiline
+                                        rows={1}
+                                        required
+                                        fullWidth
+                                        error={!link}
+                                    />
+                                </Grid>
                             </>
+                        )}
+
+                        {idEstado !== 1 && (
+                            <Grid item xs={12}>
+                                <Typography variant="h6" color="primary">
+                                    Asistencia
+                                </Typography>
+                                <Select
+                                    fullWidth
+                                    onChange={handleAsistenciaSeleccionada}
+                                    value={idAsistenciaSeleccionada}
+                                >
+                                    {asistencia.map((listaAsistencia) => (
+                                        <MenuItem key={listaAsistencia.id} value={listaAsistencia.id}>
+                                            {listaAsistencia.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </Grid>
                         )}
                     </Grid>
 

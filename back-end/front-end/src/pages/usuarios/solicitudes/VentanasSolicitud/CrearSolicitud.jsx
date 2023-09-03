@@ -13,7 +13,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function CrearSolicitud(props) {
     const token = useSelector(selectToken);
 
-    const id_usuario= sessionStorage.getItem('user_id_usuario');
+    const id_usuario = sessionStorage.getItem('user_id_usuario');
     const { onClose, onSubmit, open, ...other } = props;
 
     const [justificacion, setJustificacion] = useState("");
@@ -83,8 +83,9 @@ function CrearSolicitud(props) {
         const solicitudData = {
             justificacion,
             id_tipo_solicitud: idTipo,
-            id_proyecto:idProyecto,
-            creado_proyecto:false
+            id_proyecto: idProyecto,
+            creado_proyecto: false,
+            id_usuario: id_usuario
         };
         try {
             const response = await fetch("http://localhost:5000/usuario/guardarSolicitud", {
@@ -94,8 +95,9 @@ function CrearSolicitud(props) {
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "error");
             } else {
+                mostrarMensaje(data.message, "success");
                 onSubmit();
                 setJustificacion("");
                 setIdTipo("");
@@ -114,6 +116,7 @@ function CrearSolicitud(props) {
         onClose();
         setJustificacion("");
         setIdTipo("");
+        setIdProyecto("");
 
     };
 
@@ -127,7 +130,7 @@ function CrearSolicitud(props) {
 
                 <DialogContent dividers >
                     <Grid container spacing={2}>
-                    <Grid item xs={12} >
+                        <Grid item xs={12} >
                             <Typography variant="h6" color="primary">
                                 Proyecto
                             </Typography>

@@ -237,7 +237,7 @@ const inscribirPropuesta = async (req, res) => {
     const director = await pool.query(`WITH inserted_row AS (
   INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, 1, $2) RETURNING id_usuario)
   SELECT u.correo FROM usuario u
-  INNER JOIN inserted_row ir ON u.id = ir.id_usuario;`, [id_usuario, id_proyecto]);
+    INNER JOIN inserted_row ir ON u.id = ir.id_usuario;`, [id_usuario, id_proyecto]);
     const correo_director = director.rows[0].correo;
 
     // Agregar Inicio Sesion

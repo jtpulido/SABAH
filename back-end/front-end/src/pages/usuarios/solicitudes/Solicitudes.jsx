@@ -95,7 +95,7 @@ export default function Proyectos() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "warning")
+        mostrarMensaje(data.message, "info")
       } else if (response.status === 200) {
         setRowsFunc(data.solicitudes);
       }
