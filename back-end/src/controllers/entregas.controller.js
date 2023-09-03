@@ -253,7 +253,7 @@ const obtenerRubricasConAspectos = async (req, res) => {
 
 const crearEspacio = async (req, res) => {
     try {
-        const { nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
+        const { nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final } = req.body;
 
         const formatted_fecha_apertura_entrega = moment(fecha_apertura_entrega, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
         const formatted_fecha_cierre_entrega = moment(fecha_cierre_entrega, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
@@ -261,12 +261,11 @@ const crearEspacio = async (req, res) => {
         const formatted_fecha_apertura_calificacion = moment(fecha_apertura_calificacion, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
         const formatted_fecha_cierre_calificacion = moment(fecha_cierre_calificacion, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
 
-        const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion,  fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
-        const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica];
+        const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion,  fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
+        const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final];
 
         await pool.query(query, values, (error) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al crear el espacio. Por favor, intente de nuevo más tarde.' });
             }
             return res.status(200).json({ success: true, message: 'Espacio de entrega creado correctamente' });
@@ -279,7 +278,7 @@ const crearEspacio = async (req, res) => {
 const modificarEspacio = async (req, res) => {
     try {
         const { espacio_id } = req.params;
-        const { nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica } = req.body;
+        const { nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion, fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final } = req.body;
         const formatted_fecha_apertura_entrega = moment(fecha_apertura_entrega, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
         const formatted_fecha_cierre_entrega = moment(fecha_cierre_entrega, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
 
@@ -296,7 +295,6 @@ const modificarEspacio = async (req, res) => {
                 SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6
                 WHERE id = $7`;
             const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion];
-
             await pool.query(query, values, (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });
@@ -304,13 +302,13 @@ const modificarEspacio = async (req, res) => {
                 if (result.rowCount === 0) {
                     return res.status(203).json({ success: true, message: 'No se pudo encontrar el espacio de entrega' });
                 }
-                return res.status(200).json({ success: true, message: 'Espacio modificado correctamente (Evaluador y Rubrica no se modificaron debido a que ya se realizaron calificaciones).' });
+                return res.status(200).json({ success: true, message: 'Espacio modificado correctamente. Evaluador, rubrica y marca de entrega final no se modificaron debido a que ya se realizaron calificaciones.' });
             });
         } else if (entregasResult.rows.length > 0) {
             const query = `UPDATE espacio_entrega
-                SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6, id_rol = $5, id_rubrica = $6
-                WHERE id = $7`;
-            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_rubrica, espacio_id];
+                SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6, id_rol = $7, id_rubrica = $8, final = $9
+                WHERE id = $10`;
+            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_rubrica, final, espacio_id];
 
             await pool.query(query, values, (error, result) => {
                 if (error) {
@@ -319,13 +317,14 @@ const modificarEspacio = async (req, res) => {
                 if (result.rowCount === 0) {
                     return res.status(203).json({ success: true, message: 'No se pudo encontrar el espacio de entrega' });
                 }
-                return res.status(200).json({ success: true, message: 'Espacio modificado correctamente (Modalidad y Etapa no se modificaron debido a que ya se realizaron entregas).' });
+                return res.status(200).json({ success: true, message: 'Espacio modificado correctamente. Modalidad y Etapa no se modificaron debido a que ya se realizaron entregas.' });
             });
         } else {
             const query = `UPDATE espacio_entrega
-                SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion=$5, fecha_cierre_calificacion= $6, id_rol = $7, id_modalidad = $8, id_etapa = $9, id_rubrica = $10
-                WHERE id = $11`;
-            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, espacio_id];
+                SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion=$5, fecha_cierre_calificacion= $6, id_rol = $7, id_modalidad = $8, id_etapa = $9, id_rubrica = $10, final = $11
+                WHERE id = $12`;
+            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final, espacio_id];
+
             await pool.query(query, values, (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });
@@ -345,7 +344,7 @@ const obtenerEspacio = async (req, res) => {
     try {
         const query = `
         SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura_entrega, e.fecha_cierre_entrega, e.fecha_apertura_calificacion, e.fecha_cierre_calificacion, e.fecha_creacion,
-               r.nombre AS nombre_rol, m.nombre AS nombre_modalidad, et.nombre AS nombre_etapa, rb.nombre AS nombre_rubrica, e.anio, e.periodo
+               r.nombre AS nombre_rol, m.nombre AS nombre_modalidad, et.nombre AS nombre_etapa, rb.nombre AS nombre_rubrica, e.anio, e.periodo, e.final
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
         INNER JOIN modalidad m ON e.id_modalidad = m.id
@@ -395,7 +394,7 @@ const obtenerEspacioPorId = async (req, res) => {
 
         const query = `
         SELECT e.id, e.nombre, e.descripcion, e.fecha_apertura_entrega, e.fecha_cierre_entrega, e.fecha_apertura_calificacion, e.fecha_cierre_calificacion, e.fecha_creacion,
-        r.id AS id_rol,m.id AS id_modalidad, et.id AS id_etapa, rb.id AS id_rubrica, e.anio, e.periodo
+        r.id AS id_rol,m.id AS id_modalidad, et.id AS id_etapa, rb.id AS id_rubrica, e.anio, e.periodo, e.final
         FROM espacio_entrega e
         INNER JOIN rol r ON e.id_rol = r.id
         INNER JOIN modalidad m ON e.id_modalidad = m.id
@@ -900,7 +899,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
     try {
         const { id_usuario, id_rol } = req.params;
         const query =
-        `SELECT 
+            `SELECT 
             ROW_NUMBER() OVER (ORDER BY ee.id) AS id,
             de.id AS id_doc_entrega,
             ee.id AS id_espacio_entrega,
@@ -918,6 +917,11 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
             u.nombre AS evaluador,
             de.fecha_entrega,
             de.id AS id_doc_entrega,
+            p.id AS id_proyecto,
+            he.id_etapa,
+            he.anio AS anio_proyecto,
+            he.periodo AS periodo_proyecto,
+            p.id_modalidad,
             CASE
                 WHEN NOW() < ee.fecha_apertura_calificacion THEN 'cerrado'
                 WHEN NOW() BETWEEN ee.fecha_apertura_calificacion AND ee.fecha_cierre_calificacion THEN 'pendiente'
@@ -931,7 +935,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo 
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
@@ -947,8 +951,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
-                
-        console.log(error)
+                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
 

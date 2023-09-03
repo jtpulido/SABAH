@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
-import { TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid } from "@mui/material";
+import { TextField, Button, Select, MenuItem, Dialog, Typography, Slide, DialogContent, DialogTitle, DialogActions, Grid, FormControlLabel, Checkbox, Box } from "@mui/material";
 import { SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
@@ -29,7 +29,7 @@ function CrearEspacio(props) {
     const [idModalidad, setIdModalidad] = useState("");
     const [idEtapa, setIdEtapa] = useState("");
     const [idRubrica, setIdRubrica] = useState("");
-
+    const [entregaFinal, setEntregaFinal] = useState(false);
     const [roles, setRoles] = useState([]);
     const [modalidades, setModalidades] = useState([]);
     const [etapas, setEtapas] = useState([]);
@@ -141,7 +141,9 @@ function CrearEspacio(props) {
     const handleIdRubricaChange = (event) => {
         setIdRubrica(event.target.value);
     };
-
+    const handleEntregaFinalChange = (event) => {
+        setEntregaFinal(event.target.checked);
+      };
     const guardarEspacio = async (event) => {
         event.preventDefault();
         const today = dayjs();
@@ -180,6 +182,7 @@ function CrearEspacio(props) {
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
             id_rubrica: idRubrica,
+            final:entregaFinal
         };
         try {
             const response = await fetch("http://localhost:5000/comite/espacio", {
@@ -202,6 +205,7 @@ function CrearEspacio(props) {
                 setIdModalidad("");
                 setIdEtapa("");
                 setIdRubrica("");
+                setEntregaFinal(false)
 
             }
         } catch (error) {
@@ -239,7 +243,7 @@ function CrearEspacio(props) {
                 </DialogTitle>
 
                 <DialogContent dividers >
-                    <Grid container spacing={2}>
+                    <Grid container spacing={1}>
                         <Grid item xs={12}>
                             <Typography variant="h6" color="primary">
                                 Nombre
@@ -327,24 +331,25 @@ function CrearEspacio(props) {
                                 />
                             </LocalizationProvider>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                      
+                        <Grid item xs={12} sm={5}>
                             <Typography variant="h6" color="primary">
-                                Rol Calificador
+                                Etapa
                             </Typography>
                             <Select
-                                value={idRol}
-                                onChange={handleIdRolChange}
+                                value={idEtapa}
+                                onChange={handleIdEtapaChange}
                                 required
                                 fullWidth
                             >
-                                {roles.map((rol) => (
-                                    <MenuItem key={rol.id} value={rol.id}>
-                                        {rol.nombre}
+                                {etapas.map((etapa) => (
+                                    <MenuItem key={etapa.id} value={etapa.id}>
+                                        {etapa.nombre}
                                     </MenuItem>
                                 ))}
                             </Select>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12} sm={5}>
                             <Typography variant="h6" color="primary">
                                 Modalidad
                             </Typography>
@@ -360,19 +365,29 @@ function CrearEspacio(props) {
                             ))}
                             </Select>
                         </Grid>
+                        <Grid item xs={12} sm={2} md={2} >
+                            <Typography variant="h6" color="primary">
+                                Entrega Final
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, }}                            >
+                                <FormControlLabel
+                                    control={<Checkbox checked={entregaFinal} onChange={handleEntregaFinalChange} />}
+                                />
+                            </Box>
+                        </Grid>
                         <Grid item xs={12} sm={6}>
                             <Typography variant="h6" color="primary">
-                                Etapa
+                                Rol Calificador
                             </Typography>
                             <Select
-                                value={idEtapa}
-                                onChange={handleIdEtapaChange}
+                                value={idRol}
+                                onChange={handleIdRolChange}
                                 required
                                 fullWidth
                             >
-                                {etapas.map((etapa) => (
-                                    <MenuItem key={etapa.id} value={etapa.id}>
-                                        {etapa.nombre}
+                                {roles.map((rol) => (
+                                    <MenuItem key={rol.id} value={rol.id}>
+                                        {rol.nombre}
                                     </MenuItem>
                                 ))}
                             </Select>
