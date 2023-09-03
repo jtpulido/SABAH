@@ -1,107 +1,440 @@
-import React, { useState, useEffect, useCallback } from "react";
-
-import { Typography, Box, TextField, Grid, CssBaseline } from "@mui/material";
+import React, { useState, useEffect, Fragment } from "react";
+import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
+import './VerProyecto.css';
+import VerEntrega from "../entregas/VerEntrega";
+import CustomDataGrid from "../../layouts/DataGrid";
+import CambiarCodigo from './Ventana/CambiarCodigo';
+import CambiarNombre from './Ventana/CambiarNombre';
+import { Add, Edit, EventAvailable, Person, Remove, Source } from "@mui/icons-material";
 
-import { useNavigate } from 'react-router-dom';
-
-import EditIcon from '@mui/icons-material/Edit';
-import Tooltip from '@mui/material/Tooltip';
 import { useSnackbar } from 'notistack';
-
+import AgregarEstudiante from "./Ventana/AgregarEstudiante";
+import VerModificarUsuario from "./Ventana/VerModificarUsuario";
+import CambiarFecha from "./Ventana/CambiarFecha";
+import CambiarEtapa from "./Ventana/CambiarEtapa";
+import CambiarEstado from "./Ventana/CambiarEstado";
+import TerminarProyecto from "./Ventana/TerminarProyecto";
 
 export default function VerProyectos() {
 
   const id = sessionStorage.getItem('admin_id_proyecto');
   const token = useSelector(selectToken);
-  const [existe, setExiste] = useState([]);
-  const [proyecto, setProyecto] = useState([]);
-  const [estudiantes, setEstudiantes] = useState([]);
-  const [director, setDirector] = useState([]);
-  const [lector, setLector] = useState([]);
-  const [existeLector, setExisteLector] = useState([]);
-  const [existeJurados, setExisteJurados] = useState([]);
-  const [listaJurado, setListaJurado] = useState([]);
-
-  const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
+
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-  const infoProyecto = useCallback(async () => {
-    const proyecto_id = id;
+  const [existe, setExiste] = useState([]);
+  const [proyecto, setProyecto] = useState({});
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [director, setDirector] = useState({});
+  const [lector, setLector] = useState({});
+  const [existeLector, setExisteLector] = useState(false);
+  const [existeJurados, setExisteJurados] = useState(false);
+  const [listaJurado, setListaJurado] = useState([]);
+  const [entregasPendientes, setEntregasPendientes] = useState([]);
+  const [entregasCalificadas, setEntregasCalificadas] = useState([]);
+  const [entregasPorCalificar, setEntregasPorCalificar] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [entrega, setEntrega] = useState({});
+  const [tipo, setTipo] = useState("");
+  const [estudiante, setEstudiante] = useState({});
+  const [confirmarEliminacion, setConfirmarEliminacion] = useState(false);
+  const [abrirAgregarEstudiante, setAbrirAgregarEstudiante] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [openTerminar, setOpenTerminar] = useState(false);
+  const [openNombre, setOpenNombre] = useState(false);
+  const [openEstado, setOpenEstado] = useState(false);
+  const [openEtapa, setOpenEtapa] = useState(false);
+  const [openFechaGrado, setOpenFechaGrado] = useState(false);
+  const [rol, setRol] = useState("");
+  const [info, setInfo] = useState({});
+  const [accion, setAccion] = useState("");
+  const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
+  const [existeCliente, setExisteCliente] = useState([]);
+  const [listaCliente, setListaCliente] = useState([]);
+
+
+  const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/verProyecto/${proyecto_id}`, {
+      const response = await fetch("http://localhost:5000/admin/asignarCodigo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+        setExiste(false)
+      } else {
+        actualizarProyecto(data.codigo)
+        mostrarMensaje("Se ha asignado un código al proyecto", "success");
+      }
+    } catch (error) {
+      setExiste(false)
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+    }
+  }
+
+  const infoProyecto = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/admin/verProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
 
       const data = await response.json();
       if (!data.success) {
-        mostrarMensaje(data.message, "error");
-        setExiste(false);
-
+        mostrarMensaje(data.message, "error")
+        setExiste(false)
       } else {
         setProyecto(data.proyecto);
         setEstudiantes(data.estudiantes);
         setDirector(data.director);
-        setExisteLector(data.lector.existe_lector);
-        setLector(data.lector.existe_lector ? data.lector.nombre : "");
-        setExisteJurados(data.jurados.existe_jurado);
+        setExisteLector(data.lector.existe_lector)
+        setLector(data.lector.lector);
+        setExisteJurados(data.jurados.existe_jurado)
         setListaJurado(data.jurados.existe_jurado ? data.jurados.jurados : []);
-        setExiste(true);
+        setExisteCliente(data.cliente.existe_cliente)
+        setListaCliente(data.cliente.existe_cliente ? data.cliente : []);
+        setExiste(true)
       }
     }
     catch (error) {
-      setExiste(false);
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+      setExiste(false)
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
-  }, [id, token]);
-
-  useEffect(() => {
-    infoProyecto();
-  }, [infoProyecto]);
-
-  const handleModificarProyecto = () => {
-    navigate(`/admin/modificarProyecto`)
   };
+
+  const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
+    try {
+      const response = await fetch(`http://localhost:5000/admin/entregasProyecto/${endpoint}/${proyecto_id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 203) {
+        mostrarMensaje(data.message, "info")
+      } else if (response.status === 200) {
+        setRowsFunc(data.entregas);
+      }
+    } catch (error) {
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+    }
+  }
+
+  const quitarEstudiante = async (estudiante) => {
+    setConfirmarEliminacion(false);
+    try {
+      const response = await fetch(`http://localhost:5000/admin/estudiante/${estudiante.id_estudiante_proyecto}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 200) {
+        mostrarMensaje(data.message, "success")
+        setEstudiantes(data.estudiantes)
+      }
+    } catch (error) {
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+    }
+  };
+
+  const actualizarProyecto = (nuevoCodigo) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      codigo: nuevoCodigo
+    }));
+  };
+  const actualizarNombreProyecto = (nuevoNombre) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      nombre: nuevoNombre
+    }));
+  };
+  const actualizarEtapa = (cambio) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      anio: cambio.anio,
+      periodo: cambio.periodo,
+      id_etapa: cambio.id_etapa,
+      etapa: cambio.etapa,
+      id_estado: cambio.id_estado,
+      estado: cambio.estado
+    }));
+  };
+  const actualizarEstado = (cambio) => {
+    setProyecto((prevState) => ({
+      ...prevState,
+      id_estado: cambio.id_estado,
+      estado: cambio.estado
+    }));
+  };
+  const abrirConfirmarEliminacion = (estudiante) => {
+    setEstudiante(estudiante);
+    setConfirmarEliminacion(true);
+  };
+  const handleClose = () => {
+    setEstudiante({})
+    setConfirmarEliminacion(false);
+  };
+
+  const abrirDialogCambiarCodigo = () => {
+    setOpen(true);
+  };
+  const cerrarDialogCambiarCodigo = async () => {
+    setOpen(false);
+  };
+  const cerrarDialogCodigoCambiado = async (newValue) => {
+    setOpen(false);
+    if (newValue) {
+      actualizarProyecto(newValue)
+    };
+  };
+  const abrirDialogTerminar = () => {
+    setOpenTerminar(true);
+  };
+  const cerrarDialogTerminar = async () => {
+    setOpenTerminar(false);
+  };
+  const cerrarDialogTerminado = async (newValue) => {
+    setOpenTerminar(false);
+
+  };
+  const abrirDialogCambiarNombre = () => {
+    setOpenNombre(true);
+  };
+  const cerrarDialogCambiarNombre = () => {
+    setOpenNombre(false);
+  };
+
+  const cerrarDialogNombreCambiado = (newValue) => {
+    setOpenNombre(false);
+    if (newValue) {
+      actualizarNombreProyecto(newValue)
+    };
+  };
+  const abrirDialogCambiarEstado = () => {
+    setOpenEstado(true);
+  };
+  const cerrarDialogCambiarEstado = () => {
+    setOpenEstado(false);
+  }
+  const cerrarDialogEstadoCambiado = (newValue) => {
+    actualizarEstado(newValue)
+    setOpenEstado(false);
+  }
+  const abrirDialogCambiarEtapa = () => {
+    setOpenEtapa(true);
+  };
+  const cerrarDialogCambiarEtapa = () => {
+    setOpenEtapa(false);
+  }
+  const cerrarDialogEtapaCambiado = (newValue) => {
+    actualizarEtapa(newValue)
+    setOpenEtapa(false);
+  }
+  const abrirVentanaAgregarEstudiante = () => {
+    setAbrirAgregarEstudiante(true);
+  };
+  const cerrarDialogEstudiante = () => {
+    setAbrirAgregarEstudiante(false);
+  }
+  const cerrarDialogAgregarEstudiante = async (estudiantes) => {
+    setAbrirAgregarEstudiante(false);
+    if (estudiantes) {
+      setEstudiantes(estudiantes)
+    };
+    setEstudiante({})
+  }
+  const abrirDialogCambiarFechaGrado = (estudiante) => {
+    setEstudiante(estudiante)
+    setOpenFechaGrado(true);
+  };
+
+  const cerrarDialogCambiarFechaGrado = () => {
+    setEstudiante({})
+    setOpenFechaGrado(false);
+  }
+  const cerrarDialogFechaGradoCambiada = (newValue) => {
+    setOpenFechaGrado(false);
+    if (newValue) {
+      setEstudiantes(newValue)
+    };
+  }
+  const abrirVentanaVerEntrega = (row, tipo) => {
+    setEntrega(row);
+    setTipo(tipo)
+    setOpenDialog(true);
+  };
+
+  const generacerrarDialogVerEntrega = () => {
+    setOpenDialog(false);
+  };
+
+  const abrirDialog = (row, accion, rol) => {
+    if (accion === "asignar") {
+      const infoRol = {
+        id_proyecto: row.id,
+      };
+      setInfo(infoRol)
+    } else if (accion === "modificar") {
+      const infoRol = {
+        id_proyecto: row.id_proyecto,
+        id_usuario: row.id_usuario
+      };
+      setInfo(infoRol)
+    }
+    setRol(rol)
+    setAccion(accion)
+    setAbrirVerModificarUsuario(true);
+  };
+
+  const cerrarDialog = () => {
+    setAbrirVerModificarUsuario(false);
+    infoProyecto();
+  };
+  
+  const cerrarUsuarioCambiado = (usuarios) => {
+    if (usuarios) {
+      if (rol === "DIRECTOR") {
+        if (usuarios.length === 1) {
+          setDirector(usuarios[0])
+        }
+      } else if (rol === "LECTOR") {
+        if (usuarios.length > 0) {
+          setLector(usuarios[0])
+          setExisteLector(true)
+        } else {
+          setLector({})
+          setExisteLector(false)
+        }
+      } else if (rol === "JURADO") {
+        if (usuarios.length > 0) {
+          setListaJurado(usuarios)
+          setExisteJurados(true)
+        } else {
+          setListaJurado({})
+          setExisteJurados(false)
+        }
+      }
+
+    }
+    setAbrirVerModificarUsuario(false);
+    infoProyecto();
+  }
+  useEffect(() => {
+    infoProyecto()
+    llenarTabla("pendientes", id, setEntregasPendientes);
+    llenarTabla("realizadas/calificadas", id, setEntregasCalificadas);
+    llenarTabla("realizadas/porCalificar", id, setEntregasPorCalificar);
+  }, [id]);
+
+  const generarColumnasEntregas = (inicio, extraColumns) => {
+    const columns = [
+      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
+      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
+      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
+    ]
+    return [...inicio, ...columns, ...extraColumns];
+  };
+  const columnaPendientes = generarColumnasEntregas([{
+    field: "ver",
+    headerName: "",
+    flex: 0.1,
+    minWidth: 50,
+    renderCell: ({ row }) => {
+      return (
+        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+          <Tooltip title="Ver Entrega">
+            <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "pendiente")}>
+              <Source />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  }], [
+    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+  ]);
+  const columnaPorCalificar = generarColumnasEntregas([
+    {
+      field: "calificar",
+      headerName: "",
+      flex: 0.1,
+      minWidth: 50,
+      renderCell: ({ row }) => {
+        return (
+          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+            <Tooltip title="Calificar">
+              <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "")}>
+                <Source />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      },
+    }], [
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+
+  ]);
+  const columnaCalificadas = generarColumnasEntregas([{
+    field: "calificado",
+    headerName: "",
+    flex: 0.1,
+    minWidth: 50,
+    renderCell: ({ row }) => {
+      return (
+        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
+          <Tooltip title="Calificar">
+            <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "calificado")}>
+              <Source />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+  }], [
+    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
+    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
+    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
+
+  ]);
 
   return (
     <div style={{ margin: "15px" }} >
 
-      <div style={{ display: 'flex', marginBottom: "20px" }}>
-        <Typography
-          variant="h1"
-          color="secondary"
-          fontWeight="bold"
-        >
-          VER PROYECTO
-        </Typography>
-        <Tooltip title="Modificar Proyecto" sx={{ fontSize: '20px' }}>
-          <EditIcon sx={{ color: '#B8CF69', fontSize: 25, marginLeft: "5px", cursor: "pointer" }} onClick={handleModificarProyecto} />
-        </Tooltip>
-
-      </div>
-
       {existe ? (
 
-        <Box >
+        <Box sx={{ '& button': { mt: 1 } }}>
           <CssBaseline />
 
           <Typography
             variant="h4"
             color="secondary"
-            sx={{ mb: "5px" }}
           >
             {proyecto.modalidad || ''}
-          </Typography >
+          </Typography>
           <Typography
             variant="h4"
-            sx={{ mb: "5px" }}
           >
             {proyecto.nombre || ''}
           </Typography>
@@ -110,94 +443,267 @@ export default function VerProyectos() {
           >
             {proyecto.codigo || ''}
           </Typography>
+          {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
+            <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
+              width: 200, m: 1
+            }}>
+              Asignar Código
+            </Button>
+          ) : (
+            <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarCodigo} sx={{
+              width: 200, m: 1
+            }}>
+              Modificar código
+            </Button>
+          )}
+
+          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, m: 1 }}>
+            Modificar nombre
+          </Button>
+          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEtapa} sx={{ width: 200, m: 1 }}>
+            Cambiar etapa
+          </Button>
+          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
+            Cambiar estado
+          </Button>
+          {proyecto.estado === 'Aprobado' ? (
+            <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
+              Terminar Proyecto
+            </Button>
+          ) : null}
+          <CambiarCodigo
+            open={open}
+            onClose={cerrarDialogCambiarCodigo}
+            onSubmit={cerrarDialogCodigoCambiado}
+            proyectoCodigo={proyecto.codigo || ''}
+          />
+          <CambiarNombre
+            open={openNombre}
+            onClose={cerrarDialogCambiarNombre}
+            onSubmit={cerrarDialogNombreCambiado}
+            proyectoNombre={proyecto.nombre || ''}
+          />
+          <CambiarEstado
+            open={openEstado}
+            onClose={cerrarDialogCambiarEstado}
+            onSubmit={cerrarDialogEstadoCambiado}
+            proyecto={proyecto}
+          />
+          <CambiarEtapa
+            open={openEtapa}
+            onClose={cerrarDialogCambiarEtapa}
+            onSubmit={cerrarDialogEtapaCambiado}
+            proyecto={proyecto}
+          />
+          <TerminarProyecto
+            open={openTerminar}
+            onClose={cerrarDialogTerminar}
+            onSubmit={cerrarDialogTerminado}
+            proyecto={proyecto}
+          />
           <Box >
-            <Typography variant="h3" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
+            <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px" }}>
               Información General
             </Typography>
 
             <Grid container spacing={2}>
-              <Grid item xxs={12} sm={6} md={4} lg={4} xl={4}>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Typography variant="h6" color="primary">
                   Modalidad
                 </Typography>
                 <TextField value={proyecto.modalidad || ''} fullWidth />
               </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Typography variant="h6" color="primary">
                   Etapa
                 </Typography>
                 <TextField value={proyecto.etapa || ''} fullWidth />
               </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Typography variant="h6" color="primary">
                   Estado
                 </Typography>
                 <TextField value={proyecto.estado || ''} fullWidth />
               </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Typography variant="h6" color="primary">
                   Año
                 </Typography>
                 <TextField value={proyecto.anio || ''} fullWidth />
               </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
+              <Grid item xs={12} sm={12} md={6} lg={4}>
                 <Typography variant="h6" color="primary">
                   Período
                 </Typography>
                 <TextField value={proyecto.periodo || ''} fullWidth />
               </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                <Typography variant="h6" color="primary">
-                  Director
-                </Typography>
-                <TextField value={director.nombre || ''} fullWidth />
+              <Grid item xs={12} sm={12} md={6} lg={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                  {director ? (
+                    <>
+                      <Box sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                        <Typography variant="h6" color="primary" >
+                          Director
+                        </Typography>
+                        <TextField value={director.nombre || ''} fullWidth />
+                      </Box>
+                      <Tooltip title="Ver/Cambiar Director">
+                        <IconButton color="secondary" onClick={() => abrirDialog(director, "modificar", "DIRECTOR")}>
+                          <Edit />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  ) : (
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexGrow: 1,
+                    }}>
+                      <Typography variant="h6" color="primary">
+                        Asignar Director
+                      </Typography>
+                      <Tooltip title="Asignar Director">
+                        <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'DIRECTOR')}>
+                          <Person />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
+                </Box>
               </Grid>
 
               {proyecto.acronimo !== "AUX" && (
                 <>
-                  <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                    <Typography variant="h6" color="primary">Lector</Typography>
-                    {existeLector ? (
-                      <TextField value={lector || ''} fullWidth />
-                    ) : (
-                      <TextField value="No se ha asignado el lector" fullWidth></TextField>
-
-                    )}
-
+                  <Grid item xs={12} sm={12} md={6} lg={4}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                      {existeLector ? (
+                        <>
+                          <Box sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                            <Typography variant="h6" color="primary">
+                              Lector
+                            </Typography>
+                            <TextField value={lector.nombre || ''} fullWidth />
+                          </Box>
+                          <Tooltip title="Ver/Cambiar Lector">
+                            <IconButton color="secondary" onClick={() => abrirDialog(lector, "modificar", "LECTOR")}>
+                              <Edit />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      ) : (
+                        <Box sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexGrow: 1,
+                        }}>
+                          <Typography variant="h6" color="primary">
+                            Asignar Lector
+                          </Typography>
+                          <Tooltip title="Asignar Lector">
+                            <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'LECTOR')}>
+                              <Person />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Box>
                   </Grid>
                 </>
               )}
             </Grid>
           </Box>
+          {proyecto.acronimo === "DT" && (
+            <> <Box>
 
+              <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px" }}>
+                Cliente
+              </Typography>
+              {existeCliente ? (
+                <Grid container spacing={2}>
+                  <Grid item sm={6} md={4} lg={4} xl={3}>
+                    <Typography variant="h6" color="primary">
+                      Nombre Cliente
+                    </Typography>
+                    <TextField
+                      value={listaCliente.empresa || ''}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item sm={6} md={4} lg={4} xl={3}>
+                    <Typography variant="h6" color="primary">
+                      Representante Cliente
+                    </Typography>
+                    <TextField
+                      value={listaCliente.representante || ''}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item sm={6} md={4} lg={4} xl={3}>
+                    <Typography variant="h6" color="primary">
+                      Correo Representante
+                    </Typography>
+                    <TextField
+                      value={listaCliente.correo || ''}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+
+              ) : (<Typography variant="h6" color="primary">No se han asignado cliente</Typography>
+              )}
+            </Box>
+            </>
+          )}
           <Box>
-            <Typography variant="h3" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
-              Estudiante(s)
-            </Typography>
-
+            <div style={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+              <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "5px", flexGrow: 1, maxWidth: '98%' }}>
+                Estudiante(s)
+              </Typography>
+              <Tooltip title="Agregar Estudiante">
+                <IconButton variant="outlined" color='secondary' size="large" onClick={abrirVentanaAgregarEstudiante} sx={{ marginLeft: '8px' }}>
+                  <Add fontSize="inherit" />
+                </IconButton>
+              </Tooltip>
+            </div>
+            <AgregarEstudiante
+              open={abrirAgregarEstudiante}
+              onClose={cerrarDialogEstudiante}
+              onSubmit={cerrarDialogAgregarEstudiante}
+            />
+            <CambiarFecha
+              open={openFechaGrado}
+              onClose={cerrarDialogCambiarFechaGrado}
+              estudiante={estudiante || {}}
+              onSubmit={cerrarDialogFechaGradoCambiada}
+            />
             <Grid container>
+
               {estudiantes.map((estudiante) => (
-                <Grid item key={estudiante.num_identificacion} xs={12}>
+                <Grid item key={estudiante.num_identificacion} xs={12} sx={{ mt: '15px' }}>
                   <Grid container spacing={2}>
-                    <Grid item xxs={12} sm={6} md={4} lg={4} xl={4}>
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
-                        Nombre Completo
+                        Nombre
                       </Typography>
                       <TextField
                         value={estudiante.nombre || ''}
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
-                        Correo Electrónico
+                        Correo electrónico
                       </Typography>
                       <TextField
                         value={estudiante.correo || ''}
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
                         Número de Identificación
                       </Typography>
@@ -206,43 +712,156 @@ export default function VerProyectos() {
                         fullWidth
                       />
                     </Grid>
+                    <Grid item xs={12} sm={6} md={2} lg={2} xl={2}>
+                      <Typography variant="h6" color="primary">
+                        Fecha de grado
+                      </Typography>
+                      <TextField
+                        value={estudiante.fecha_grado || ''}
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Tooltip title="Quitar estudiante">
+                          <IconButton variant="outlined" color='naranja' size="large" onClick={() => abrirConfirmarEliminacion(estudiante)} sx={{ marginLeft: '8px' }}>
+                            <Remove fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Modificar fecha de grado">
+                          <IconButton variant="outlined" color='secondary' size="large" onClick={() => abrirDialogCambiarFechaGrado(estudiante)} sx={{ marginLeft: '8px' }}>
+                            <EventAvailable fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
                   </Grid>
                 </Grid>
               ))}
             </Grid>
-
-            {proyecto.acronimo !== "AUX" && proyecto.modalidad !== "Coterminal" && (
-              <>
-                <Box>
-                  <Typography variant="h3" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
-                    Jurado(s)
-                  </Typography>
-
-                  <Grid container spacing={2}>
-                    {existeJurados ? (
-                      listaJurado.map((jurado, index) => (
-                        <Grid item xs={12} sm={6} md={4} lg={4} xl={4} key={index}>
-                          <Typography variant="h6" color="primary">Nombre Completo</Typography>
-                          <TextField value={jurado?.nombre || ''} fullWidth />
-                        </Grid>
-                      ))
-                    ) : (
-                      <Grid item xs={12} sm={6} md={4} lg={4} xl={4}>
-                        <Typography variant="h6" color="primary">Nombre Completo</Typography>
-                        <TextField value="No se ha asignado ningún jurado" fullWidth />
-                      </Grid>
-                    )}
-                  </Grid>
-                </Box>
-              </>
-            )}
-
           </Box>
+          {proyecto.acronimo !== "AUX" && proyecto.acronimo !== "COT" && (
+            <> <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px", flexGrow: 1, maxWidth: '98%' }}>
+                  Jurado(s)
+                </Typography>
 
+              </Box>
+              <Grid container spacing={2}>
+                {listaJurado.map((jurado, index) => (
+                  <Fragment key={jurado.id}>
+                    <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Box sx={{ mr: "20px", flexGrow: 1, maxWidth: '90%' }}>
+                          <Typography variant="h6" color="primary">
+                            Nombre
+                          </Typography>
+                          <TextField value={jurado.nombre || ''} fullWidth />
+                        </Box>
+                        <Tooltip title="Ver/Cambiar Jurado">
+                          <IconButton
+                            color="secondary"
+                            onClick={() => abrirDialog(jurado, 'modificar', 'JURADO')}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
+                  </Fragment>
+                ))}
+                {listaJurado.length < 1 && proyecto.acronimo === "DT" ? (
+                  <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+                    <Box sx={{ alignItems: 'center', flexGrow: 1 }}>
+                      <Typography variant="h6" color="primary">
+                        Asignar Jurado
+                      </Typography>
+                      <Tooltip title="Asignar Jurado">
+                        <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'JURADO')}>
+                          <Person />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Grid>
+                ) : (
+                  listaJurado.length < 2 && proyecto.acronimo === "IT" && (
+                    <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+                      <Box sx={{ alignItems: 'center', flexGrow: 1 }}>
+                        <Typography variant="h6" color="primary">
+                          Asignar Jurado
+                        </Typography>
+                        <Tooltip title="Asignar Jurado">
+                          <IconButton color="secondary" onClick={() => abrirDialog(proyecto, 'asignar', 'JURADO')}>
+                            <Person />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
+                  )
+                )}
+
+              </Grid>
+
+            </Box>
+            </>
+          )}
         </Box>
       ) : (
-        <Typography variant="h3" color="primary">{mostrarMensaje.mensaje}</Typography>
+        <Typography variant="h6" color="primary">Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
       )}
+
+      <Box mt={4}>
+        <Typography variant="h4" color="secondary" sx={{ mt: "45px", mb: "10px" }}>
+          Entregas
+        </Typography>
+        <VerEntrega
+          open={openDialog}
+          onClose={generacerrarDialogVerEntrega}
+          entrega={entrega}
+          tipo={tipo}
+        />
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px" }}>
+          Entregas Pendientes
+        </Typography>
+        <CustomDataGrid rows={entregasPendientes} columns={columnaPendientes} mensaje="No hay entregas pendientes" />
+
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px" }}>
+          Entregas Sin Calificar
+        </Typography>
+        <CustomDataGrid rows={entregasPorCalificar} columns={columnaPorCalificar} mensaje="No hay entregas sin calificar" />
+
+        <Typography variant="h6" color="secondary" sx={{ mt: "20px" }}>
+          Entregas Calificadas
+        </Typography>
+        <CustomDataGrid rows={entregasCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />
+
+      </Box>
+      <Dialog
+        open={confirmarEliminacion}
+        keepMounted
+        onClose={handleClose}
+      >
+        <DialogTitle variant="h1" color="primary">
+          ¿Está seguro de que quiere retirar al estudiante?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText variant="h4">
+            Puede volver a asignar al estudiante a este u otro proyecto.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="naranja">Cancelar</Button>
+          <Button onClick={() => { quitarEstudiante(estudiante); }} variant="contained" sx={{ width: 150 }}>Continuar</Button>
+        </DialogActions>
+      </Dialog>
+      <VerModificarUsuario
+        open={abrirVerModificarUsuario}
+        onSubmit={cerrarUsuarioCambiado}
+        onClose={cerrarDialog}
+        informacion={info}
+        rol={rol}
+        accion={accion} />
     </div>
   );
 }

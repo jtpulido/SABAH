@@ -6,9 +6,6 @@ import Usuarios from './usuarios/Usuarios';
 import Proyectos from './proyectos/Proyectos';
 import VerProyecto from './proyectos/VerProyecto';
 import VerUsuario from './usuarios/VerUsuario';
-import AgregarUsuario from "./usuarios/AgregarUsuario";
-import ModificarUsuario from "./usuarios/ModificarUsuario";
-import ModificarProyecto from "./proyectos/ModificarProyecto";
 import Estudiantes from './estudiantes/Estudiantes';
 import VerEstudiante from './estudiantes/VerEstudiante';
 
@@ -21,9 +18,6 @@ export default function RoutesAdmin() {
                 <Route path="verUsuario" element={<VerUsuario />} />
                 <Route path="proyectos" element={<Proyectos />} />
                 <Route path="verProyecto" element={<VerProyecto />} />
-                <Route path="modificarProyecto" element={<ModificarProyecto />} />
-                <Route path="agregarUsuario" element={<AgregarUsuario />} />
-                <Route path="modificarUsuario" element={<ModificarUsuario />} />
                 <Route path="estudiantes" element={<Estudiantes />} />
                 <Route path="verEstudiante" element={<VerEstudiante />} />
             </Route>

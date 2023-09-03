@@ -13,6 +13,7 @@ import { Visibility } from '@mui/icons-material';
 
 import CustomDataGrid from "../../layouts/DataGrid";
 
+import ModificarUsuario from "./ModificarUsuario";
 
 export default function VerUsuario() {
 
@@ -32,6 +33,8 @@ export default function VerUsuario() {
     estado: null
   });
 
+  const [abrirModificarUsuario, setAbrirModificarUsuario] = useState(false);
+
   const [checkboxDirector, setCheckboxDirector] = useState(false);
   const [checkboxLector, setCheckboxLector] = useState(false);
   const [checkboxJurado, setCheckboxJurado] = useState(false);
@@ -39,6 +42,20 @@ export default function VerUsuario() {
   const [rowsDirector, setRowsDirector] = useState([]);
   const [rowsLector, setRowsLector] = useState([]);
   const [rowsJurado, setRowsJurado] = useState([]);
+
+  const abrirVentanaModificarUsuario = () => {
+    setAbrirModificarUsuario(true);
+  };
+
+  const cerrarDialogUsuario = () => {
+    setAbrirModificarUsuario(false);
+    infoUsuario();
+  };
+
+  const cerrarDialogModificarUsuario = async () => {
+    setAbrirModificarUsuario(false);
+    infoUsuario();
+  };
 
   const columns = [
     {
@@ -230,10 +247,6 @@ export default function VerUsuario() {
     llenarTablaLector();
   }, [rolDirector, rolJurado, rolLector, infoUsuario, llenarTablaDirector, llenarTablaJurado, llenarTablaLector]);
 
-  const handleModificarUsuario = () => {
-    navigate(`/admin/modificarUsuario`)
-  };
-
   return (
     <div >
       <AppBar position="static" color="transparent" variant="contained" >
@@ -242,10 +255,15 @@ export default function VerUsuario() {
             VER USUARIO
           </Typography>
           <Tooltip title="Modificar Usuario" sx={{ fontSize: '20px' }}>
-            <EditIcon color="secondary" sx={{ fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={handleModificarUsuario} />
+            <EditIcon color="secondary" sx={{ fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={abrirVentanaModificarUsuario} />
           </Tooltip>
         </Toolbar>
       </AppBar>
+      <ModificarUsuario
+        open={abrirModificarUsuario}
+        onClose={cerrarDialogUsuario}
+        onSubmit={cerrarDialogModificarUsuario}
+      />
 
       {existe ? (
         <Box sx={{ m: 3 }}>

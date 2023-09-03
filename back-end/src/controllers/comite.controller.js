@@ -1028,7 +1028,6 @@ const agregarEstudiante = async (req, res) => {
         if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
             return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
         }
-        console.log(error)
         return res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
     }
 };
