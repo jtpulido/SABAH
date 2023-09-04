@@ -24,6 +24,7 @@ const generarPDF = async (req, res) => {
       .moveDown(1);
 
     const asistentes = [];
+    const nombre_rol = [];
 
     doc.font('Helvetica-Bold').fontSize(10).text('TÍTULO PROPUESTA: ', { continued: true })
       .font('Helvetica').text(data_proyecto.proyecto.nombre, { continued: false, align: 'left' });
@@ -37,13 +38,17 @@ const generarPDF = async (req, res) => {
     data_proyecto.estudiantes.forEach((estudiante) => {
       doc.font('Helvetica').fontSize(10).text(`${estudiante.nombre} - ${estudiante.num_identificacion}`, { align: 'left' });
       asistentes.push(estudiante.nombre);
+      nombre_rol.push("Estudiante");
+
     });
 
     data_invitados.invitados.forEach((invitado) => {
       if(invitado.id_cliente != null){
         asistentes.push(invitado.nombre_repr);
+        nombre_rol.push("Cliente" )
       }else{
       asistentes.push(invitado.nombre_usuario);
+      nombre_rol.push(invitado.nombre_rol);
     }
     });
     doc.moveDown(1);
@@ -95,7 +100,7 @@ const generarPDF = async (req, res) => {
 
 
     const numberOfSignatureFields = asistentes;
-    drawSignatureFields(doc, numberOfSignatureFields, signatureSettings);
+    drawSignatureFields(doc, numberOfSignatureFields, signatureSettings, nombre_rol);
 
     doc.end();
     const buffer = await new Promise((resolve, reject) => {
@@ -118,7 +123,7 @@ const generarPDF = async (req, res) => {
 
 
 
-function drawSignatureFields(doc, numberOfFields, settings) {
+function drawSignatureFields(doc, numberOfFields, settings, dataRol) {
   const { x, y, width, rowHeight, signatureHeight, fontSize, signaturesPerRow } = settings;
 
   doc.font('Helvetica').fontSize(fontSize);
@@ -131,6 +136,7 @@ function drawSignatureFields(doc, numberOfFields, settings) {
     const yPos = y + row * rowHeight;
 
     doc.font('Helvetica-Bold').fontSize(11).text(numberOfFields[i], xPos + 10, yPos + 50, { width: width - 20, align: 'center' });
+    doc.font('Helvetica').fontSize(10).text(dataRol[i], xPos + 10, yPos + 70, { width: width - 20, align: 'center' });
 
     const lineYPos = yPos + signatureHeight;
     const lineLength = width * 0.85;

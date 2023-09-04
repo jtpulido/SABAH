@@ -803,8 +803,10 @@ const crearReunionInvitados = async (req, res) => {
 
         // Verificar si es jurado
       } else if (roleName.startsWith("jurado")) {
+        
         const juradoIndex = parseInt(roleName.split(" ")[1]);
-        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true))`, [id, jurado[juradoIndex].id]);
+        console.log(jurado[juradoIndex].id)
+        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true AND id_proyecto=$3))`, [id, jurado[juradoIndex].id , id_proyecto]);
       }
     }
 
@@ -812,6 +814,7 @@ const crearReunionInvitados = async (req, res) => {
     res.status(201).json({ success: true, message: 'La reunión fue creada exitosamente y los invitados han sido notificados.' });
 
   } catch (error) {
+    console.log(error)
     await pool.query('ROLLBACK');
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
