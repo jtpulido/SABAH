@@ -235,13 +235,15 @@ export default function Reuniones() {
     setAbrirCancelar(true);
   };
   const cerrarCancelarReunion = () => {
-    llenarTablaPendientes();
-    llenarTablaCanceladas();
+    
     setAbrirCancelar(false);
   };
   const cerrarReunionCancelada = () => {
+    setRowsPendientes([])
+    setRowsCanceladas([])
     llenarTablaPendientes();
     llenarTablaCanceladas();
+    setAbrirCancelar(false);
   };
 
   // Editar reunion
@@ -269,13 +271,12 @@ export default function Reuniones() {
     }
   };
   const cerrarEditarReunion = () => {
-    llenarTablaPendientes();
-    llenarTablaCompletas();
     setAbrirEditar(false);
   };
   const cerrarReunionEditada = () => {
     llenarTablaPendientes();
     llenarTablaCompletas();
+    setAbrirEditar(false);
   };
 
   // Ver reunion

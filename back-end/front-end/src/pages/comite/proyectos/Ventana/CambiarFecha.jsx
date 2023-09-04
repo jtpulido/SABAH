@@ -5,6 +5,7 @@ import { CalendarMonth, SaveOutlined } from '@mui/icons-material';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
 
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useSelector } from 'react-redux';
@@ -26,7 +27,7 @@ function CambiarFecha(props) {
     const [fechaGrado, setFechaGrado] = useState('');
 
     const handleEntering = () => {
-        setFechaGrado(estudiante.fecha_grado)
+               setFechaGrado( dayjs(estudiante.fecha_grado, 'DD-MM-YYYY'))
     };
 
     const handleCancel = () => {

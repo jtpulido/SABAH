@@ -47,7 +47,7 @@ function EditarReunion(props) {
         enqueueSnackbar(mensaje, { variant: variante });
     }, [enqueueSnackbar]);
 
-    const obtenerAsistencia = useCallback(async () => {
+    const obtenerAsistencia =async () => {
         try {
             const response = await fetch(`http://localhost:5000/usuario/obtenerAsistencia`, {
                 method: "GET",
@@ -64,13 +64,10 @@ function EditarReunion(props) {
         catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
-    }, [token, mostrarMensaje]);
-
-    useEffect(() => {
-        obtenerAsistencia();
-    }, [obtenerAsistencia]);
+    }
 
     const handleEntering = async () => {
+        obtenerAsistencia()
         setNombre(reunion.nombre);
         setLink(reunion.enlace);
         const fechaHoraArray = reunion.fecha.split(' ');
@@ -165,7 +162,7 @@ function EditarReunion(props) {
                                 mostrarMensaje(data.message, "error");
                             } else {
                                 mostrarMensaje(data.message, "success");
-                                handleCancel();
+                                onSubmit()
                             }
                         } catch (error) {
                             mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -195,7 +192,7 @@ function EditarReunion(props) {
                         mostrarMensaje(data.message, "error");
                     } else {
                         mostrarMensaje(data.message, "success");
-                        handleCancel();
+                        onSubmit()
                     }
                 } catch (error) {
                     mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -307,7 +304,7 @@ function EditarReunion(props) {
                                     onChange={handleAsistenciaSeleccionada}
                                     value={idAsistenciaSeleccionada}
                                 >
-                                    {asistencia.map((listaAsistencia) => (
+                                    {asistencia && asistencia.map((listaAsistencia) => (
                                         <MenuItem key={listaAsistencia.id} value={listaAsistencia.id}>
                                             {listaAsistencia.nombre}
                                         </MenuItem>

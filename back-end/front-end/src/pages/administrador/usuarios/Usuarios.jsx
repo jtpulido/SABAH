@@ -31,7 +31,7 @@ export default function Usuarios() {
 
     const [abrirAgregarUsuario, setAbrirAgregarUsuario] = useState(false);
     const [abrirModificarUsuario, setAbrirModificarUsuario] = useState(false);
-
+    const [id, setID] = useState('');
     const abrirVentanaAgregarUsuario = () => {
         setAbrirAgregarUsuario(true);
     };
@@ -47,7 +47,7 @@ export default function Usuarios() {
     };
 
     const abrirVentanaModificarUsuario = (id) => {
-        sessionStorage.setItem('admin_id_usuario', id);
+        setID(id)
         setAbrirModificarUsuario(true);
     };
 
@@ -172,6 +172,7 @@ export default function Usuarios() {
                 open={abrirModificarUsuario}
                 onClose={cerrarDialogUsuarioModificar}
                 onSubmit={cerrarDialogModificarUsuario}
+                id={id}
             />
             <Box sx={{ m: 3 }}>
                 <CustomDataGrid rows={rowsUsuarios} columns={columns} mensaje="No hay usuarios" />

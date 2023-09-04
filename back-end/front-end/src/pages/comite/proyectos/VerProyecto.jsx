@@ -98,8 +98,8 @@ export default function VerProyectos() {
         setExisteCliente(data.cliente.existe_cliente)
         setListaCliente(data.cliente.existe_cliente ? data.cliente : []);
         setExiste(true)
-        setExisteSustentacion(data.sustentacion.sustentacion_existe)
-        setSustentacion(data.sustentacion.sustentacion_existe ? data.sustentacion.sustentacion : null)
+        setExisteSustentacion(data.sustentacion.existe_sustentacion)
+        setSustentacion(data.sustentacion.existe_sustentacion ? data.sustentacion.sustentacion : null)
       }
     }
     catch (error) {

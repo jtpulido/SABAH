@@ -20,6 +20,7 @@ function InicioAdmin() {
   const cerrarSesion = () => {
     dispatch(clearSession());
     dispatch(clearCookies());
+    sessionStorage.clear();
     navigate('/')
   };
 

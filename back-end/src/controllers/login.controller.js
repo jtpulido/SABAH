@@ -130,7 +130,7 @@ const cambiarContrasenaProyecto = async (req, res) => {
 const codigoProy = async (req, res) => {
   try {
     const result = await pool.query("SELECT MAX(codigo) FROM proyecto WHERE codigo LIKE 'TEM%'");
-    const codigo = result.rows[0].max;
+    let codigo = result.rows[0].max;
     if (codigo !== null) {
       return res.json({ success: true, codigo });
     } else {

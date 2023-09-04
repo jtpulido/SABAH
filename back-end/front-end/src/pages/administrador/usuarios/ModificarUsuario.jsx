@@ -18,8 +18,7 @@ import { selectToken } from '../../../store/authSlice';
 
 function ModificarUsuario(props) {
 
-    const id = sessionStorage.getItem('admin_id_usuario');
-    const { onClose, onSubmit, open } = props;
+    const { onClose, onSubmit, open, id } = props;
     const token = useSelector(selectToken);
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
 
@@ -46,8 +45,10 @@ function ModificarUsuario(props) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setCorreo(isOnlyWhitespace ? "" : value);
     };
-
-    const infoUsuario = useCallback(async () => {
+    const handleEntering = async () => {
+        infoUsuario()
+    }
+    const infoUsuario = async () => {
         try {
             const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
                 method: "GET",
@@ -65,11 +66,7 @@ function ModificarUsuario(props) {
         catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
-    }, [id, token]);
-
-    useEffect(() => {
-        infoUsuario();
-    }, [infoUsuario]);
+    }
 
     const modificarUsuario = async (e) => {
         e.preventDefault();
@@ -97,7 +94,7 @@ function ModificarUsuario(props) {
     };
 
     return (
-        <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} >
+        <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <CssBaseline />
 
             <DialogTitle variant="h1" color="primary">
@@ -152,7 +149,8 @@ function ModificarUsuario(props) {
 ModificarUsuario.propTypes = {
     onClose: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
-    onSubmit: PropTypes.func.isRequired
+    onSubmit: PropTypes.func.isRequired,
+    id: PropTypes.number.isRequired
 };
 
 export default ModificarUsuario;

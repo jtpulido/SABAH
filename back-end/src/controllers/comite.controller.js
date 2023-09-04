@@ -220,6 +220,7 @@ const obtenerProyecto = async (req, res) => {
             const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante": result_cliente.rows[0].nombre_repr, "correo": result_cliente.rows[0].correo_repr } : { "existe_cliente": false };
             const result_sustentacion = await pool.query('SELECT id, fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id_proyecto= $1', [id])
             const sustentacion = result_sustentacion.rowCount > 0 ? { "existe_sustentacion": true, "sustentacion": result_sustentacion.rows[0] } : { "existe_sustentacion": false };
+            console.log(sustentacion)
             return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente, sustentacion: sustentacion });
         } else {
             return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
@@ -1369,6 +1370,9 @@ const programarSustentacion = async (req, res) => {
             return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error al insertar la fecha.' });
         }
     } catch (error) {
+        if (error.code === "23505") {
+            return res.status(400).json({ success: false, message: "Este proyecto ya cuenta con una fecha de sustentación" });
+        }
         await pool.query('ROLLBACK');
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, inténtelo de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }

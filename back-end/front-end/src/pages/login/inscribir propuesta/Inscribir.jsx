@@ -9,7 +9,7 @@ import { useSnackbar } from 'notistack';
 export const Inscribir = () => {
 
     const navigate = useNavigate();
-
+    const [deshabilitar, setDeshabilitar] = useState(true);
     const [nombre, setNombre] = useState("");
     const handleNombre = (e) => {
         setNombre(e.target.value);
@@ -144,14 +144,16 @@ export const Inscribir = () => {
     const getFormattedDate = () => {
         const now = new Date();
         const year = now.getFullYear().toString();
-        const month = (now.getMonth() + 1).toString().padStart(2, "0");
-        return `${year}-${month}`;
+        return `${year}`;
     };
 
     const generateCode = (consecutivo) => {
+        const now = new Date();
         const formattedDate = getFormattedDate();
-        return `TEM_${formattedDate}-${consecutivo}`;
-    };
+        const month = (now.getMonth() + 1).toString().padStart(2, "0");
+        const periodo = getPeriodo(month);
+        return `TEM_${formattedDate}-${periodo}-${consecutivo}`;
+    };
 
     const getPeriodo = (month) => {
         if (month >= 1 && month <= 6) {
@@ -162,6 +164,7 @@ export const Inscribir = () => {
     };
 
     const terminar = async () => {
+       
         const numIntegrantes = estudiantes.filter(estudiante => estudiante.nombre !== "" && estudiante.correo !== "" && estudiante.num_identificacion !== "").length;
 
         // Verificar el correo
@@ -228,6 +231,7 @@ export const Inscribir = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setDeshabilitar(false)
         if (idModalidadSeleccionada === "" || idDirectorSeleccionado === "" || nombre === "") {
             mostrarMensaje("Por favor, complete todos los campos.", "error");
 
@@ -257,6 +261,7 @@ export const Inscribir = () => {
                 }
             }
         }
+        setDeshabilitar(true)
     };
 
     const handleBack = () => {
@@ -460,7 +465,7 @@ export const Inscribir = () => {
                         <Button className="boton" onClick={handleBack}>
                             Atrás
                         </Button>
-                        <Button className="boton" onClick={handleSubmit}>
+                        <Button className="boton" onClick={handleSubmit} disabled={!deshabilitar}>
                             Guardar
                         </Button>
                     </div>
