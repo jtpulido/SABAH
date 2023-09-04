@@ -536,7 +536,7 @@ const guardarSolicitud = async (req, res) => {
         const resultCorreos = await pool.query(`SELECT e.correo, e.nombre FROM estudiante e
         JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
         JOIN proyecto pr ON pr.id = ep.id_proyecto
-        WHERE pr.id = $1`, [id_proyecto]);
+        WHERE pr.id = $1  AND ep.estado = true`, [id_proyecto]);
         const infoCorreos = resultCorreos.rows;
 
         const resultTipo = await pool.query(`SELECT nombre FROM tipo_solicitud WHERE id=$1`, [id_tipo_solicitud]);
@@ -674,7 +674,7 @@ const cancelarReunion = async (req, res) => {
         JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
         JOIN proyecto pr ON pr.id = ep.id_proyecto
         JOIN reunion r ON r.id_proyecto = pr.id
-        WHERE r.id = $1`, [id_reunion]);
+        WHERE r.id = $1 AND ep.estado = true`, [id_reunion]);
         const infoCorreos = resultCorreos.rows;
 
         const resultReunion = await pool.query(`SELECT nombre, TO_CHAR(fecha, 'DD-MM-YYYY HH24:MI') AS fecha, enlace FROM reunion where id = $1`, [id_reunion]);
@@ -753,7 +753,7 @@ const editarReunion = async (req, res) => {
             JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
             JOIN proyecto pr ON pr.id = ep.id_proyecto
             JOIN reunion r ON r.id_proyecto = pr.id
-            WHERE r.id = $1`, [id]);
+            WHERE r.id = $1 AND ep.estado = true`, [id]);
             const infoCorreos = resultCorreos.rows;
 
             const emailResult = await editarReunionUser(nombre, fecha, enlace, nombre_proyecto, rol, infoUsuario.nombre, infoUsuario.correo, infoCorreos);

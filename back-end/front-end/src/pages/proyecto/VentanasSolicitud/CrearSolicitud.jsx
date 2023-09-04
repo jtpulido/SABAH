@@ -59,8 +59,8 @@ function CrearSolicitud(props) {
         const solicitudData = {
             justificacion,
             id_tipo_solicitud: idTipo,
-            id_proyecto:id,
-            creado_proyecto:true
+            id_proyecto: id,
+            creado_proyecto: true
         };
         try {
             const response = await fetch("http://localhost:5000/proyecto/guardarSolicitud", {
@@ -70,8 +70,9 @@ function CrearSolicitud(props) {
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "error");
             } else {
+                mostrarMensaje(data.message, "success");
                 onSubmit();
                 setJustificacion("");
                 setIdTipo("");

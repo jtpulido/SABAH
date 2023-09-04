@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import { useSnackbar } from 'notistack';
-
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 
 export default function ActaReunion() {
 
@@ -217,7 +217,8 @@ export default function ActaReunion() {
         </Typography>
         <Box >
           <Grid container spacing={2}>
-            <Grid item xs={12} >
+            <Grid item xs={12} alignItems="flex-start" >
+            <div style={{ textAlign: 'left' }}>
               <TextField
                 required
                 rows={3}
@@ -227,6 +228,7 @@ export default function ActaReunion() {
                 fullWidth
                 error={!compromisos}
               />
+              </div>
             </Grid>
           </Grid>
         </Box>
@@ -238,7 +240,7 @@ export default function ActaReunion() {
       )}
       {estadoActa === 'descargar' && (
         <Box style={{ marginTop: '30px' }}>
-          <Button variant="contained" onClick={() => generarPDF()}>Descargar PDF</Button>  </Box>
+          <Button variant="contained" startIcon={<CloudDownloadIcon />} onClick={() => generarPDF()}>PDF</Button>  </Box>
       )}
     </div>
 

@@ -1,5 +1,7 @@
 const pool = require('../database')
 
+const { agregarLink, nuevaSolicitudProyecto } = require('../controllers/mail.controller');
+
 
 const obtenerProyecto = async (req, res) => {
   const id = req.params.id;
@@ -28,7 +30,7 @@ const obtenerProyecto = async (req, res) => {
               WHERE id_proyecto = p.id
           )
         `, [id]); const proyecto = result.rows
-      
+
     if (result.rowCount === 1) {
 
       const result_director = await pool.query("SELECT u.nombre FROM usuario u INNER JOIN usuario_rol ur ON u.id = ur.id_usuario INNER JOIN rol r ON ur.id_rol = r.id WHERE UPPER(r.nombre)=UPPER('director') AND ur.id_proyecto = $1 AND ur.estado = TRUE", [id])
@@ -39,8 +41,8 @@ const obtenerProyecto = async (req, res) => {
       const info_jurado = result_jurado.rowCount > 0 ? { "existe_jurado": true, "jurados": result_jurado.rows } : { "existe_jurado": false };
       const result_estudiantes = await pool.query('SELECT e.nombre, e.correo, e.num_identificacion FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = true', [id])
       const result_cliente = await pool.query("SELECT c.nombre_empresa, c.nombre_repr, c.correo_repr FROM cliente c, proyecto p WHERE p.id = c.id_proyecto AND p.id = $1;", [id])
-      const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante":result_cliente.rows[0].nombre_repr, "correo":result_cliente.rows[0].correo_repr  } : { "existe_cliente": false };
-      return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente});
+      const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante": result_cliente.rows[0].nombre_repr, "correo": result_cliente.rows[0].correo_repr } : { "existe_cliente": false };
+      return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente });
 
 
     } else {
@@ -131,9 +133,8 @@ const obtenerLinkProyecto = async (req, res) => {
       }
 
       if (result.rows.length === 0) {
-        return res.status(203).json({ success: true, message: 'No se encontraron los links, debe agregarlos.' });
+        return res.status(203).json({ success: true, message: 'No se encontraron los links de Google Drive. Por favor, proporcione los enlaces necesarios.' });
       }
-
       return res.status(200).json({ success: true, link_artefacto: result.rows[0].artefactos, link_documento: result.rows[0].documentos });
     });
   } catch (error) {
@@ -555,14 +556,35 @@ const guardarSolicitud = async (req, res) => {
 
     const query = 'INSERT INTO solicitud (justificacion, id_tipo_solicitud, id_proyecto, creado_proyecto) VALUES ($1, $2, $3, $4) RETURNING id';
     const values = [justificacion, id_tipo_solicitud, id_proyecto, creado_proyecto];
-    await pool.query(query, values, (error, result) => {
+    await pool.query(query, values, async (error, result) => {
       if (error) {
         return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al obtener la información de los tipos. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda." });
       }
       if (result.rowCount > 0) {
-        return res.status(200).json({ success: true, message: 'Solicitud creada correctamente.' });
+
+        // Enviar correo
+        const resultProyecto = await pool.query(`SELECT nombre FROM proyecto WHERE id=$1`, [id_proyecto]);
+        const nombre_proyecto = resultProyecto.rows[0].nombre;
+
+        const resultUsuario = await pool.query(`SELECT u.correo FROM usuario u
+        JOIN usuario_rol ur ON ur.id_usuario = u.id
+        WHERE ur.id_rol = 1 AND ur.estado = true AND ur.id_proyecto = $1`, [id_proyecto]);
+        const infoUsuario = resultUsuario.rows[0];
+
+        const resultCorreos = await pool.query(`SELECT e.correo, e.nombre FROM estudiante e
+        JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
+        JOIN proyecto pr ON pr.id = ep.id_proyecto
+        WHERE pr.id = $1 AND ep.estado = true`, [id_proyecto]);
+        const infoCorreos = resultCorreos.rows;
+
+        const resultTipo = await pool.query(`SELECT nombre FROM tipo_solicitud WHERE id=$1`, [id_tipo_solicitud]);
+        const nombre_tipo = resultTipo.rows[0].nombre;
+
+        await nuevaSolicitudProyecto(nombre_tipo, justificacion, nombre_proyecto, infoUsuario.correo, infoCorreos)
+
+        return res.status(200).json({ success: true, message: 'La solicitud ha sido creada correctamente y los involucrados han sido notificados.' });
       } else {
-        return res.status(203).json({ success: true, message: 'No pudo crear la solicitud.' })
+        return res.status(203).json({ success: true, message: 'La solicitud no se pudo crear exitosamente.' })
       }
     });
   } catch (error) {
@@ -614,6 +636,16 @@ const guardarLink = async (req, res) => {
       `;
       const values = [id, link];
       await pool.query(query, values);
+
+      const resultCorreos = await pool.query(`SELECT e.correo, e.nombre FROM estudiante e
+      JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
+      JOIN proyecto pr ON pr.id = ep.id_proyecto
+      WHERE pr.id = $1`, [id]);
+      const infoCorreos = resultCorreos.rows;
+      await agregarLink(tipol, link, infoCorreos);
+
+      res.status(200).json({ success: true, message: 'Se ha guardado exitosamente el link y los estudiantes han sido notificados.' });
+
     } else {
       if (tipol === 'A' || tipol === 'D') {
         const columnToSet = tipol === 'A' ? 'artefactos' : 'documentos';
@@ -624,13 +656,22 @@ const guardarLink = async (req, res) => {
         `;
         const values = [id, link];
         await pool.query(query, values);
+
+        const resultCorreos = await pool.query(`SELECT e.correo, e.nombre FROM estudiante e
+        JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
+        JOIN proyecto pr ON pr.id = ep.id_proyecto
+        WHERE pr.id = $1`, [id]);
+        const infoCorreos = resultCorreos.rows;
+        await agregarLink(tipol, link, infoCorreos);
+
+        res.status(200).json({ success: true, message: 'Se ha guardado exitosamente el link y los estudiantes han sido notificados.' });
+
       } else {
-        return res.status(203).json({ success: false, message: 'Valor inválido para tipol' });
+        return res.status(203).json({ success: false, message: 'Ha ingresado un valor inválido de link.' });
       }
     }
-    res.status(200).json({ message: 'Link guardado exitosamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al guardar el link' });
+    res.status(500).json({ message: 'Ha ocurrido un error al guardar el link. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
 
@@ -803,8 +844,10 @@ const crearReunionInvitados = async (req, res) => {
 
         // Verificar si es jurado
       } else if (roleName.startsWith("jurado")) {
+        
         const juradoIndex = parseInt(roleName.split(" ")[1]);
-        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true))`, [id, jurado[juradoIndex].id]);
+        console.log(jurado[juradoIndex].id)
+        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true AND id_proyecto=$3))`, [id, jurado[juradoIndex].id , id_proyecto]);
       }
     }
 
@@ -812,6 +855,7 @@ const crearReunionInvitados = async (req, res) => {
     res.status(201).json({ success: true, message: 'La reunión fue creada exitosamente y los invitados han sido notificados.' });
 
   } catch (error) {
+    console.log(error)
     await pool.query('ROLLBACK');
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }

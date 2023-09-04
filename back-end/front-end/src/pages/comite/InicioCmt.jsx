@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { clearSession, clearCookies } from '../../store/authSlice';
@@ -17,7 +17,7 @@ import {
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { tokens } from "../../theme";
 
 const drawerWidth = 240;
@@ -44,7 +44,7 @@ function InicioCmt() {
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const location = useLocation();
 
   const cerrarSesion = () => {
     dispatch(clearSession());
@@ -62,6 +62,44 @@ function InicioCmt() {
       navigate(`/comite/${button}`);
     }
   };
+
+  useEffect(() => {
+    if (location.pathname === '/comite') {
+      setActiveButton('proyecto');
+
+    } else if (location.pathname === '/comite/director') {
+      setActiveButton('director');
+
+    } else if (location.pathname === '/comite/lector') {
+      setActiveButton('lector');
+
+    } else if (location.pathname === '/comite/jurado') {
+      setActiveButton('jurado');
+
+    } else if (location.pathname === '/comite/aspectos') {
+      setActiveButton('aspectos');
+
+    } else if (location.pathname === '/comite/rubricas') {
+      setActiveButton('rubricas');
+
+    } else if (location.pathname === '/comite/espacio') {
+      setActiveButton('espacio');
+
+    } else if (location.pathname === '/comite/entregas') {
+      setActiveButton('entregas');
+
+    } else if (location.pathname === '/comite/solicitudes') {
+      setActiveButton('solicitudes');
+
+    } else if (location.pathname === '/comite/reportes') {
+      setActiveButton('reportes');
+
+    } else if (location.pathname === '/comite/reuniones') {
+      setActiveButton('reuniones');
+
+    }
+
+  }, [location.pathname]);
 
   return (
     <div>

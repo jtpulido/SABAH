@@ -47,18 +47,8 @@ function InicioAdmin() {
       return pattern.test(path);
     };
 
-    const isModificarUsuarioPath = (path) => {
-      const pattern = pathToRegexp('/admin/modificarUsuario');
-      return pattern.test(path);
-    };
-
     const isVerProyectoPath = (path) => {
       const pattern = pathToRegexp('/admin/verProyecto');
-      return pattern.test(path);
-    };
-
-    const isModificarProyectoPath = (path) => {
-      const pattern = pathToRegexp('/admin/modificarProyecto');
       return pattern.test(path);
     };
 
@@ -70,12 +60,12 @@ function InicioAdmin() {
     if (
       location.pathname === '/admin' ||
       location.pathname === '/admin/agregarUsuario' ||
-      isVerUsuarioPath(location.pathname) || isModificarUsuarioPath(location.pathname)
+      isVerUsuarioPath(location.pathname)
     ) {
       setActiveButton('usuarios');
     } else if (
       location.pathname === '/admin/proyectos' ||
-      isVerProyectoPath(location.pathname) || isModificarProyectoPath(location.pathname)
+      isVerProyectoPath(location.pathname)
     ) {
       setActiveButton('proyectos');
     } else if (

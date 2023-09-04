@@ -1,41 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
-import Tooltip from '@mui/material/Tooltip';
+import { Box, Typography, IconButton, Toolbar, AppBar } from "@mui/material";
 
 import { Visibility } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
+
 import CustomDataGrid from "../../layouts/DataGrid";
 
-
 export default function Proyectos() {
-
   const navigate = useNavigate();
-  const token = useSelector(selectToken);
-  const [rowsEnCurso, setRowsEnCurso] = useState([]);
-  const [rowsTerminados, setRowsTerminados] = useState([]);
-
-  const { enqueueSnackbar } = useSnackbar();
-  const mostrarMensaje = (mensaje, variante) => {
-    enqueueSnackbar(mensaje, { variant: variante });
-  };
-
   const columns = [
-    { field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150, headerAlign: "center", align: "center" },
-    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100, headerAlign: "center", align: "center" },
-    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100, headerAlign: "center", align: "center" },
     {
+      field: 'nombre', headerName: 'Nombre', flex: 0.4, minWidth: 150,
+      headerAlign: "center"
+    },
+    { field: 'codigo', headerName: 'Código', flex: 0.2, minWidth: 100, },
+    { field: 'modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100, },
+    { field: 'anio', headerName: 'Año', flex: 0.05, minWidth: 100, },
+    { field: 'periodo', headerName: 'Periodo', flex: 0.05, minWidth: 100, },
+    { field: 'etapa', headerName: 'Etapa', flex: 0.15, minWidth: 100, },
+    { field: 'estado', headerName: 'Estado', flex: 0.1, minWidth: 100, },
+    {
+      headerName: '',
       field: "id",
-      headerName: "Acción",
       width: 100,
-      flex: 0.05, minWidth: 100, headerAlign: "center", align: "center",
+      flex: 0.05, minWidth: 50,
       renderCell: ({ row: { id } }) => {
         return (
           <Box
@@ -45,77 +37,62 @@ export default function Proyectos() {
             display="flex"
             justifyContent="center"
           >
-            <Tooltip title="Ver Proyecto" sx={{ fontSize: '20px' }}>
-              <IconButton aria-label="fingerprint" color="secondary" onClick={() => verProyecto(id)}>
-                <Visibility />
-              </IconButton>
-            </Tooltip>
+            <IconButton color="secondary" onClick={() => verProyecto(id)}>
+              <Visibility />
+            </IconButton>
           </Box>
         );
       },
     }
   ];
-
   const verProyecto = (id) => {
     sessionStorage.setItem('admin_id_proyecto', id);
     navigate(`/admin/verProyecto`)
-  }
+}
+  const token = useSelector(selectToken);
+  const [rowsEnCurso, setRowsEnCurso] = useState([]);
+  const [rowsTerminados, setRowsTerminados] = useState([]);
 
-  const llenarTablaEnCurso = useCallback(async () => {
+  const { enqueueSnackbar } = useSnackbar();
+  const mostrarMensaje = (mensaje, variante) => {
+    enqueueSnackbar(mensaje, { variant: variante });
+  };
+
+  const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch("http://localhost:5000/admin/obtenerEnCurso", {
+      const response = await fetch(`http://localhost:5000/admin/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
       if (!data.success) {
-        mostrarMensaje(data.message, "error");
-      } else if (data.message === 'No hay proyectos actualmente') {
-        setRowsEnCurso([]);
-      } else {
-        setRowsEnCurso(data.proyectos);
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 203) {
+        mostrarMensaje(data.message, "info")
+      } else if (response.status === 200) {
+        setRowsFunc(data.proyectos);
       }
     }
     catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
-  }, [token]);
-
-  const llenarTablaCerrados = useCallback(async () => {
-    try {
-      const response = await fetch("http://localhost:5000/admin/obtenerTerminados", {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        mostrarMensaje(data.message, "error");
-      } else if (data.message === 'No hay proyectos actualmente') {
-        setRowsTerminados([]);
-      } else {
-        setRowsTerminados(data.proyectos);
-      }
-    }
-    catch (error) {
-      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-    }
-  }, [token]);
+  };
 
   useEffect(() => {
-    llenarTablaEnCurso()
-    llenarTablaCerrados()
-  }, [llenarTablaEnCurso, llenarTablaCerrados]);
+    llenarTabla("obtenerTerminados", setRowsTerminados);
+    llenarTabla("obtenerEnCurso", setRowsEnCurso);
+  }, []);
 
   return (
     <div>
       <AppBar position="static" color="transparent" variant="contained" >
-        <Toolbar>
+        <Toolbar >
           <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
             PROYECTOS
           </Typography>
         </Toolbar>
       </AppBar>
-      <Box sx={{ m: 3 }}>
+      <Box sx={{ m: 2 }}>
         <Typography variant="h2" color="primary"
           sx={{ mt: "30px" }}>
           En desarrollo
@@ -130,5 +107,6 @@ export default function Proyectos() {
 
       </Box>
     </div>
+
   );
 }

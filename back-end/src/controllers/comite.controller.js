@@ -1,6 +1,6 @@
 const pool = require('../database')
 
-const { removerEstudianteProyecto, nuevoEstudianteProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioCodigo, mailCambioNombreProyecto, mailCambioEstadoProyecto, mailCambioEtapaProyecto, mailCambioFechaGraduacionProyecto } = require('../controllers/mail.controller')
+const { respuestaSolicitud, removerEstudianteProyecto, nuevoEstudianteProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioCodigo, mailCambioNombreProyecto, mailCambioEstadoProyecto, mailCambioEtapaProyecto, mailCambioFechaGraduacionProyecto } = require('../controllers/mail.controller')
 
 const obtenerUsuarios = async (req, res) => {
     try {
@@ -906,32 +906,53 @@ const verAprobacionesSolicitud = async (req, res) => {
 const agregarAprobacion = async (req, res) => {
     try {
         const { aprobado, comentario, id_solicitud } = req.body;
-        await pool.query(
-            "INSERT INTO public.aprobado_solicitud_comite (aprobado, comentario, id_solicitud) VALUES ($1, $2, $3)",
-            [aprobado, comentario, id_solicitud],
-            (error, result) => {
-                if (error) {
-                    if (error.code === "23505") {
-                        return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
-                    }
-                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+        await pool.query("INSERT INTO public.aprobado_solicitud_comite (aprobado, comentario, id_solicitud) VALUES ($1, $2, $3)", [aprobado, comentario, id_solicitud], async (error, result) => {
+            if (error) {
+                if (error.code === "23505") {
+                    return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
                 }
-
-                if (result.rowCount > 0) {
-                    pool.query(
-                        "UPDATE public.solicitud SET finalizado = $1 WHERE id = $2",
-                        [true, id_solicitud],
-                        (error1, result1) => {
-                            if (error1) {
-                                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
-                            }
-                            if (result1.rowCount > 0) {
-                                return res.json({ success: true, message: 'Aprobación guardada correctamente.' });
-                            }
-                        }
-                    );
-                }
+                return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
             }
+
+            if (result.rowCount > 0) {
+                pool.query(
+                    "UPDATE public.solicitud SET finalizado = $1 WHERE id = $2",
+                    [true, id_solicitud],
+                    async (error1, result1) => {
+                        if (error1) {
+                            return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al guardar la aprobación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+                        }
+                        if (result1.rowCount > 0) {
+
+                            // Enviar correo
+                            const resultProyecto = await pool.query(`SELECT pr.nombre FROM proyecto pr JOIN solicitud s ON s.id_proyecto = pr.id WHERE s.id=$1`, [id_solicitud]);
+                            const nombre_proyecto = resultProyecto.rows[0].nombre;
+
+                            const resultUsuario = await pool.query(`SELECT u.correo FROM usuario u
+                                JOIN usuario_rol ur ON ur.id_usuario = u.id
+								JOIN proyecto pr ON pr.id = ur.id_proyecto
+								JOIN solicitud s ON s.id_proyecto = pr.id
+                                WHERE s.id = $1 AND ur.id_rol=1 AND ur.estado = true`, [id_solicitud]);
+                            const infoUsuario = resultUsuario.rows[0];
+
+                            const resultCorreos = await pool.query(`SELECT e.correo FROM estudiante e
+                                JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
+                                JOIN proyecto pr ON pr.id = ep.id_proyecto
+                                JOIN solicitud s ON s.id_proyecto = pr.id
+                                WHERE s.id = $1 AND ep.estado = true`, [id_solicitud]);
+                            const infoCorreos = resultCorreos.rows;
+
+                            const resultTipo = await pool.query(`SELECT t.nombre FROM tipo_solicitud t JOIN solicitud s ON t.id = s.id_tipo_solicitud WHERE s.id=$1`, [id_solicitud]);
+                            const nombre_tipo = resultTipo.rows[0].nombre;
+
+                            await respuestaSolicitud(nombre_tipo, aprobado, comentario, nombre_proyecto, infoUsuario.correo, infoCorreos, 'Comité de Opciones de Grado')
+
+                            return res.json({ success: true, message: 'Aprobación guardada correctamente.' });
+                        }
+                    }
+                );
+            }
+        }
         );
 
         return res.status(203).json({ success: true, message: 'No se pudo aprobar la solicitud' });
