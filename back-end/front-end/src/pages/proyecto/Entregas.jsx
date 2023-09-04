@@ -38,6 +38,7 @@ export default function Entregas() {
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
+
   const abrirModalArtefactos = () => {
     setLink(link_artefacto || '')
     setAbrirModalArtefactos(true);
@@ -46,6 +47,7 @@ export default function Entregas() {
   const cerrarModalLinkArtefacto = () => {
     setAbrirModalArtefactos(false);
     setLink("");
+    obtenerlinks();
   };
 
   const abrirModalDocumentos = () => {
@@ -56,13 +58,13 @@ export default function Entregas() {
   const cerrarModalLinkDocumento = () => {
     setAbrirModalDocumentos(false);
     setLink("");
+    obtenerlinks();
   };
 
-
-
-  const guardarLinkArtefacto = async () => {
+  const guardarLinkArtefacto = async (e) => {
+    e.preventDefault();
     try {
-      const data = {
+      const info = {
         link: link,
         tipol: 'A',
         id: id
@@ -70,28 +72,26 @@ export default function Entregas() {
 
       const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify(info),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-
       });
 
-      if (response.ok) {
-        mostrarMensaje("La solicitud se genero exitosamente.", "success");
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error");
       } else {
-        mostrarMensaje("Ocurrió un error.", "error");
+        mostrarMensaje(data.message, "success");
+        cerrarModalLinkArtefacto();
       }
     } catch (error) {
-      mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
+      mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
-    cerrarModalLinkArtefacto();
   };
 
-  const guardarLinkDocumento = async () => {
-
+  const guardarLinkDocumento = async (e) => {
+    e.preventDefault();
     try {
-
-
-      const data = {
+      const info = {
         link: link,
         tipol: 'D',
         id: id
@@ -99,19 +99,20 @@ export default function Entregas() {
 
       const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify(info),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-
       });
-      if (response.ok) {
-        mostrarMensaje("La solicitud se genero exitosamente.", "success");
+
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error");
       } else {
-        mostrarMensaje("Ocurrió un error.", "error");
+        mostrarMensaje(data.message, "success");
+        cerrarModalLinkDocumento();
       }
     } catch (error) {
-      mostrarMensaje("Ocurrió un error al realizar la solicitud al backend:", 'error');
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
-    cerrarModalLinkDocumento();
   };
 
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
@@ -124,7 +125,7 @@ export default function Entregas() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "warning")
+        mostrarMensaje(data.message, "info")
       } else if (response.status === 200) {
         setRowsFunc(data.espacios);
       }
@@ -142,7 +143,7 @@ export default function Entregas() {
       if (!data.success) {
         mostrarMensaje(data.message, "error")
       } else if (response.status === 203) {
-        mostrarMensaje(data.message, "warning")
+        mostrarMensaje(data.message, "info")
       } else if (response.status === 200) {
         setLink_Artefacto(data.link_artefacto);
         setLink_Documento(data.link_documento);
@@ -221,7 +222,6 @@ export default function Entregas() {
     { field: 'estado_entrega', headerName: 'Estado', flex: 0.2, minWidth: 100 },
   ]);
 
-
   const columnaPorCalificar = generarColumnas([{
     field: "calificar",
     headerName: "",
@@ -243,6 +243,7 @@ export default function Entregas() {
     { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
 
   ]);
+
   const columnaCalificadas = generarColumnas([{
     field: "calificado",
     headerName: "",
@@ -306,8 +307,10 @@ export default function Entregas() {
   const handleLinkChange = (value) => {
     const isOnlyWhitespace = /^\s*$/.test(value);
     setLink(isOnlyWhitespace ? "" : value);
-  }
+  };
+
   const urlPattern = /^(ftp|http|https):\/\/[^ "]+$/;
+
   return (
     <div>
       <AppBar position="static" color="transparent" variant="contained" >

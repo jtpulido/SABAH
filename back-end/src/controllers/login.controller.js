@@ -10,7 +10,6 @@ const crypto = require('crypto');
 const inicioSesion = async (req, res) => {
   const { username, password } = req.body;
   await pool.query('SELECT u.*, tu.tipo AS id_tipo_usuario FROM usuario u JOIN tipo_usuario tu ON u.id_tipo_usuario= tu.id WHERE LOWER(u.correo)=LOWER($1)', [username], (error, result) => {
-
     if (error) {
       return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
@@ -18,11 +17,10 @@ const inicioSesion = async (req, res) => {
       const usuario = result.rows[0];
       bcrypt.compare(password, usuario.contrasena, (error, match) => {
         if (error) {
-
           return res.status(401).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
         }
         if (match) {
-          const token = jwt.sign({ id: usuario.id }, JWT_SECRET, { expiresIn: '2h' });
+          const token = jwt.sign({ id: usuario.id }, JWT_SECRET, { expiresIn: '1h' });
           return res.status(200).json({ success: true, token, tipo_usuario: usuario.id_tipo_usuario, id_usuario: usuario.id });
         } else {
           return res.status(401).json({ success: false, message: 'Autenticación fallida: Contraseña inválida.' });
@@ -30,12 +28,14 @@ const inicioSesion = async (req, res) => {
       });
     } else {
       // Verificar si existe el proyecto
-      pool.query("SELECT pr.id, i.contrasena FROM inicio_sesion i, proyecto pr WHERE i.id_proyecto = pr.id AND pr.codigo = $1", [username], (error, result) => {
+      pool.query(`SELECT pr.id, i.contrasena FROM inicio_sesion i
+      JOIN proyecto pr ON pr.id = i.id_proyecto
+      WHERE pr.codigo = $1`, [username], (error, resultProyecto) => {
         if (error) {
           return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
         }
-        if (result.rowCount === 1) {
-          const usuario = result.rows[0];
+        if (resultProyecto.rowCount === 1) {
+          const usuario = resultProyecto.rows[0];
           bcrypt.compare(password, usuario.contrasena, (error, match) => {
             if (error) {
               return res.status(401).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
