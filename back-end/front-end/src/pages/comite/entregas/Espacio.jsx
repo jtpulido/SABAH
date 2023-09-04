@@ -117,6 +117,7 @@ export default function Espacios() {
             { field: 'nombre_modalidad', headerName: 'Modalidad', flex: 0.1, minWidth: 100 },
             { field: 'nombre_etapa', headerName: 'Etapa', flex: 0.1, minWidth: 100 },
             { field: 'nombre_rubrica', headerName: 'Rubrica', flex: 0.2, minWidth: 150 },
+            { field: 'final', headerName: 'Entrega Final', flex: 0.1, minWidth: 100 },
             { field: 'anio', headerName: 'Año', flex: 0.1, minWidth: 100 },
             { field: 'periodo', headerName: 'Periodo', flex: 0.1, minWidth: 100 },
             { field: 'fecha_creacion', headerName: 'Fecha de creación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleDateString('es-ES') }

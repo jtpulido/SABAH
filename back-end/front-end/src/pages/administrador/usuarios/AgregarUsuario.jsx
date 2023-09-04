@@ -1,145 +1,132 @@
-import React, { useState } from "react";
-import { Typography, useTheme, Box, TextField, Grid, CssBaseline, Button } from "@mui/material";
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import {
+    TextField,
+    CssBaseline,
+    Button,
+    DialogTitle,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    Typography
+} from '@mui/material';
 
-import { useSelector } from "react-redux";
-import { selectToken } from "../../../store/authSlice";
-
-import { useNavigate } from 'react-router-dom';
+import { SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
+import { useSelector } from 'react-redux';
+import { selectToken } from '../../../store/authSlice';
 
-export default function AgregarUsuario() {
+function AgregarUsuario(props) {
 
+    const { onClose, onSubmit, open } = props;
     const token = useSelector(selectToken);
-    const theme = useTheme();
-
-    const navigate = useNavigate();
+    const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
 
-    const [usuario, setUsuario] = useState({
-        nombre: "",
-        correo: ""
-    });
+    const [nombre, setNombre] = useState("");
+    const [correo, setCorreo] = useState("");
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setUsuario({ ...usuario, [name]: value });
+    const handleCancel = () => {
+        setCorreo('');
+        setNombre('');
+        onClose();
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        if (usuario.nombre === "" || usuario.correo === "") {
-            mostrarMensaje("Por favor, complete todos los campos.", "error");
-        } else {
+    const handleNombreASChange = (value) => {
+        const isOnlyWhitespace = /^\s*$/.test(value);
+        setNombre(isOnlyWhitespace ? "" : value);
+    };
 
-            if (!usuario.correo.match(/^\S+@unbosque\.edu\.co$/)) {
-                mostrarMensaje("Por favor, ingresar una dirección de correo electrónico institucional válida.", "error");
+    const handleCorreoASChange = (value) => {
+        const isOnlyWhitespace = /^\s*$/.test(value);
+        setCorreo(isOnlyWhitespace ? "" : value);
+    };
+
+    const agregarUsuario = async (e) => {
+        e.preventDefault();
+        try {
+            const usuario = {
+                nombre: nombre,
+                correo: correo,
+            };
+            const response = await fetch(`http://localhost:5000/admin/agregarUsuario`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(usuario)
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error");
             } else {
-
-                if (!usuario.nombre.match(/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s']+$/)) {
-                    mostrarMensaje("El nombre ingresado contiene caracteres no permitidos. Por favor, ingrese solo letras (mayúsculas y minúsculas), espacios y algunos caracteres especiales como la letra 'ñ' y los acentos.", "error");
-                } else {
-
-                    try {
-                        const response = await fetch("http://localhost:5000/admin/agregarUsuario", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify(usuario)
-                        });
-
-                        const data = await response.json();
-                        if (!data.success) {
-                            mostrarMensaje(data.message, "error");
-                        } else {
-
-                            try {
-                                const response1 = await fetch("http://localhost:5000/admin/mailNuevoUsuario", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                                    body: JSON.stringify(usuario)
-                                });
-
-                                const data1 = await response1.json();
-
-                                if (!data1.success) {
-                                    mostrarMensaje(data1.message, "error");
-                                } else {
-                                    mostrarMensaje("El usuario fue creado con éxito y le fue enviado un correo de bienvenida.", "success");
-                                    // Delay
-                                    setTimeout(() => {
-                                        navigate('/admin');
-                                    }, 2000);
-
-                                }
-                            } catch (error) {
-                                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-                            }
-                        }
-                    }
-                    catch (error) {
-                        mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-                    }
-                }
+                mostrarMensaje(data.message, "success");
+                handleCancel();
             }
+        } catch (error) {
+            mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
     };
 
     return (
-        <div style={{ margin: "15px" }} >
+        <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} >
+            <CssBaseline />
 
-            <Typography
-                variant="h1"
-                color="secondary"
-                fontWeight="bold"
-            >
-                AGREGAR USUARIO
-            </Typography>
+            <DialogTitle variant="h1" color="primary">
+                Agregar Usuario
+            </DialogTitle>
+            <form onSubmit={(e) => agregarUsuario(e)}>
+                <DialogContent dividers>
 
-            <Box >
-                <CssBaseline />
-                <Box >
-                    <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
-                        Información General
+                    <Typography variant="h6" color="primary">
+                        Nombre del usuario
                     </Typography>
+                    <TextField
+                        value={nombre}
+                        onChange={(e) => handleNombreASChange(e.target.value)}
+                        fullWidth
+                        error={!nombre}
+                        required
+                    />
+                    <Typography variant="h6" color="primary" sx={{ mt: '15px' }}>
+                        Correo del usuario
+                    </Typography>
+                    <TextField
+                        value={correo}
+                        onChange={(e) => handleCorreoASChange(e.target.value)}
+                        fullWidth
+                        required
+                        error={!correoPattern.test(correo) && correo !== ''}
+                        helperText={!correoPattern.test(correo) && correo !== '' ? 'El correo ingresado no es válido.' : ''}
+                        InputProps={{
+                            inputProps: {
+                                pattern: correoPattern.source,
+                                title: 'No fue ingresado una dirección de correo electrónico institucional válida (@unbosque.edu.co).',
+                            },
+                        }}
+                        sx={{ mb: '5px' }}
+                    />
 
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6} md={6} lg={6}>
-                            <Typography variant="h6" color="primary">
-                                Nombre Completo
-                            </Typography>
-                            <TextField name="nombre" id="nombre" type="text" value={usuario.nombre} onChange={handleChange} fullWidth />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={6} lg={6}>
-                            <Typography variant="h6" color="primary">
-                                Correo Electrónico
-                            </Typography>
-                            <TextField name="correo" id="correo" type="text" value={usuario.correo} onChange={handleChange} fullWidth />
-                        </Grid>
-                    </Grid>
-
-                    <Button sx={{
-                        alignContent: 'center',
-                        textAlign: 'center',
-                        lineHeight: '28px',
-                        width: '15%',
-                        backgroundColor: '#8DB33A',
-                        color: 'white',
-                        border: 'none',
-                        justifyContent: 'center',
-                        margin: 'auto',
-                        display: 'flex',
-                        marginTop: '40px',
-                        borderRadius: 0,
-                        textTransform: 'none',
-                        fontSize: '14px',
-                    }} onClick={handleSubmit}>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel}>Cerrar</Button>
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                        width: 150,
+                    }}>
                         Guardar
                     </Button>
-                </Box>
-            </Box>
-        </div>
+                </DialogActions>
+            </form>
+        </Dialog>
     );
 }
+
+AgregarUsuario.propTypes = {
+    onClose: PropTypes.func.isRequired,
+    open: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
+};
+
+export default AgregarUsuario;

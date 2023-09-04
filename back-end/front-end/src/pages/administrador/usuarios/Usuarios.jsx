@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton, AppBar, Toolbar } from "@mui/material";
+import { Box, Typography, IconButton, AppBar, Toolbar, Button } from "@mui/material";
 
-import { ControlPoint, Visibility } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
+import { Create, Visibility, AddCircleOutline } from '@mui/icons-material';
 
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
@@ -13,6 +13,9 @@ import DoDisturbIcon from '@mui/icons-material/DoDisturb';
 
 import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../../layouts/DataGrid";
+
+import AgregarUsuario from "./AgregarUsuario";
+import ModificarUsuario from "./ModificarUsuario";
 
 
 export default function Usuarios() {
@@ -24,6 +27,38 @@ export default function Usuarios() {
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
+    };
+
+    const [abrirAgregarUsuario, setAbrirAgregarUsuario] = useState(false);
+    const [abrirModificarUsuario, setAbrirModificarUsuario] = useState(false);
+
+    const abrirVentanaAgregarUsuario = () => {
+        setAbrirAgregarUsuario(true);
+    };
+
+    const cerrarDialogUsuario = () => {
+        setAbrirAgregarUsuario(false);
+        llenarTablaUsuarios();
+    };
+
+    const cerrarDialogAgregarUsuario = async () => {
+        llenarTablaUsuarios();
+        setAbrirAgregarUsuario(false);
+    };
+
+    const abrirVentanaModificarUsuario = (id) => {
+        sessionStorage.setItem('admin_id_usuario', id);
+        setAbrirModificarUsuario(true);
+    };
+
+    const cerrarDialogUsuarioModificar = () => {
+        setAbrirModificarUsuario(false);
+        llenarTablaUsuarios();
+    };
+
+    const cerrarDialogModificarUsuario = async () => {
+        setAbrirModificarUsuario(false);
+        llenarTablaUsuarios();
     };
 
     const columns = [
@@ -52,7 +87,7 @@ export default function Usuarios() {
                             </IconButton>
                         </Tooltip>
                         <Tooltip title="Modificar Usuario" sx={{ fontSize: '20px', marginRight: '8px' }}>
-                            <IconButton aria-label="fingerprint" color="secondary" onClick={() => modificarUsuario(id)}>
+                            <IconButton aria-label="fingerprint" color="secondary" onClick={() => abrirVentanaModificarUsuario(id)}>
                                 <EditIcon />
                             </IconButton>
                         </Tooltip>
@@ -70,15 +105,6 @@ export default function Usuarios() {
     const verUsuario = (id) => {
         sessionStorage.setItem('admin_id_usuario', id);
         navigate(`/admin/verUsuario`)
-    };
-
-    const modificarUsuario = (id) => {
-        sessionStorage.setItem('admin_id_usuario', id);
-        navigate(`/admin/modificarUsuario`)
-    };
-
-    const handleAgregarUsuario = () => {
-        navigate(`/admin/agregarUsuario`)
     };
 
     const llenarTablaUsuarios = useCallback(async () => {
@@ -105,7 +131,7 @@ export default function Usuarios() {
 
     const cambiarEstado = useCallback(async (valorId, valorEstado) => {
         try {
-            const response = await fetch("http://localhost:5000/admin/cambiarEstado", {
+            const response = await fetch("http://localhost:5000/admin/cambiarEstadoUsuario", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: valorId, estado: !valorEstado })
@@ -132,11 +158,21 @@ export default function Usuarios() {
                     <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
                         USUARIOS
                     </Typography>
-                    <Tooltip title="Agregar Usuario" sx={{ fontSize: '20px' }}>
-                        <ControlPoint color="secondary" sx={{ fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={handleAgregarUsuario} />
-                    </Tooltip>
+                    <Button color="secondary" startIcon={<AddCircleOutline />} onClick={abrirVentanaAgregarUsuario} sx={{ width: 150 }}>
+                        Crear Usuario
+                    </Button>
                 </Toolbar>
             </AppBar>
+            <AgregarUsuario
+                open={abrirAgregarUsuario}
+                onClose={cerrarDialogUsuario}
+                onSubmit={cerrarDialogAgregarUsuario}
+            />
+            <ModificarUsuario
+                open={abrirModificarUsuario}
+                onClose={cerrarDialogUsuarioModificar}
+                onSubmit={cerrarDialogModificarUsuario}
+            />
             <Box sx={{ m: 3 }}>
                 <CustomDataGrid rows={rowsUsuarios} columns={columns} mensaje="No hay usuarios" />
             </Box>

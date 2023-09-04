@@ -12,7 +12,7 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
-const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerReunionesPendientes,obtenerReunionesCompletas,obtenerReunionesCanceladas,cancelarReunion,obtenerProyecto, rolDirector, rolLector,ultIdReunion, editarReunion, obtenerAsistencia, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados  } = require('../controllers/usuarios.controller');
+const { obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas, cancelarReunion, obtenerProyecto, rolDirector, rolLector, ultIdReunion, editarReunion, obtenerAsistencia, rolJurado, verUsuario, obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud, agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, verificarCalificacionesPendientes, verificarAproboEntregasCalificadas, cambiarEstadoEntregasFinales } = require('../controllers/usuarios.controller');
 
 const { verEntregasPendientesUsuarioRol, verEntregasRealizadasCalificadasUsuarioRol, verEntregasRealizadasSinCalificarUsuarioRol } = require('../controllers/entregas.controller');
 const { guardarCalificacionDoc, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
@@ -68,5 +68,10 @@ router.post('/usuario/cancelarReunion', passport.authenticate('jwt', { session: 
 router.post('/usuario/editarReunion', passport.authenticate('jwt', { session: false }), editarReunion);
 router.get('/usuario/obtenerAsistencia', passport.authenticate('jwt', { session: false }), obtenerAsistencia);
 router.get('/usuario/ultIdReunion', passport.authenticate('jwt', { session: false }), ultIdReunion);
+
+// Ruta para verificar calificaciones pendientes
+router.get('/verificar-calificaciones-pendientes/:proyectoId/:etapaId/:anio/:periodo/:modalidadId', verificarCalificacionesPendientes);
+router.get('/verificar-calificaciones/:proyectoId/:etapaId/:anio/:periodo/:modalidadId', verificarAproboEntregasCalificadas);
+router.put('/verificar-calificaciones/cambiar-estado', cambiarEstadoEntregasFinales)
 
 module.exports = router;

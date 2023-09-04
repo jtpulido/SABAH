@@ -64,6 +64,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             await validarDocumentoRetroalimentacion(entrega.id)
         }
         setLoading(false);
+        console.log(entrega)
     };
 
     const handleCancel = () => {
@@ -184,6 +185,79 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             );
         }
     };
+    const validarEntregasPendientes = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/verificar-calificaciones-pendientes/${entrega.id_proyecto}/${entrega.id_etapa}/${entrega.anio_proyecto}/${entrega.periodo_proyecto}/${entrega.id_modalidad}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            });
+            const data = await response.json();
+            if (response.status === 502) {
+                mostrarMensaje(data.message, 'error');
+            }
+            console.log(data)
+            return data.pendientes
+        } catch (error) {
+            setLoading(true);
+            mostrarMensaje('Lo siento, ha ocurrido un error.', 'error');
+        }
+    };
+    const validarAproboEtapa = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/verificar-calificaciones/${entrega.id_proyecto}/${entrega.id_etapa}/${entrega.anio_proyecto}/${entrega.periodo_proyecto}/${entrega.id_modalidad}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            });
+            const data = await response.json();
+            console.log(data)
+            if (response.status === 200) {
+                return data.aprobo
+            }
+            mostrarMensaje(data.message, 'error');
+            return false
+        } catch (error) {
+            setLoading(true);
+            mostrarMensaje('Lo siento, ha ocurrido un error.', 'error');
+        }
+    };
+    const cambiarEstado = async () => {
+        try {
+            const proyecto = {
+                id: entrega.id_proyecto,
+                id_etapa: entrega.id_etapa,
+                id_modalidad: entrega.id_modalidad,
+                nombre: entrega.nombre_proyecto
+            };
+
+            const response = await fetch(`http://localhost:5000/verificar-calificaciones/cambiar-estado`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ proyecto })
+            });
+            const data = await response.json();
+            if (!data.success) {
+                mostrarMensaje(data.message, "error");
+            } else {
+
+                mostrarMensaje(data.message, "success")
+            }
+        } catch (error) {
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+        }
+    };
+    const validarCambioEstado = async () => {
+        try {
+            const pendientes = await validarEntregasPendientes();
+            if (pendientes === false) {
+                const aprobo = await validarAproboEtapa();
+                if (aprobo === true) {
+                    await cambiarEstado()
+                }
+            }
+        } catch (error) {
+            mostrarMensaje('Ocurrió un error al validar las entregas pendientes:', 'error');
+        }
+    };
 
     const guardarCalificacion = async (event) => {
         setLoading(true);
@@ -225,6 +299,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 setLoading(false);
                 onSubmit();
                 mostrarMensaje(data.message, 'success');
+                await validarCambioEstado()
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
             } else if (response.status === 203 || response.status === 400) {
@@ -418,7 +493,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                                             Documento entregado
                                         </Typography>
 
-                                        <Button type="submit" endIcon={<DownloadTwoTone/>} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
+                                        <Button type="submit" endIcon={<DownloadTwoTone />} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
                                     </Grid>
                                 </>
                             )}
@@ -494,10 +569,10 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                             <>
                                 {existeDocRetroalimentacion && (
                                     <>
-                                        <Typography variant="h6" color="primary" sx={{ mt:1}}>
+                                        <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
                                             Documento retroalimentación
                                         </Typography>
-                                        <Button type="submit" startIcon={<Download />}  variant='outlined' onClick={handleDescargarRetroalimentacion} sx={{ width: 250 }}> Descargar</Button>
+                                        <Button type="submit" startIcon={<Download />} variant='outlined' onClick={handleDescargarRetroalimentacion} sx={{ width: 250 }}> Descargar</Button>
                                     </>
                                 )}
                                 <Accordion sx={{ mt: 1, mb: 1 }}>

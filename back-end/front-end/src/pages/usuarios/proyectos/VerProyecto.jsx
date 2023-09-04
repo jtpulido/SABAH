@@ -80,7 +80,7 @@ export default function VerProyectos() {
                 setExisteCliente(data.cliente.existe_cliente)
                 setListaCliente(data.cliente.existe_cliente ? data.cliente : []);
                 setExiste(true);
-             }
+            }
         }
         catch (error) {
             alert(error)
@@ -88,7 +88,6 @@ export default function VerProyectos() {
             setExiste(false);
         }
     }, [id, token, mostrarMensaje]);
-
 
     const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
         try {
@@ -100,14 +99,15 @@ export default function VerProyectos() {
             if (!data.success) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
+                mostrarMensaje(data.message, "info")
             } else if (response.status === 200) {
                 setRowsFunc(data.espacios);
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
-    }
+    };
+
     const llenarTablaSolicitudes = async (endpoint, setRowsFunc, id) => {
         try {
             const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${id}`, {
@@ -118,7 +118,7 @@ export default function VerProyectos() {
             if (!data.success) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
-                mostrarMensaje(data.message, "warning")
+                mostrarMensaje(data.message, "info")
             } else if (response.status === 200) {
                 setRowsFunc(data.solicitudes);
             }
@@ -253,7 +253,7 @@ export default function VerProyectos() {
         { field: 'fecha_aprobado_director', headerName: 'Aprobado Director', flex: 0.1 },
         { field: 'fecha_aprobado_comite', headerName: 'Aprobado Comité', flex: 0.1 }
     ]);
-    
+
     const columnsSolRechazadas = generarColumnasSol([
         { field: 'fecha_director', headerName: 'Respuesta Director', flex: 0.1 },
         { field: 'fecha_aprobado_comite', headerName: 'Rechazada Comité', flex: 0.1 }
@@ -344,48 +344,48 @@ export default function VerProyectos() {
                         </Grid>
                     </Box>
                     {proyecto.acronimo == "DT" && (
-                            <> <Box>
+                        <> <Box>
 
                             <Typography variant="h6" color="secondary" sx={{ mt: "20px", mb: "20px" }}>
                                 Cliente
                             </Typography>
                             {existeCliente ? (
                                 <Grid container spacing={2}>
-                                <Grid item  sm={6} md={4} lg={4} xl={3}>
-                                    <Typography variant="h6" color="primary">
-                                    Nombre Cliente
-                                    </Typography>
-                                    <TextField
-                                    value={listaCliente.empresa || ''}
-                                    fullWidth
-                                    />
+                                    <Grid item sm={6} md={4} lg={4} xl={3}>
+                                        <Typography variant="h6" color="primary">
+                                            Nombre Cliente
+                                        </Typography>
+                                        <TextField
+                                            value={listaCliente.empresa || ''}
+                                            fullWidth
+                                        />
                                     </Grid>
-                                    <Grid item  sm={6} md={4} lg={4} xl={3}>
-                                    <Typography variant="h6" color="primary">
-                                    Representante Cliente
-                                    </Typography>
-                                    <TextField
-                                    value={listaCliente.representante || ''}
-                                    fullWidth
-                                    />
+                                    <Grid item sm={6} md={4} lg={4} xl={3}>
+                                        <Typography variant="h6" color="primary">
+                                            Representante Cliente
+                                        </Typography>
+                                        <TextField
+                                            value={listaCliente.representante || ''}
+                                            fullWidth
+                                        />
                                     </Grid>
-                                    <Grid item   sm={6} md={4} lg={4} xl={3}>
-                                    <Typography variant="h6" color="primary">
-                                    Correo Representante
-                                    </Typography>
-                                    <TextField
-                                    value={listaCliente.correo || ''}
-                                    fullWidth
-                                    />
+                                    <Grid item sm={6} md={4} lg={4} xl={3}>
+                                        <Typography variant="h6" color="primary">
+                                            Correo Representante
+                                        </Typography>
+                                        <TextField
+                                            value={listaCliente.correo || ''}
+                                            fullWidth
+                                        />
                                     </Grid>
                                 </Grid>
 
                             ) : (<Typography variant="h6" color="primary">No se han asignado cliente</Typography>
                             )}
-                            </Box>
-                            </>
-                        )}
-                        <Box>
+                        </Box>
+                        </>
+                    )}
+                    <Box>
                         <Typography variant="h6" color="secondary" sx={{ mt: "30px", mb: "10px" }}>
                             Estudiante(s)
                         </Typography>

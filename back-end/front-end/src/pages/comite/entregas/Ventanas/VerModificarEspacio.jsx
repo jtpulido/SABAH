@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
-import { TextField, Button, Select, MenuItem, Dialog, Typography, DialogContent, DialogTitle, DialogActions, Grid, CircularProgress, Box, IconButton, useTheme } from "@mui/material";
+import { TextField, Button, Select, MenuItem, Dialog, Typography, DialogContent, DialogTitle, DialogActions, Grid, CircularProgress, Box, IconButton, useTheme, FormControlLabel, Checkbox } from "@mui/material";
 import { Edit, SaveOutlined } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
@@ -25,6 +25,7 @@ function VerModificarEspacio(props) {
     const [fechaCierreEntrega, setFechaCierreEntrega] = useState(dayjs());
     const [fechaAperturaCalificacion, setFechaAperturaCalificacion] = useState(dayjs());
     const [fechaCierreCalificacion, setFechaCierreCalificacion] = useState(dayjs());
+    const [entregaFinal, setEntregaFinal] = useState("");
     const [idRol, setIdRol] = useState("");
     const [idModalidad, setIdModalidad] = useState("");
     const [idEtapa, setIdEtapa] = useState("");
@@ -43,6 +44,7 @@ function VerModificarEspacio(props) {
         setFechaAperturaEntrega(espacio.fecha_apertura_entrega)
         setFechaCierreCalificacion(espacio.fecha_cierre_calificacion)
         setFechaAperturaCalificacion(espacio.fecha_apertura_calificacion)
+        setEntregaFinal(espacio.final)
         obtenerRoles();
         obtenerModalidades();
         obtenerEtapas();
@@ -167,19 +169,15 @@ function VerModificarEspacio(props) {
     const habilitarEdicion = () => {
         setEditMode(!editMode);
     };
-
+    const handleEntregaFinalChange = (event) => {
+        setEntregaFinal(event.target.checked);
+    };
     const modificarEspacio = async (event) => {
         event.preventDefault();
-        const today = dayjs();
         const fechaAperturaEntregaDate = dayjs(fechaAperturaEntrega);
         const fechaCierreEntregaDate = dayjs(fechaCierreEntrega);
         const fechaAperturaCalificacionDate = dayjs(fechaAperturaCalificacion);
         const fechaCierreCalificacionDate = dayjs(fechaCierreCalificacion);
-
-        if (fechaAperturaEntregaDate.isBefore(today, 'minute')) {
-            mostrarMensaje("La fecha de apertura debe ser mayor o igual a la fecha actual.", "error");
-            return;
-        }
 
         if (fechaCierreEntregaDate.isBefore(fechaAperturaEntregaDate, 'minute')) {
             mostrarMensaje("La fecha de cierre debe ser mayor a la fecha de apertura.", "error");
@@ -198,14 +196,15 @@ function VerModificarEspacio(props) {
         const espacioData = {
             nombre,
             descripcion,
-            fecha_apertura_entrega: fechaAperturaEntrega.format("DD/MM/YYYY hh:mm A"),
-            fecha_cierre_entrega: fechaCierreEntrega.format("DD/MM/YYYY hh:mm A"),
-            fecha_apertura_calificacion: fechaAperturaCalificacion.format("DD/MM/YYYY hh:mm A"),
-            fecha_cierre_calificacion: fechaCierreCalificacion.format("DD/MM/YYYY hh:mm A"),
+            fecha_apertura_entrega: fechaAperturaEntregaDate.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre_entrega: fechaCierreEntregaDate.format("DD/MM/YYYY hh:mm A"),
+            fecha_apertura_calificacion: fechaAperturaCalificacionDate.format("DD/MM/YYYY hh:mm A"),
+            fecha_cierre_calificacion: fechaCierreCalificacionDate.format("DD/MM/YYYY hh:mm A"),
             id_rol: idRol,
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
             id_rubrica: idRubrica,
+            final: entregaFinal
         };
         try {
             const response = await fetch(`http://localhost:5000/comite/espacio/${espacio.id}`, {
@@ -364,25 +363,26 @@ function VerModificarEspacio(props) {
                                         />
                                     </LocalizationProvider>
                                 </Grid>
-                                <Grid item xs={12} sm={6}>
+
+                                <Grid item xs={12} sm={5}>
                                     <Typography variant="h6" color="primary">
-                                        Rol Calificador
+                                        Etapa
                                     </Typography>
                                     <Select
-                                        value={idRol}
-                                        onChange={handleIdRolChange}
+                                        value={idEtapa}
+                                        onChange={handleIdEtapaChange}
                                         required
                                         disabled={!editMode}
                                         fullWidth
                                     >
-                                        {roles.map((rol) => (
-                                            <MenuItem key={rol.id} value={rol.id}>
-                                                {rol.nombre}
+                                        {etapas.map((etapa) => (
+                                            <MenuItem key={etapa.id} value={etapa.id}>
+                                                {etapa.nombre}
                                             </MenuItem>
                                         ))}
                                     </Select>
                                 </Grid>
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} sm={5}>
                                     <Typography variant="h6" color="primary">
                                         Modalidad
                                     </Typography>
@@ -399,20 +399,30 @@ function VerModificarEspacio(props) {
                                     ))}
                                     </Select>
                                 </Grid>
+                                <Grid item xs={12} sm={2} md={2} >
+                                    <Typography variant="h6" color="primary">
+                                        Entrega Final
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, }}                            >
+                                        <FormControlLabel
+                                            control={<Checkbox checked={entregaFinal} disabled={!editMode} onChange={handleEntregaFinalChange} />}
+                                        />
+                                    </Box>
+                                </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <Typography variant="h6" color="primary">
-                                        Etapa
+                                        Rol Calificador
                                     </Typography>
                                     <Select
-                                        value={idEtapa}
-                                        onChange={handleIdEtapaChange}
+                                        value={idRol}
+                                        onChange={handleIdRolChange}
                                         required
                                         disabled={!editMode}
                                         fullWidth
                                     >
-                                        {etapas.map((etapa) => (
-                                            <MenuItem key={etapa.id} value={etapa.id}>
-                                                {etapa.nombre}
+                                        {roles.map((rol) => (
+                                            <MenuItem key={rol.id} value={rol.id}>
+                                                {rol.nombre}
                                             </MenuItem>
                                         ))}
                                     </Select>

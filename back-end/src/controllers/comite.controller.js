@@ -343,7 +343,7 @@ const cambiarEstado = async (req, res) => {
         }
 
         if (acronimo === 'COT') {
-            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado comité' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
+            if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado propuesta' && nuevo_estado.nombre !== 'Aprobado comité' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para la modalidad COT son: En desarrollo, Aprobado comité, Rechazado, Cancelado.' });
             }
         }
@@ -357,8 +357,7 @@ const cambiarEstado = async (req, res) => {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para Propuesta son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
             }
         }
-
-
+        
         if (etapa === 'Proyecto de grado 1') {
             if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado proyecto de grado 1' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para Proyecto de grado 2 son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
@@ -385,7 +384,7 @@ const cambiarEstado = async (req, res) => {
                 }
                 if (result) {
                     const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
-                    const correos = resultCorreos.rows
+                    const correos = resultCorreos.rows;
                     await mailCambioEstadoProyecto(correos, nuevo_estado.nombre, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
                     await pool.query('COMMIT')
                     return res.json({ success: true })
@@ -408,8 +407,8 @@ const asignarFechaGrado = async (req, res) => {
                 }
                 if (result) {
                     const resultCorreos = await pool.query('SELECT correo FROM estudiante where id=$1', [id_estudiante]);
-                    const correos = resultCorreos.rows
-                    await mailCambioFechaGraduacionProyecto(correos, fecha_grado, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
+                    const correo = resultCorreos.rows[0].correo;
+                    await mailCambioFechaGraduacionProyecto(correo, fecha_grado, 'Comité de Opciones de Grado - Ingeniería de Sistemas');
                     const result_estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto])
                     await pool.query('COMMIT');
                     return res.json({ success: true, estudiantes: result_estudiantes.rows })
@@ -1028,7 +1027,6 @@ const agregarEstudiante = async (req, res) => {
         if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
             return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
         }
-        console.log(error)
         return res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
     }
 };
