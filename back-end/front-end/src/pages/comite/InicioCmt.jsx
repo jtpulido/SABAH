@@ -24,6 +24,8 @@ const drawerWidth = 240;
 
 const menuItems = [
   { label: "PROYECTOS", button: "proyecto" },
+  { label: "SUSTENTACIONES", button: "sustentaciones" },
+  { label: "PROYECTOS MERITORIOS", button: "proyectos/meritorios" },
   { label: "DIRECTORES", button: "director" },
   { label: "LECTORES", button: "lector" },
   { label: "JURADOS", button: "jurado" },

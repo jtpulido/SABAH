@@ -4,11 +4,10 @@ import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconBut
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
 import './VerProyecto.css';
-import VerEntrega from "../entregas/Ventanas/VerEntrega";
-import CustomDataGrid from "../../layouts/DataGrid";
+
 import CambiarCodigo from './Ventana/CambiarCodigo';
 import CambiarNombre from './Ventana/CambiarNombre';
-import { Add, Edit, EventAvailable, Person, Remove, Source } from "@mui/icons-material";
+import { Add, Edit, EventAvailable, Person, Remove } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
@@ -17,6 +16,7 @@ import CambiarFecha from "./Ventana/CambiarFecha";
 import CambiarEtapa from "./Ventana/CambiarEtapa";
 import CambiarEstado from "./Ventana/CambiarEstado";
 import TerminarProyecto from "./Ventana/TerminarProyecto";
+import ProgramarSustentacion from "./Ventana/ProgramarSustentacion";
 
 export default function VerProyectos() {
 
@@ -35,14 +35,7 @@ export default function VerProyectos() {
   const [director, setDirector] = useState({});
   const [lector, setLector] = useState({});
   const [existeLector, setExisteLector] = useState(false);
-  const [existeJurados, setExisteJurados] = useState(false);
   const [listaJurado, setListaJurado] = useState([]);
-  const [entregasPendientes, setEntregasPendientes] = useState([]);
-  const [entregasCalificadas, setEntregasCalificadas] = useState([]);
-  const [entregasPorCalificar, setEntregasPorCalificar] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [entrega, setEntrega] = useState({});
-  const [tipo, setTipo] = useState("");
   const [estudiante, setEstudiante] = useState({});
   const [confirmarEliminacion, setConfirmarEliminacion] = useState(false);
   const [abrirAgregarEstudiante, setAbrirAgregarEstudiante] = useState(false);
@@ -52,12 +45,15 @@ export default function VerProyectos() {
   const [openEstado, setOpenEstado] = useState(false);
   const [openEtapa, setOpenEtapa] = useState(false);
   const [openFechaGrado, setOpenFechaGrado] = useState(false);
+  const [openSustentacion, setOpenSustentacion] = useState(false);
   const [rol, setRol] = useState("");
   const [info, setInfo] = useState({});
   const [accion, setAccion] = useState("");
   const [abrirVerModificarUsuario, setAbrirVerModificarUsuario] = useState(false);
-  const [existeCliente, setExisteCliente] = useState([]);
+  const [existeCliente, setExisteCliente] = useState(false);
   const [listaCliente, setListaCliente] = useState([]);
+  const [existeSustentacion, setExisteSustentacion] = useState(false);
+  const [sustentacion, setSustentacion] = useState({});
 
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
@@ -98,11 +94,12 @@ export default function VerProyectos() {
         setDirector(data.director);
         setExisteLector(data.lector.existe_lector)
         setLector(data.lector.lector);
-        setExisteJurados(data.jurados.existe_jurado)
         setListaJurado(data.jurados.existe_jurado ? data.jurados.jurados : []);
         setExisteCliente(data.cliente.existe_cliente)
         setListaCliente(data.cliente.existe_cliente ? data.cliente : []);
         setExiste(true)
+        setExisteSustentacion(data.sustentacion.sustentacion_existe)
+        setSustentacion(data.sustentacion.sustentacion_existe ? data.sustentacion.sustentacion : null)
       }
     }
     catch (error) {
@@ -110,24 +107,6 @@ export default function VerProyectos() {
       mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
   };
-  const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
-    try {
-      const response = await fetch(`http://localhost:5000/comite/entregasProyecto/${endpoint}/${proyecto_id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (!data.success) {
-        mostrarMensaje(data.message, "error")
-      } else if (response.status === 203) {
-        mostrarMensaje(data.message, "warning")
-      } else if (response.status === 200) {
-        setRowsFunc(data.entregas);
-      }
-    } catch (error) {
-      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
-    }
-  }
 
   const quitarEstudiante = async (estudiante) => {
     setConfirmarEliminacion(false);
@@ -147,7 +126,33 @@ export default function VerProyectos() {
       mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
   }
+  const postularMeritorio = async () => {
+    try {
+      const postulado = {
+        id: proyecto.id,
+        id_modalidad: proyecto.id_modalidad,
+        anio: proyecto.anio,
+        periodo: proyecto.periodo
 
+      };
+      const response = await fetch(`http://localhost:5000/comite/proyecto/postulado`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ postulado })
+      })
+      const data = await response.json();
+      if (response.status === 400) {
+        mostrarMensaje(data.message, "info");
+      } else if (!data.success) {
+        mostrarMensaje(data.message, "error");
+      } else {
+        mostrarMensaje(data.message, "success");
+
+      }
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
+  }
   const actualizarProyecto = (nuevoCodigo) => {
     setProyecto((prevState) => ({
       ...prevState,
@@ -270,16 +275,29 @@ export default function VerProyectos() {
       setEstudiantes(newValue)
     };
   }
-  const abrirVentanaVerEntrega = (row, tipo) => {
-    setEntrega(row);
-    setTipo(tipo)
-    setOpenDialog(true);
+  const abrirDialogProgramarSustentacion = () => {
+    if (sustentacion === null) {
+      const sustentacion = {
+        id_proyecto: id,
+        anio: proyecto.anio,
+        periodo: proyecto.periodo
+      };
+      setSustentacion(sustentacion)
+    }
+
+    setOpenSustentacion(true);
   };
 
-  const generacerrarDialogVerEntrega = () => {
-    setOpenDialog(false);
-  };
-
+  const cerrarDialogProgramarSustentacion = () => {
+    setOpenSustentacion(false);
+  }
+  const cerrarDialogSustentacionProgramada = (newValue) => {
+    setOpenFechaGrado(false);
+    if (newValue) {
+      setExisteSustentacion(true)
+      setSustentacion(newValue)
+    };
+  }
   const abrirDialog = (row, accion, rol) => {
     if (accion === "asignar") {
       const infoRol = {
@@ -318,102 +336,17 @@ export default function VerProyectos() {
       } else if (rol === "JURADO") {
         if (usuarios.length > 0) {
           setListaJurado(usuarios)
-          setExisteJurados(true)
         } else {
           setListaJurado({})
-          setExisteJurados(false)
         }
       }
-
     }
     setAbrirVerModificarUsuario(false);
   }
   useEffect(() => {
     infoProyecto()
-    llenarTabla("pendientes", id, setEntregasPendientes);
-    llenarTabla("realizadas/calificadas", id, setEntregasCalificadas);
-    llenarTabla("realizadas/porCalificar", id, setEntregasPorCalificar);
   }, [id]);
 
-  const generarColumnasEntregas = (inicio, extraColumns) => {
-    const columns = [
-      { field: 'nombre_proyecto', headerName: 'Nombre del proyecto', flex: 0.2, minWidth: 300 },
-      { field: 'nombre_espacio_entrega', headerName: 'Nombre de la entrega', flex: 0.3, minWidth: 200 },
-      { field: 'nombre_rol', headerName: 'Evaluador', flex: 0.1, minWidth: 100 }
-    ]
-    return [...inicio, ...columns, ...extraColumns];
-  };
-  const columnaPendientes = generarColumnasEntregas([{
-    field: "ver",
-    headerName: "",
-    flex: 0.1,
-    minWidth: 50,
-    renderCell: ({ row }) => {
-      return (
-        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-          <Tooltip title="Ver Entrega">
-            <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "pendiente")}>
-              <Source />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      );
-    },
-  }], [
-    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-  ]);
-  const columnaPorCalificar = generarColumnasEntregas([
-    {
-      field: "calificar",
-      headerName: "",
-      flex: 0.1,
-      minWidth: 50,
-      renderCell: ({ row }) => {
-        return (
-          <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-            <Tooltip title="Calificar">
-              <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "")}>
-                <Source />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        );
-      },
-    }], [
-    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
-    { field: 'fecha_apertura_entrega', headerName: 'Fecha de apertura entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre_entrega', headerName: 'Fecha de cierre entregas', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_apertura_calificacion', headerName: 'Fecha de apertura calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_cierre_calificacion', headerName: 'Fecha de cierre calificación', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 100, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-
-  ]);
-  const columnaCalificadas = generarColumnasEntregas([{
-    field: "calificado",
-    headerName: "",
-    flex: 0.1,
-    minWidth: 50,
-    renderCell: ({ row }) => {
-      return (
-        <Box width="100%" m="0 auto" p="5px" display="flex" justifyContent="center">
-          <Tooltip title="Calificar">
-            <IconButton color="secondary" onClick={() => abrirVentanaVerEntrega(row, "calificado")}>
-              <Source />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      );
-    },
-  }], [
-    { field: 'evaluador', headerName: 'Nombre de evaluador', flex: 0.2, minWidth: 150 },
-    { field: 'fecha_entrega', headerName: 'Fecha de entrega', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'fecha_evaluacion', headerName: 'Fecha de evaluación', flex: 0.1, minWidth: 150, valueFormatter: ({ value }) => new Date(value).toLocaleString('es-ES') },
-    { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
-
-  ]);
 
   return (
     <div style={{ margin: "15px" }} >
@@ -462,10 +395,23 @@ export default function VerProyectos() {
           <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
             Cambiar estado
           </Button>
+          {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' ? (
+            <div>
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogProgramarSustentacion} sx={{ width: 200, m: 1 }}>
+                Programar Sustentación
+              </Button>
+
+            </div>
+          ) : null}
           {proyecto.estado === 'Aprobado' ? (
-            <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
-              Terminar Proyecto
-            </Button>
+            <div>
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
+                Terminar Proyecto
+              </Button>
+              <Button variant="outlined" disableElevation size="small" onClick={postularMeritorio} sx={{ width: 200, m: 1 }}>
+                Postular a meritorio
+              </Button>
+            </div>
           ) : null}
           <CambiarCodigo
             open={open}
@@ -496,6 +442,12 @@ export default function VerProyectos() {
             onClose={cerrarDialogTerminar}
             onSubmit={cerrarDialogTerminado}
             proyecto={proyecto}
+          />
+          <ProgramarSustentacion
+            open={openSustentacion}
+            onClose={cerrarDialogProgramarSustentacion}
+            sustentacion={sustentacion || {}}
+            onSubmit={cerrarDialogSustentacionProgramada}
           />
           <Box >
             <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px" }}>
@@ -654,6 +606,41 @@ export default function VerProyectos() {
             </Box>
             </>
           )}
+          {proyecto.acronimo !== "COT" && (
+            <>
+              <Box>
+
+                <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px" }}>
+                  Sustentación
+                </Typography>
+                {existeSustentacion ? (
+                  <Grid container spacing={2}>
+                    <Grid item sm={6} md={4} lg={4} xl={3}>
+                      <Typography variant="h6" color="primary">
+                        Fecha
+                      </Typography>
+                      <TextField
+                        value={sustentacion.fecha_sustentacion || ''}
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item sm={6} md={4} lg={4} xl={3}>
+                      <Typography variant="h6" color="primary">
+                        Lugar
+                      </Typography>
+                      <TextField
+                        value={sustentacion.lugar || ''}
+                        fullWidth
+                      />
+                    </Grid>
+
+                  </Grid>
+
+                ) : (<Typography variant="h6" color="primary">No se han asignado una fecha de sustentación</Typography>
+                )}
+              </Box>
+            </>
+          )}
           <Box>
             <div style={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
               <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "5px", flexGrow: 1, maxWidth: '98%' }}>
@@ -679,9 +666,9 @@ export default function VerProyectos() {
             <Grid container>
 
               {estudiantes.map((estudiante) => (
-                <Grid item key={estudiante.num_identificacion} xs={12}  sx = {{ mt: '15px' }}>
+                <Grid item key={estudiante.num_identificacion} xs={12} sx={{ mt: '15px' }}>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}> 
+                    <Grid item xs={12} sm={6} md={3} lg={3} xl={3}>
                       <Typography variant="h6" color="primary">
                         Nombre
                       </Typography>
@@ -807,32 +794,7 @@ export default function VerProyectos() {
         <Typography variant="h6" color="primary">Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>
       )}
 
-      <Box mt={4}>
-        <Typography variant="h4" color="secondary" sx={{ mt: "45px", mb: "10px" }}>
-          Entregas
-        </Typography>
-        <VerEntrega
-          open={openDialog}
-          onClose={generacerrarDialogVerEntrega}
-          entrega={entrega}
-          tipo={tipo}
-        />
-        <Typography variant="h6" color="secondary" sx={{ mt: "20px" }}>
-          Entregas Pendientes
-        </Typography>
-        <CustomDataGrid rows={entregasPendientes} columns={columnaPendientes} mensaje="No hay entregas pendientes" />
 
-        <Typography variant="h6" color="secondary" sx={{ mt: "20px" }}>
-          Entregas Sin Calificar
-        </Typography>
-        <CustomDataGrid rows={entregasPorCalificar} columns={columnaPorCalificar} mensaje="No hay entregas sin calificar" />
-
-        <Typography variant="h6" color="secondary" sx={{ mt: "20px" }}>
-          Entregas Calificadas
-        </Typography>
-        <CustomDataGrid rows={entregasCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />
-
-      </Box>
       <Dialog
         open={confirmarEliminacion}
         keepMounted

@@ -11,7 +11,6 @@ const obtenerUsuarios = async (req, res) => {
         } else {
             return res.status(203).json({ success: true, message: 'No hay usuarios actualmente.' })
         }
-
     } catch (error) {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
@@ -98,7 +97,6 @@ const cambioUsuarioRol = async (req, res) => {
         }
     } catch (error) {
         await pool.query('ROLLBACK');
-        console.log(error)
         res.status(500).json({ success: false, message: 'Ha ocurrido un error al cambiar o asignar el usuario. Por favor inténtelo más tarde.' });
     }
 };
@@ -190,6 +188,7 @@ const obtenerProyecto = async (req, res) => {
             p.nombre, 
             he.anio as anio,
             he.periodo as periodo,
+            m.id as id_modalidad,
             m.nombre as modalidad, 
             m.acronimo as acronimo, 
             e.nombre as etapa, 
@@ -219,8 +218,9 @@ const obtenerProyecto = async (req, res) => {
             const result_estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id])
             const result_cliente = await pool.query("SELECT c.nombre_empresa, c.nombre_repr, c.correo_repr FROM cliente c, proyecto p WHERE p.id = c.id_proyecto AND p.id = $1;", [id])
             const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante": result_cliente.rows[0].nombre_repr, "correo": result_cliente.rows[0].correo_repr } : { "existe_cliente": false };
-            return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente });
-
+            const result_sustentacion = await pool.query('SELECT id, fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id_proyecto= $1', [id])
+            const sustentacion = result_sustentacion.rowCount > 0 ? { "existe_sustentacion": true, "sustentacion": result_sustentacion.rows[0] } : { "existe_sustentacion": false };
+            return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente, sustentacion: sustentacion });
         } else {
             return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
         }
@@ -357,7 +357,7 @@ const cambiarEstado = async (req, res) => {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para Propuesta son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
             }
         }
-        
+
         if (etapa === 'Proyecto de grado 1') {
             if (nuevo_estado.nombre !== 'En desarrollo' && nuevo_estado.nombre !== 'Aprobado proyecto de grado 1' && nuevo_estado.nombre !== 'Rechazado' && nuevo_estado.nombre !== 'Cancelado') {
                 return res.status(203).json({ success: false, message: 'Los estados válidos para Proyecto de grado 2 son: En desarrollo, Aprobado, Terminado, Rechazado, Cancelado.' });
@@ -1027,7 +1027,6 @@ const agregarEstudiante = async (req, res) => {
         if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
             return res.status(400).json({ success: false, message: "La información del estudiante ya existe en otro proyecto." });
         }
-        console.log(error)
         return res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
     }
 };
@@ -1115,7 +1114,6 @@ const obtenerReunionesCompletas = async (req, res) => {
             return res.status(203).json({ success: true, message: 'No hay reuniones completas' })
         }
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -1173,6 +1171,188 @@ const obtenerInvitados = async (req, res) => {
     }
 };
 
+const obtenerSustentacionProyectos = async (req, res) => {
+    try {
+        await pool.query(
+            `SELECT 
+                p.id, 
+                p.codigo, 
+                p.nombre, 
+                m.nombre as modalidad, 
+                sp.anio,
+                sp.periodo,
+                sp.fecha_sustentacion as fecha_sustentacion,
+                sp.lugar as lugar_sustentacion
+            FROM proyecto p 
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN sustentacion_proyecto sp ON p.id = sp.id_proyecto`
+            , async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al obtener la fecha de sustentación de los proyectos.' });
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, sustentacion: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No se han definido fechas de sustentación.' })
+                }
+            })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerProyectosPostulados = async (req, res) => {
+    try {
+        await pool.query(
+            `SELECT 
+                pgm.id,
+                p.id as id_proyecto, 
+                p.codigo, 
+                p.nombre, 
+                m.id as id_modalidad,
+                m.nombre as modalidad, 
+                es.nombre as estado_proyecto,
+                pgm.fecha_postulacion as fecha_postulacion,
+                pgm.anio as anio,
+                pgm.periodo as periodo
+            FROM proyecto p
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN estado es ON p.id_estado = es.id
+            JOIN postulacion_grado_meritorio pgm ON p.id = pgm.id_proyecto
+            WHERE pgm.estado = true
+            ORDER BY pgm.periodo DESC, pgm.anio DESC`
+            , async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos postulados.' })
+                }
+            })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerProyectosMeritorios = async (req, res) => {
+    try {
+        await pool.query(
+            `SELECT 
+                p.id, 
+                p.codigo, 
+                p.nombre, 
+                m.nombre as modalidad, 
+                e.nombre as etapa_proyecto, 
+                es.nombre as estado_proyecto,
+                pgm.periodo as periodo_eleccion,
+                pgm.anio as anio_eleccion
+            FROM proyecto p
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id
+            JOIN estado es ON p.id_estado = es.id
+            JOIN postulacion_grado_meritorio ppgm ON p.id = ppgm.id_proyecto
+            JOIN proyecto_meritorio pgm ON ppgm.id = pgm.id_postulacion
+            WHERE he.fecha_cambio = (
+                    SELECT MAX(fecha_cambio)
+                    FROM historial_etapa
+                    WHERE id_proyecto = p.id
+                )
+            ORDER BY pgm.periodo DESC, pgm.anio DESC`
+            , async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({ success: true, message: 'No hay proyectos meritorios' })
+                }
+            })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const postularProyectoMeritorio = async (req, res) => {
+    try {
+        const { id, id_modalidad, anio, periodo } = req.body.postulado;
+        await pool.query(
+            "INSERT INTO postulacion_grado_meritorio(anio, periodo, id_modalidad, id_proyecto) VALUES ($1, $2, $3, $4)",
+            [anio, periodo, id_modalidad, id],
+            (error, result) => {
+                if (error) {
+                    if (error.code === "23505") {
+                        return res.status(400).json({ success: false, message: "Este proyecto ya fue postulado." });
+                    }
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al postular el proyecto.' });
+                }
+                if (result) {
+                    return res.json({ success: true, message: 'Proyecto postulado correctamente.' });
+                }
+            }
+        );
+
+        return res.status(203).json({ success: true, message: 'No se pudo elegir el proyecto como meritorio.' });
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const elegirProyectoMeritorio = async (req, res) => {
+    try {
+        const { id, id_modalidad, anio, periodo } = req.body.postulado;
+        await pool.query(
+            "INSERT INTO proyecto_meritorio(anio, periodo, id_modalidad, id_postulacion) VALUES ($1, $2, $3, $4)",
+            [anio, periodo, id_modalidad, id],
+            (error, result) => {
+                if (error) {
+                    if (error.code === "23505") {
+                        return res.status(400).json({ success: false, message: "Ya existe un proyecto meritorio para el año, el periodo y la modalidad de este proyecto." });
+                    }
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al elegir el proyecto como meritorio.' });
+                }
+                if (result) {
+                    return res.json({ success: true, message: 'Proyecto meritorio elegido correctamente.' });
+                }
+            }
+        );
+
+        return res.status(203).json({ success: true, message: 'No se pudo elegir el proyecto como meritorio.' });
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const programarSustentacion = async (req, res) => {
+    try {
+        const { fecha, lugar, id, anio, periodo } = req.body;
+
+        const insertQuery = `
+            INSERT INTO sustentacion_proyecto(fecha_sustentacion, lugar, id_proyecto, anio, periodo)
+            VALUES ($1, $2, $3, $4, $5) RETURNING id`;
+
+        const result = await pool.query(insertQuery, [fecha, lugar, id, anio, periodo]);
+
+        if (result.rowCount > 0) {
+            const id_sus = result.rows[0].id;
+            const selectQuery = 'SELECT id, fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id = $1';
+            const sustentacionResult = await pool.query(selectQuery, [id_sus]);
+            const sustentacion = sustentacionResult.rows[0];
+
+            if (sustentacion) {
+                return res.json({ success: true, sustentacion });
+            } else {
+                return res.status(404).json({ success: false, message: 'No se encontró la sustentación.' });
+            }
+        } else {
+            return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error al insertar la fecha.' });
+        }
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, inténtelo de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
 module.exports = {
     obtenerUsuarios,
     obtenerProyecto,
@@ -1207,5 +1387,11 @@ module.exports = {
     obtenerReunionesCanceladas,
     obtenerReunionesCompletas,
     obtenerReunionesPendientes,
-    obtenerInvitados
+    obtenerInvitados,
+    obtenerProyectosMeritorios,
+    obtenerProyectosPostulados,
+    obtenerSustentacionProyectos,
+    elegirProyectoMeritorio,
+    postularProyectoMeritorio,
+    programarSustentacion
 }

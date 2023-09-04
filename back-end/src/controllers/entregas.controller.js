@@ -761,7 +761,10 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
             ee.anio,
             ee.periodo,
             ep.nombre AS etapa,
-            ee.fecha_apertura_entrega, ee.fecha_cierre_entrega, ee.fecha_apertura_calificacion, ee.fecha_cierre_calificacion,
+            ee.fecha_apertura_entrega, 
+            ee.fecha_cierre_entrega, 
+            ee.fecha_apertura_calificacion, 
+            ee.fecha_cierre_calificacion,
             p.nombre AS nombre_proyecto,
             ur.id AS id_usuario_rol,
             u.nombre AS evaluador,
@@ -770,7 +773,7 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo 
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id
@@ -882,7 +885,7 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
           END AS estado_entrega
         FROM proyecto p
         INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto 
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN rol r ON ee.id_rol = r.id
         INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
@@ -967,10 +970,8 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
-                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
-
             if (result.rows.length === 0) {
                 return res.status(203).json({ success: true, message: 'No hay entregas pendientes por calificar' });
             }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, Typography, Tooltip, IconButton, Toolbar, AppBar } from '@mui/material';
+import { Box, Typography, Tooltip, IconButton, Toolbar, AppBar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import { Source } from '@mui/icons-material';
 
 import CustomDataGrid from "../../layouts/DataGrid";
@@ -15,11 +15,12 @@ export default function Entregas() {
   const id_rol = sessionStorage.getItem('id_rol');
   const token = useSelector(selectToken);
   const [entrega, setEntrega] = useState({});
+  const [postulado, setPostulado] = useState({});
   const [tipo, setTipo] = useState("");
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCalificadas, setRowsCalificadas] = useState([]);
   const [rowsPorCalificar, setRowsPorCalificar] = useState([]);
-
+  const [confirmarEliminacion, setConfirmarEliminacion] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
   const mostrarMensaje = (mensaje, variante) => {
@@ -52,7 +53,11 @@ export default function Entregas() {
     setTipo(tipo)
     setOpenCalificar(true);
   };
-  const cerrarDialogCalificado = () => {
+  const cerrarDialogCalificado = (postulado) => {
+    if (postulado) {
+      setPostulado(postulado)
+      abrirConfirmarEliminacion()
+    }
     setEntrega({})
     setRowsCalificadas([])
     setRowsPorCalificar([])
@@ -61,6 +66,7 @@ export default function Entregas() {
     llenarTabla("realizadas/porCalificar", setRowsPorCalificar);
     setOpenCalificar(false);
   };
+
   const cerrarDialogCalificar = () => {
     setEntrega({})
     setOpenCalificar(false);
@@ -184,7 +190,33 @@ export default function Entregas() {
     { field: 'nota_final', headerName: 'Nota', flex: 0.1, minWidth: 100 },
 
   ]);
-  
+  const postularMeritorio = async () => {
+
+    try {
+      const response = await fetch(`http://localhost:5000/comite/proyecto/postulado`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ postulado })
+      })
+      const data = await response.json();
+      if (response.status === 400) {
+        mostrarMensaje(data.message, "info");
+      } else if (!data.success) {
+        mostrarMensaje(data.message, "error");
+      } else {
+        mostrarMensaje(data.message, "success");
+      }
+      handleClose()
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
+  }
+  const abrirConfirmarEliminacion = () => {
+    setConfirmarEliminacion(true);
+  };
+  const handleClose = () => {
+    setConfirmarEliminacion(false);
+  };
   return (
     <div>
       <AppBar position="static" color="transparent" variant="contained" >
@@ -216,6 +248,34 @@ export default function Entregas() {
         <CustomDataGrid rows={rowsCalificadas} columns={columnaCalificadas} mensaje="No hay entregas calificadas" />
 
       </Box>
-    </div>
+      <Dialog
+        open={confirmarEliminacion}
+        keepMounted
+        onClose={handleClose}
+      >
+        <DialogTitle variant="h1" color="primary">
+          ¿Está seguro de que quiere postular este proyecto?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText variant="h4">
+            Los jurados o en el caso de la opción Auxiliar de Investigación el investigador podrán incluir la postulación a
+            mención honorífica al Comité de Opciones de Grado, que seleccionará un proyecto por opción de grado, siguiendo los criterios mostrados a continuación:
+          </DialogContentText>
+          <DialogContentText variant="h4">
+            ● La pertinencia del trabajo en cuanto a la orientación estratégica de la Universidad (salud y calidad de vida)
+          </DialogContentText>
+          <DialogContentText variant="h4">
+            ● La relación con otros entes, facultades, departamentos o dependencias para el desarrollo del proyecto (interdisciplinariedad).
+          </DialogContentText>
+          <DialogContentText variant="h4">
+            ● Los resultados, utilidad del mismo y la posibilidad de continuar en fases posteriores el proyecto.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="naranja">Cancelar</Button>
+          <Button onClick={() => { postularMeritorio() }} variant="contained" sx={{ width: 150 }}>Postular</Button>
+        </DialogActions>
+      </Dialog>
+    </div >
   );
 };
