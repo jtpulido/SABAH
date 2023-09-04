@@ -459,6 +459,7 @@ function CrearReunion(props) {
         </Dialog>
     );
 }
+
 CrearReunion.propTypes = {
     onClose: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,

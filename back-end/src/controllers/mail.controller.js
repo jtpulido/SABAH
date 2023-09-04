@@ -95,7 +95,7 @@ El Equipo de SABAH
     }
 };
 
-const codigoVerificacion = async (req) => {
+const codigoVerificacion = async (req, res) => {
     const { correo } = req.body;
     const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -128,15 +128,16 @@ El Equipo de SABAH
 `
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return { success: true };
-    } catch (error) {
-        return { success: false };
-    }
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+        }
+    });
 };
 
-const codigoVerificacionEstudiantes = async (req) => {
+const codigoVerificacionEstudiantes = async (req, res) => {
     const correos = req.body;
     const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -174,12 +175,13 @@ El Equipo de SABAH
 `
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return { success: true };
-    } catch (error) {
-        return { success: false };
-    }
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+        }
+    });
 };
 
 const nuevaPropuesta = async (nombre, nombre_estudiante, codigo, correo) => {
@@ -263,7 +265,7 @@ El Equipo de SABAH
     }
 };
 
-const cambioContrasena = async (req) => {
+const cambioContrasena = async (req, res) => {
     const { correo } = req.body;
     const codigoCreado = crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -294,12 +296,14 @@ El Equipo de SABAH
 `
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return { success: true };
-    } catch (error) {
-        return { success: false };
-    }
+    transporter.sendMail(mailOptions, (error, info) => {
+        console.log(info)
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Hubo un error al enviar el correo electrónico.' });
+        } else {
+            return res.status(200).json({ success: true, message: 'Se han enviado los correo electrónico de bienvenida.' });
+        }
+    });
 };
 
 const cambioContrasenaVarios = async (infoEstudiantes) => {
@@ -1024,4 +1028,135 @@ El Equipo de SABAH
 
 };
 
-module.exports = { mailAsignarCodigo, nuevoUsuarioAdmin, nuevaSolicitudUser, editarReunionUser, cambioAsistencia, nuevaReunionEstudiantes, cancelarReunionUser, nuevaReunionUser, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaDirector }
+const agregarLink = async (tipo, link, infoCorreos) => {
+    const tipo_link = { 'A': 'Artefactos de Control', 'D': 'Documentos del Proyecto' }[tipo];
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Nuevo Link Registrado',
+        text: `
+Estimado(a) Usuario,
+    
+Le informamos que se ha registrado un nuevo link de '${tipo_link}'  que lo llevará directamente a su carpeta correspondiente en Google Drive. A continuación, se detallan los aspectos clave:
+    
+- Tipo: ${tipo_link}
+- Link: ${link}
+
+Si desea acceder a más detalles, puede hacerlo a través del sistema de SABAH en la sección de entregas.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
+};
+
+const nuevaSolicitudProyecto = async (tipo, descripcion, proyecto, correo_usuario, infoCorreos) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    recipients.push(correo_usuario);
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Nueva Solicitud',
+        text: `
+Estimado(a) Usuario,
+    
+Le informamos que se ha registrado una nueva solicitud. A continuación, se detallan los aspectos clave:
+    
+- Proyecto: ${proyecto}
+- Tipo: ${tipo}
+- Descripción: ${descripcion}
+
+Si desea acceder a más detalles sobre esta solicitud, pueden hacerlo a través del sistema de SABAH en la sección de solicitudes.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
+};
+
+const respuestaSolicitud = async (tipo, aprobado, descripcion, proyecto, correo_usuario, infoCorreos, responsable) => {
+    const estado = { true: 'Aprobado', false: 'Rechazado' }[aprobado];
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    const recipients = [];
+    recipients.push(correo_usuario);
+    infoCorreos.forEach((estudiante) => {
+        recipients.push(estudiante.correo);
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: recipients.join(','),
+        subject: 'Respuesta Solicitud ${tipo}',
+        text: `
+Estimado(a) Usuario,
+    
+Le informamos que se ha dado respuesta a la solicitud de '${tipo}'. A continuación, proporcionamos algunos detalles clave relacionados con la respuesta:
+    
+- Estado: ${estado}
+- Comentario: ${descripcion}
+- Proyecto: ${proyecto}
+- Responsable: ${responsable}
+
+Si desea acceder a más detalles sobre esta solicitud, pueden hacerlo a través del sistema de SABAH en la sección de solicitudes.
+
+Atentamente,
+El Equipo de SABAH
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
+};
+
+module.exports = { respuestaSolicitud, nuevaSolicitudProyecto, agregarLink, mailAsignarCodigo, nuevoUsuarioAdmin, nuevaSolicitudUser, editarReunionUser, cambioAsistencia, nuevaReunionEstudiantes, cancelarReunionUser, nuevaReunionUser, removerEstudianteProyecto, nuevoEstudianteProyecto, mailCambioEstadoProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioFechaGraduacionProyecto, mailCambioEtapaProyecto, mailCambioCodigo, mailCambioNombreProyecto, cambioContrasena, cambioEstadoUsuario, cambioContrasenaVarios, nuevoUsuario, codigoVerificacion, codigoVerificacionEstudiantes, nuevaPropuesta, nuevaPropuestaDirector }

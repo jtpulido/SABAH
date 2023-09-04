@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { clearSession} from '../../store/authSlice';
+import { clearSession } from '../../store/authSlice';
 import { Box, AppBar, Drawer, CssBaseline, List, ListItem, ListItemButton, ListItemText, Toolbar } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import logo from "../../assets/images/Sabah.png";
 import Footer from "../pie_de_pagina/Footer"
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+
 const drawerWidth = 240;
 
 function InicioPro() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const cerrarSesion = () => {
     dispatch(clearSession());
@@ -37,10 +39,27 @@ function InicioPro() {
       navigate('/proyecto/Entregas')
     } else if (button === "reuniones") {
       navigate('/proyecto/Reuniones')
-    } else if ( button === "solicitudes"){
+    } else if (button === "solicitudes") {
       navigate('/proyecto/Solicitudes')
     }
   };
+
+  useEffect(() => {
+    if (location.pathname === '/proyecto') {
+      setActiveButton('proyecto');
+
+    } else if (location.pathname === '/proyecto/Entregas') {
+      setActiveButton('entregas');
+
+    } else if (location.pathname === '/proyecto/Reuniones' || location.pathname === '/proyectos/ActaReunion') {
+      setActiveButton('reuniones');
+
+    } else if (location.pathname === '/proyecto/Solicitudes') {
+      setActiveButton('solicitudes'); 
+      
+    }
+  }, [location.pathname]);
+
   return (<div><CssBaseline />
     <Box sx={{ display: 'flex', height: 'calc(100vh - 50px)' }} >
       <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
@@ -110,7 +129,7 @@ function InicioPro() {
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                    <ListItemButton onClick={() => cerrarSesion()} >
+                  <ListItemButton onClick={() => cerrarSesion()} >
                     <ListItemText primary="CERRAR SESIÓN" sx={{ color: '#576A3D' }} />
                   </ListItemButton>
                 </ListItem>
