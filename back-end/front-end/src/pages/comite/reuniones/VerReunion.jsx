@@ -38,14 +38,14 @@ function VerReunion(props) {
 
     const obtenerInfoDirector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoDirector", {
+            const response = await fetch("http://localhost:5000/comite/obtenerInfoDirector", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id })
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "info")
             } else {
                 setDirector(data.director);
             }
@@ -56,14 +56,14 @@ function VerReunion(props) {
 
     const obtenerInfoLector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoLector", {
+            const response = await fetch("http://localhost:5000/comite/obtenerInfoLector", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id })
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "info")
             } else {
                 setLector(data.lector);
             }
@@ -74,14 +74,14 @@ function VerReunion(props) {
 
     const obtenerInfoJurado = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoJurado", {
+            const response = await fetch("http://localhost:5000/comite/obtenerInfoJurado", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id })
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "info")
             } else {
                 setJurado(data.jurado);
             }
@@ -92,14 +92,14 @@ function VerReunion(props) {
 
     const obtenerInfoCliente = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoCliente", {
+            const response = await fetch("http://localhost:5000/comite/obtenerInfoCliente", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id })
             });
             const data = await response.json();
             if (!data.success) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "info")
             } else {
                 setCliente(data.cliente);
             }

@@ -12,6 +12,15 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
+const { obtenerInfoDirector, obtenerInfoLector, obtenerInfoJurado, obtenerInfoCliente } = require('../controllers/proyecto.controller')
+
+router.post('/comite/obtenerInfoDirector', passport.authenticate('jwt', { session: false }), obtenerInfoDirector);
+router.post('/comite/obtenerInfoLector', passport.authenticate('jwt', { session: false }), obtenerInfoLector);
+router.post('/comite/obtenerInfoJurado', passport.authenticate('jwt', { session: false }), obtenerInfoJurado);
+router.post('/comite/obtenerInfoCliente', passport.authenticate('jwt', { session: false }), obtenerInfoCliente);
+
+
+
 const {
   obtenerProyecto,
   obtenerProyectosTerminados,
