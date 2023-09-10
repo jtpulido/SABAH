@@ -61,7 +61,7 @@ function InicioPro() {
   }, [location.pathname]);
 
   return (<div><CssBaseline />
-    <Box sx={{ display: 'flex', height: 'calc(100vh - 50px)' }} >
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 55px)' }} >
       <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
         <ThemeProvider
           theme={createTheme({

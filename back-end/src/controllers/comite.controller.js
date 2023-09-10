@@ -1,6 +1,6 @@
 const pool = require('../database')
-
-const { respuestaSolicitud, removerEstudianteProyecto, nuevoEstudianteProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioCodigo, mailCambioNombreProyecto, mailCambioEstadoProyecto, mailCambioEtapaProyecto, mailCambioFechaGraduacionProyecto } = require('../controllers/mail.controller')
+const moment = require('moment');
+const { respuestaSolicitud, removerEstudianteProyecto, nuevoEstudianteProyecto, nuevoUsuarioRol, anteriorUsuarioRol, mailCambioCodigo, mailCambioNombreProyecto, mailCambioEstadoProyecto, mailCambioEtapaProyecto, mailCambioFechaGraduacionProyecto } = require('../controllers/mail.controller');
 
 const obtenerUsuarios = async (req, res) => {
     try {
@@ -218,9 +218,8 @@ const obtenerProyecto = async (req, res) => {
             const result_estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id])
             const result_cliente = await pool.query("SELECT c.nombre_empresa, c.nombre_repr, c.correo_repr FROM cliente c, proyecto p WHERE p.id = c.id_proyecto AND p.id = $1;", [id])
             const info_cliente = result_cliente.rowCount > 0 ? { "existe_cliente": true, "empresa": result_cliente.rows[0].nombre_empresa, "representante": result_cliente.rows[0].nombre_repr, "correo": result_cliente.rows[0].correo_repr } : { "existe_cliente": false };
-            const result_sustentacion = await pool.query('SELECT id, fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id_proyecto= $1', [id])
+            const result_sustentacion = await pool.query("SELECT id, TO_CHAR(fecha_sustentacion, 'DD/MM/YYYY HH:MI AM') AS fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id_proyecto = $1 ORDER BY fecha_sustentacion DESC LIMIT 1", [id])
             const sustentacion = result_sustentacion.rowCount > 0 ? { "existe_sustentacion": true, "sustentacion": result_sustentacion.rows[0] } : { "existe_sustentacion": false };
-            console.log(sustentacion)
             return res.json({ success: true, proyecto: proyecto[0], director: usuario_director, jurados: info_jurado, lector: info_lector, estudiantes: result_estudiantes.rows, cliente: info_cliente, sustentacion: sustentacion });
         } else {
             return res.status(203).json({ success: true, message: 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' })
@@ -1192,19 +1191,19 @@ const obtenerInvitados = async (req, res) => {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
-
 const obtenerSustentacionProyectos = async (req, res) => {
     try {
         await pool.query(
             `SELECT 
-                p.id, 
+                sp.id,
+                p.id as id_proyecto, 
                 p.codigo, 
                 p.nombre, 
                 m.nombre as modalidad, 
                 sp.anio,
                 sp.periodo,
-                sp.fecha_sustentacion as fecha_sustentacion,
-                sp.lugar as lugar_sustentacion
+                TO_CHAR(sp.fecha_sustentacion, 'DD/MM/YYYY HH:MI AM') AS fecha_sustentacion,
+                sp.lugar as lugar
             FROM proyecto p 
             JOIN modalidad m ON p.id_modalidad = m.id 
             JOIN sustentacion_proyecto sp ON p.id = sp.id_proyecto`
@@ -1216,6 +1215,44 @@ const obtenerSustentacionProyectos = async (req, res) => {
                     return res.json({ success: true, sustentacion: result.rows });
                 } else if (result.rowCount <= 0) {
                     return res.status(203).json({ success: true, message: 'No se han definido fechas de sustentación.' })
+                }
+            })
+    } catch (error) {
+        return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerProyectosSustentacion= async (req, res) => {
+    try {
+        await pool.query(
+            `SELECT 
+                p.id, 
+                p.nombre,
+                he.anio as anio,
+                he.periodo as periodo
+            FROM proyecto p 
+            JOIN modalidad m ON p.id_modalidad = m.id 
+            JOIN historial_etapa he ON p.id = he.id_proyecto
+            JOIN etapa e ON he.id_etapa = e.id
+            JOIN estado es ON p.id_estado = es.id 
+            WHERE 
+                he.fecha_cambio = (
+                    SELECT MAX(fecha_cambio)
+                    FROM historial_etapa
+                    WHERE id_proyecto = p.id
+                )
+            AND m.acronimo <> 'COT'
+            AND e.nombre = 'Proyecto de grado 2'
+            AND es.nombre = 'En desarrollo'`,
+            async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al obtener la fecha de sustentación de los proyectos.' });
+                }
+                if (result.rowCount > 0) {
+                    return res.json({ success: true, proyectos: result.rows });
+                } else if (result.rowCount <= 0) {
+                    return res.status(203).json({
+                        success: true, message: 'No existen proyectos pendientes de programación para sustentaciones.'
+                    })
                 }
             })
     } catch (error) {
@@ -1353,31 +1390,69 @@ const programarSustentacion = async (req, res) => {
             INSERT INTO sustentacion_proyecto(fecha_sustentacion, lugar, id_proyecto, anio, periodo)
             VALUES ($1, $2, $3, $4, $5) RETURNING id`;
 
-        const result = await pool.query(insertQuery, [fecha, lugar, id, anio, periodo]);
+        await pool.query(insertQuery, [fecha, lugar, id, anio, periodo],
+            async (error, result) => {
+                if (error) {
+                    if (error.code === "23505") {
+                        return res.status(400).json({ success: false, message: "Ya existe una sustentación para el año y el periodo de este proyecto." });
+                    }
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al modificar la sustentación' });
+                }
+                if (result.rowCount > 0) {
+                    const id_sus = result.rows[0].id;
+                    const selectQuery = "SELECT id, TO_CHAR(fecha_sustentacion, 'DD/MM/YYYY HH:MI AM') AS fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id = $1 ORDER BY fecha_sustentacion DESC LIMIT 1";
+                    const sustentacionResult = await pool.query(selectQuery, [id_sus]);
+                    const sustentacion = sustentacionResult.rows[0];
 
-        if (result.rowCount > 0) {
-            const id_sus = result.rows[0].id;
-            const selectQuery = 'SELECT id, fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id = $1';
-            const sustentacionResult = await pool.query(selectQuery, [id_sus]);
-            const sustentacion = sustentacionResult.rows[0];
-
-            if (sustentacion) {
-                return res.json({ success: true, sustentacion });
-            } else {
-                return res.status(404).json({ success: false, message: 'No se encontró la sustentación.' });
+                    if (sustentacion) {
+                        return res.json({ success: true, sustentacion });
+                    } else {
+                        return res.status(404).json({ success: false, message: 'No se encontró la sustentación.' });
+                    }
+                }
             }
-        } else {
-            return res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error al insertar la fecha.' });
-        }
+        );
+
     } catch (error) {
         if (error.code === "23505") {
-            return res.status(400).json({ success: false, message: "Este proyecto ya cuenta con una fecha de sustentación" });
+            return res.status(400).json({ success: false, message: "Este proyecto ya cuenta con una fecha de sustentación para el año y periodo." });
         }
-        await pool.query('ROLLBACK');
         res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, inténtelo de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+const modificarSustentacion = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { fecha, lugar, anio, periodo } = req.body;
+        const insertQuery = `UPDATE sustentacion_proyecto SET fecha_sustentacion=$1, lugar=$2, anio= $3 ,periodo = $4 WHERE id=$5 RETURNING id`;
+        const formatted_fecha = moment(fecha, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
+        await pool.query(insertQuery, [formatted_fecha, lugar, anio, periodo, id],
+            async (error, result) => {
+                if (error) {
+                    if (error.code === "23505") {
+                        return res.status(400).json({ success: false, message: "Ya existe una sustentación para el año y el periodo de este proyecto." });
+                    }
+                    return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error al modificar la sustentación' });
+                }
+                if (result.rowCount > 0) {
+                    const id_sus = result.rows[0].id;
+                    const selectQuery = "SELECT id, TO_CHAR(fecha_sustentacion, 'DD/MM/YYYY HH:MI AM') AS fecha_sustentacion, lugar, anio, periodo, id_proyecto FROM sustentacion_proyecto WHERE id = $1 ORDER BY fecha_sustentacion DESC LIMIT 1";
+                    const sustentacionResult = await pool.query(selectQuery, [id_sus]);
+                    const sustentacion = sustentacionResult.rows[0];
 
+                    if (sustentacion) {
+                        return res.json({ success: true, sustentacion });
+                    } else {
+                        return res.status(404).json({ success: false, message: 'No se encontró la sustentación.' });
+                    }
+                }
+            }
+        );
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, inténtelo de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
 module.exports = {
     obtenerUsuarios,
     obtenerProyecto,
@@ -1418,5 +1493,7 @@ module.exports = {
     obtenerSustentacionProyectos,
     elegirProyectoMeritorio,
     postularProyectoMeritorio,
-    programarSustentacion
+    programarSustentacion,
+    modificarSustentacion,
+    obtenerProyectosSustentacion
 }

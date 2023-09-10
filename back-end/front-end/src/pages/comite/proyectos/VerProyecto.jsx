@@ -7,7 +7,7 @@ import './VerProyecto.css';
 
 import CambiarCodigo from './Ventana/CambiarCodigo';
 import CambiarNombre from './Ventana/CambiarNombre';
-import { Add, Edit, EventAvailable, Person, Remove } from "@mui/icons-material";
+import { Add, Edit, EditAttributes, EditCalendar, EditNote, EventAvailable, Person, Remove } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
@@ -17,6 +17,7 @@ import CambiarEtapa from "./Ventana/CambiarEtapa";
 import CambiarEstado from "./Ventana/CambiarEstado";
 import TerminarProyecto from "./Ventana/TerminarProyecto";
 import ProgramarSustentacion from "./Ventana/ProgramarSustentacion";
+import CambiarProgramacionSustentacion from "./Ventana/CambiarProgramacionSustentacion";
 
 export default function VerProyectos() {
 
@@ -46,6 +47,7 @@ export default function VerProyectos() {
   const [openEtapa, setOpenEtapa] = useState(false);
   const [openFechaGrado, setOpenFechaGrado] = useState(false);
   const [openSustentacion, setOpenSustentacion] = useState(false);
+  const [openModificarSustentacion, setOpenModificarSustentacion] = useState(false);
   const [rol, setRol] = useState("");
   const [info, setInfo] = useState({});
   const [accion, setAccion] = useState("");
@@ -276,15 +278,12 @@ export default function VerProyectos() {
     };
   }
   const abrirDialogProgramarSustentacion = () => {
-    if (sustentacion === null) {
-      const sustentacion = {
-        id_proyecto: id,
-        anio: proyecto.anio,
-        periodo: proyecto.periodo
-      };
-      setSustentacion(sustentacion)
-    }
-
+    const new_sustentacion = {
+      id_proyecto: id,
+      anio: proyecto.anio,
+      periodo: proyecto.periodo
+    };
+    setSustentacion(new_sustentacion)
     setOpenSustentacion(true);
   };
 
@@ -292,9 +291,22 @@ export default function VerProyectos() {
     setOpenSustentacion(false);
   }
   const cerrarDialogSustentacionProgramada = (newValue) => {
-    setOpenFechaGrado(false);
+    setOpenSustentacion(false);
     if (newValue) {
       setExisteSustentacion(true)
+      setSustentacion(newValue)
+    };
+  }
+  const abrirDialogModificarSustentacion = () => {
+    setOpenModificarSustentacion(true);
+  };
+
+  const cerrarDialogModificarSustentacion = () => {
+    setOpenModificarSustentacion(false);
+  }
+  const cerrarDialogSustentacionModificada = (newValue) => {
+    setOpenModificarSustentacion(false);
+    if (newValue) {
       setSustentacion(newValue)
     };
   }
@@ -395,7 +407,7 @@ export default function VerProyectos() {
           <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
             Cambiar estado
           </Button>
-          {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' ? (
+          {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' && proyecto.acronimo !== 'COT' ? (
             <div>
               <Button variant="outlined" disableElevation size="small" onClick={abrirDialogProgramarSustentacion} sx={{ width: 200, m: 1 }}>
                 Programar Sustentación
@@ -448,6 +460,12 @@ export default function VerProyectos() {
             onClose={cerrarDialogProgramarSustentacion}
             sustentacion={sustentacion || {}}
             onSubmit={cerrarDialogSustentacionProgramada}
+          />
+          <CambiarProgramacionSustentacion
+            open={openModificarSustentacion}
+            onClose={cerrarDialogModificarSustentacion}
+            sustentacion={sustentacion || {}}
+            onSubmit={cerrarDialogSustentacionModificada}
           />
           <Box >
             <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px" }}>
@@ -633,7 +651,15 @@ export default function VerProyectos() {
                         fullWidth
                       />
                     </Grid>
-
+                    <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Tooltip title="Programar Sustentación">
+                          <IconButton color="secondary" size="large" onClick={abrirDialogModificarSustentacion}>
+                            <EditNote fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
                   </Grid>
 
                 ) : (<Typography variant="h6" color="primary">No se han asignado una fecha de sustentación</Typography>
@@ -713,7 +739,7 @@ export default function VerProyectos() {
                         </Tooltip>
                         <Tooltip title="Modificar fecha de grado">
                           <IconButton variant="outlined" color='secondary' size="large" onClick={() => abrirDialogCambiarFechaGrado(estudiante)} sx={{ marginLeft: '8px' }}>
-                            <EventAvailable fontSize="inherit" />
+                            <EditCalendar fontSize="inherit" />
                           </IconButton>
                         </Tooltip>
                       </Box>

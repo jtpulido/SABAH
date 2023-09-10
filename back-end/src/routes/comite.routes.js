@@ -60,7 +60,9 @@ const {
   obtenerSustentacionProyectos,
   elegirProyectoMeritorio,
   postularProyectoMeritorio,
-  programarSustentacion
+  programarSustentacion,
+  modificarSustentacion,
+  obtenerProyectosSustentacion
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -131,7 +133,6 @@ router.get('/comite/proyecto/postulado/meritorio', authenticateJWT, obtenerProye
 router.post('/comite/proyecto/postulado/meritorio', authenticateJWT, elegirProyectoMeritorio);
 router.get('/comite/proyecto/postulado', authenticateJWT, obtenerProyectosPostulados);
 router.post('/comite/proyecto/postulado', authenticateJWT, postularProyectoMeritorio);
-router.get('/comite/sustentacion', authenticateJWT, obtenerSustentacionProyectos);
 
 router.get('/comite/rubricas', authenticateJWT, obtenerRubricas);
 router.post('/comite/crearRubrica', authenticateJWT, crearRubrica);
@@ -170,6 +171,9 @@ router.get('/comite/obtenerReunionesCompletas', authenticateJWT, obtenerReunione
 router.get('/comite/obtenerReunionesCanceladas', authenticateJWT, obtenerReunionesCanceladas);
 router.get('/comite/obtenerInvitados/:id', passport.authenticate('jwt', { session: false }), obtenerInvitados);
 
+router.get('/comite/sustentacion/proyectos', authenticateJWT, obtenerProyectosSustentacion);
+router.get('/comite/sustentacion', authenticateJWT, obtenerSustentacionProyectos);
+router.put('/comite/sustentacion/:id', authenticateJWT, modificarSustentacion);
 router.post('/comite/programarSustentacion', passport.authenticate('jwt', { session: false }), programarSustentacion);
 
 
