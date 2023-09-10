@@ -931,6 +931,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
             ee.fecha_apertura_calificacion,
             ee.fecha_cierre_calificacion,
             p.nombre AS nombre_proyecto,
+            m.acronimo,
             ur.id AS id_usuario_rol,
             u.nombre AS evaluador,
             de.fecha_entrega,
@@ -953,6 +954,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
+        INNER JOIN modalidad m ON m.id = p.id_modalidad
         INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo 
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
@@ -969,6 +971,7 @@ const verEntregasRealizadasSinCalificarUsuarioRol = async (req, res) => {
 
         await pool.query(query, [id_usuario, id_rol], (error, result) => {
             if (error) {
+                console.log(error)
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
             }
             if (result.rows.length === 0) {

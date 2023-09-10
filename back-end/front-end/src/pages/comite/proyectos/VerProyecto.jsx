@@ -59,6 +59,7 @@ export default function VerProyectos() {
 
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
+    if(proyecto.estado ==="Aprobado propuesta"){
     try {
       const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
         method: "POST",
@@ -77,6 +78,9 @@ export default function VerProyectos() {
       setExiste(false)
       mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
+  }else{
+    mostrarMensaje("Solo es posible asignar el código si el estado del proyecto se encuentra en Aprobado propuesta", "info");
+  }
   }
 
   const infoProyecto = async () => {
@@ -237,6 +241,9 @@ export default function VerProyectos() {
   }
   const cerrarDialogEstadoCambiado = (newValue) => {
     actualizarEstado(newValue)
+    if (newValue.estado === "Aprobado propuesta") {
+      asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)
+    }
     setOpenEstado(false);
   }
   const abrirDialogCambiarEtapa = () => {
