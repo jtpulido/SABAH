@@ -264,17 +264,17 @@ const crearEspacio = async (req, res) => {
         const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion,  fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
         const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final];
 
-        const resultModalidad = await pool.query('SELECT id, nombre FROM modalidad WHERE id = $1', [id_modalidad]);
+        const resultModalidad = await pool.query('SELECT id, acronimo FROM modalidad WHERE id = $1', [id_modalidad]);
         const modalidad = resultModalidad.rows[0];
         const resultEtapa = await pool.query('SELECT id, nombre FROM etapa WHERE id = $1', [id_etapa]);
         const etapa = resultEtapa.rows[0];
         const resultRol = await pool.query('SELECT id, nombre FROM rol WHERE id = $1', [id_rol]);
         const rol = resultRol.rows[0];
 
-        if (modalidad.nombre === 'Coterminal' && etapa.nombre !== 'Propuesta') {
+        if (modalidad.acronimo === 'COT' && etapa.nombre !== 'Propuesta') {
             return res.status(502).json({ success: false, message: 'En la modalidad de Coterminal, solo es posible generar entregas para la etapa de propuesta.' });
         }
-        if (rol.nombre === 'Jurado' && (modalidad.nombre !== 'Coterminal' || modalidad.nombre !== 'Auxiliar de Investigación')) {
+        if (rol.nombre === 'Jurado' && modalidad.nombre !== 'Coterminal' && modalidad.nombre !== 'Auxiliar de Investigación') {
             return res.status(502).json({ success: false, message: 'Las modalidades de Coterminal y Auxiliar de Investigación no incluyen la participación de un jurado.' });
         }
         if (rol.nombre === 'Lector' && modalidad.nombre !== 'Auxiliar de Investigación') {

@@ -21,10 +21,10 @@ function CrearEspacio(props) {
 
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
-    const [fechaAperturaEntrega, setFechaAperturaEntrega] = useState(dayjs());
-    const [fechaCierreEntrega, setFechaCierreEntrega] = useState(dayjs());
-    const [fechaAperturaCalificacion, setFechaAperturaCalificacion] = useState(dayjs());
-    const [fechaCierreCalificacion, setFechaCierreCalificacion] = useState(dayjs());
+    const [fechaAperturaEntrega, setFechaAperturaEntrega] = useState(dayjs().add(5, 'minutes'));
+    const [fechaCierreEntrega, setFechaCierreEntrega] = useState(dayjs().add(5, 'minutes').add(24, 'hours'));
+    const [fechaAperturaCalificacion, setFechaAperturaCalificacion] = useState(dayjs().add(5, 'minutes').add(24, 'hours'));
+    const [fechaCierreCalificacion, setFechaCierreCalificacion] = useState(dayjs().add(5, 'minutes').add(48, 'hours'));
     const [idRol, setIdRol] = useState("");
     const [idModalidad, setIdModalidad] = useState("");
     const [idEtapa, setIdEtapa] = useState("");
@@ -143,7 +143,7 @@ function CrearEspacio(props) {
     };
     const handleEntregaFinalChange = (event) => {
         setEntregaFinal(event.target.checked);
-      };
+    };
     const guardarEspacio = async (event) => {
         event.preventDefault();
         const today = dayjs();
@@ -172,7 +172,7 @@ function CrearEspacio(props) {
             return;
         }
 
-        
+
         const espacioData = {
             nombre,
             descripcion,
@@ -184,7 +184,7 @@ function CrearEspacio(props) {
             id_modalidad: idModalidad,
             id_etapa: idEtapa,
             id_rubrica: idRubrica,
-            final:entregaFinal
+            final: entregaFinal
         };
         try {
             const response = await fetch("http://localhost:5000/comite/espacio", {
@@ -333,7 +333,7 @@ function CrearEspacio(props) {
                                 />
                             </LocalizationProvider>
                         </Grid>
-                      
+
                         <Grid item xs={12} sm={5}>
                             <Typography variant="h6" color="primary">
                                 Etapa
