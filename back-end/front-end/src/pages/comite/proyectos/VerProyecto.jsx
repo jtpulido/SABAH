@@ -59,28 +59,28 @@ export default function VerProyectos() {
 
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
-    if(proyecto.estado ==="Aprobado propuesta"){
-    try {
-      const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
-      });
-      const data = await response.json();
-      if (!data.success) {
-        mostrarMensaje(data.message, "error")
+    if (proyecto.estado === "Aprobado propuesta") {
+      try {
+        const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          mostrarMensaje(data.message, "error")
+          setExiste(false)
+        } else {
+          actualizarProyecto(data.codigo)
+          mostrarMensaje("Se ha asignado un código al proyecto", "success");
+        }
+      } catch (error) {
         setExiste(false)
-      } else {
-        actualizarProyecto(data.codigo)
-        mostrarMensaje("Se ha asignado un código al proyecto", "success");
+        mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
       }
-    } catch (error) {
-      setExiste(false)
-      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+    } else {
+      mostrarMensaje("Solo es posible asignar el código si el estado del proyecto se encuentra en Aprobado propuesta", "info");
     }
-  }else{
-    mostrarMensaje("Solo es posible asignar el código si el estado del proyecto se encuentra en Aprobado propuesta", "info");
-  }
   }
 
   const infoProyecto = async () => {
@@ -217,6 +217,7 @@ export default function VerProyectos() {
     setOpenTerminar(false);
   }
   const cerrarDialogTerminado = async (newValue) => {
+    actualizarEstado(newValue)
     setOpenTerminar(false);
 
   }
@@ -391,45 +392,49 @@ export default function VerProyectos() {
           >
             {proyecto.codigo || ''}
           </Typography>
-          {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
-            <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
-              width: 200, m: 1
-            }}>
-              Asignar Código
-            </Button>
-          ) : (
-            <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarCodigo} sx={{
-              width: 200, m: 1
-            }}>
-              Modificar código
-            </Button>
-          )}
-
-          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, m: 1 }}>
-            Modificar nombre
-          </Button>
-          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEtapa} sx={{ width: 200, m: 1 }}>
-            Cambiar etapa
-          </Button>
-          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
-            Cambiar estado
-          </Button>
-          {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' && proyecto.acronimo !== 'COT' ? (
+          {proyecto && proyecto.estado !== "Terminado"&& proyecto.estado !== "Rechazado"&& proyecto.estado !== "Cancelado"&& proyecto.estado !== "Aprobado comité"? (
             <div>
-              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogProgramarSustentacion} sx={{ width: 200, m: 1 }}>
-                Programar Sustentación
-              </Button>
+              {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
+                <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
+                  width: 200, m: 1
+                }}>
+                  Asignar Código
+                </Button>
+              ) : (
+                <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarCodigo} sx={{
+                  width: 200, m: 1
+                }}>
+                  Modificar código
+                </Button>
+              )}
 
-            </div>
-          ) : null}
-          {proyecto.estado === 'Aprobado' ? (
-            <div>
-              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
-                Terminar Proyecto
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, m: 1 }}>
+                Modificar nombre
               </Button>
-              <Button variant="outlined" disableElevation size="small" onClick={postularMeritorio} sx={{ width: 200, m: 1 }}>
-                Postular a meritorio
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEtapa} sx={{ width: 200, m: 1 }}>
+                Cambiar etapa
               </Button>
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
+                Cambiar estado
+              </Button>
+              {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' && proyecto.acronimo !== 'COT' ? (
+                <div>
+                  <Button variant="outlined" disableElevation size="small" onClick={abrirDialogProgramarSustentacion} sx={{ width: 200, m: 1 }}>
+                    Programar Sustentación
+                  </Button>
+
+                </div>
+              ) : null}
+              {proyecto.estado === 'Aprobado' ? (
+                <div>
+                  <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
+                    Terminar Proyecto
+                  </Button>
+                  <Button variant="outlined" disableElevation size="small" onClick={postularMeritorio} sx={{ width: 200, m: 1 }}>
+                    Postular a meritorio
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : null}
           <CambiarCodigo

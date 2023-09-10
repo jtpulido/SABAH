@@ -18,8 +18,11 @@ const obtenerUsuarios = async (req, res) => {
 const cambioUsuarioRol = async (req, res) => {
     try {
         const { tipo, id_proyecto, id_usuario_anterior, id_usuario_nuevo, id_rol } = req.body;
+        const resultEstado = await pool.query('SELECT e.id, e.nombre FROM proyecto p JOIN estado e ON e.id = p.id_estado WHERE p.id=$1', [id_proyecto]);
+        const estado = resultEstado.rows[0];
 
-        const query = `
+        if (estado.nombre !== "Terminado" && estado.nombre !== "Rechazado" && estado.nombre !== "Cancelado" && estado.nombre !== "Aprobado comité") {
+            const query = `
             SELECT
                 ROW_NUMBER() OVER (ORDER BY ur.id) AS id,
                 ur.id AS id_usuario_rol,
@@ -37,63 +40,66 @@ const cambioUsuarioRol = async (req, res) => {
                 r.id = $2 AND ur.id_proyecto = $1 AND ur.estado = TRUE
         `;
 
-        await pool.query('BEGIN');
-        // Validar que el director no sea igual al jurado o lector y viceversa
-        if (id_rol === 2 || id_rol === 3) {
-            const validationQuery = ` SELECT 1 FROM usuario_rol WHERE id_usuario = $1 AND id_proyecto = $2 AND id_rol=1 AND estado = TRUE `;
-            const validationResult = await pool.query(validationQuery, [id_usuario_nuevo, id_proyecto]);
-            if (validationResult.rows.length > 0) {
-                await pool.query('ROLLBACK');
-                return res.status(203).json({ success: false, message: 'El jurado o lector no puede ser igual al director.' });
+            await pool.query('BEGIN');
+            // Validar que el director no sea igual al jurado o lector y viceversa
+            if (id_rol === 2 || id_rol === 3) {
+                const validationQuery = ` SELECT 1 FROM usuario_rol WHERE id_usuario = $1 AND id_proyecto = $2 AND id_rol=1 AND estado = TRUE `;
+                const validationResult = await pool.query(validationQuery, [id_usuario_nuevo, id_proyecto]);
+                if (validationResult.rows.length > 0) {
+                    await pool.query('ROLLBACK');
+                    return res.status(203).json({ success: false, message: 'El jurado o lector no puede ser igual al director.' });
+                }
+            } else if (id_rol === 1) {
+                const validationQuery = ` SELECT 1 FROM usuario_rol WHERE id_usuario = $1 AND id_proyecto = $2 AND id_rol IN (2, 3) AND estado = TRUE`;
+                const validationResult = await pool.query(validationQuery, [id_usuario_nuevo, id_proyecto]);
+                if (validationResult.rows.length > 0) {
+                    await pool.query('ROLLBACK');
+                    return res.status(203).json({ success: false, message: 'El director no puede ser parte de los lectores o jurados del proyecto.' });
+                }
             }
-        } else if (id_rol === 1) {
-            const validationQuery = ` SELECT 1 FROM usuario_rol WHERE id_usuario = $1 AND id_proyecto = $2 AND id_rol IN (2, 3) AND estado = TRUE`;
-            const validationResult = await pool.query(validationQuery, [id_usuario_nuevo, id_proyecto]);
-            if (validationResult.rows.length > 0) {
-                await pool.query('ROLLBACK');
-                return res.status(203).json({ success: false, message: 'El director no puede ser parte de los lectores o jurados del proyecto.' });
+            // Validar que los dos jurado no sean iguales
+            if (id_rol === 3) {
+                const additionalValidationQuery = ` SELECT 1 FROM usuario_rol WHERE id_usuario = $1 AND id_rol = 3 AND id_proyecto = $2 AND estado = TRUE `;
+                const additionalValidationResult = await pool.query(additionalValidationQuery, [id_usuario_nuevo, id_proyecto]);
+                if (additionalValidationResult.rows.length > 0) {
+                    await pool.query('ROLLBACK');
+                    return res.status(203).json({ success: false, message: 'El usuario ya es uno de los jurados.' });
+                }
             }
-        }
-        // Validar que los dos jurado no sean iguales
-        if (id_rol === 3) {
-            const additionalValidationQuery = ` SELECT 1 FROM usuario_rol WHERE id_usuario = $1 AND id_rol = 3 AND id_proyecto = $2 AND estado = TRUE `;
-            const additionalValidationResult = await pool.query(additionalValidationQuery, [id_usuario_nuevo, id_proyecto]);
-            if (additionalValidationResult.rows.length > 0) {
-                await pool.query('ROLLBACK');
-                return res.status(203).json({ success: false, message: 'El usuario ya es uno de los jurados.' });
-            }
-        }
-        if (tipo === "anterior") {
-            // Anterior
-            await pool.query('UPDATE usuario_rol SET estado=false WHERE id_proyecto=$1 AND id_usuario=$2 AND id_rol=$3', [id_proyecto, id_usuario_anterior, id_rol]);
-            const resultAnterior = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, u.nombre AS nombre_usuario, u.correo FROM proyecto pr 
+            if (tipo === "anterior") {
+                // Anterior
+                await pool.query('UPDATE usuario_rol SET estado=false WHERE id_proyecto=$1 AND id_usuario=$2 AND id_rol=$3', [id_proyecto, id_usuario_anterior, id_rol]);
+                const resultAnterior = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, u.nombre AS nombre_usuario, u.correo FROM proyecto pr 
             JOIN modalidad m ON m.id = pr.id_modalidad
             JOIN estado e ON e.id = pr.id_estado
             JOIN usuario_rol ur ON ur.id_proyecto = pr.id
             JOIN usuario u ON ur.id_usuario = u.id
             WHERE id_proyecto = $1 AND id_usuario = $2`, [id_proyecto, id_usuario_anterior]);
-            const infoAnterior = resultAnterior.rows[0];
-            await anteriorUsuarioRol(infoAnterior, id_rol)
+                const infoAnterior = resultAnterior.rows[0];
+                await anteriorUsuarioRol(infoAnterior, id_rol)
 
-            // Nuevo
-            await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
-            const resultInsert = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, u.nombre AS nombre_usuario, u.correo FROM proyecto pr 
+                // Nuevo
+                await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
+                const resultInsert = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, u.nombre AS nombre_usuario, u.correo FROM proyecto pr 
             JOIN modalidad m ON m.id = pr.id_modalidad
             JOIN estado e ON e.id = pr.id_estado
             JOIN usuario_rol ur ON ur.id_proyecto = pr.id
             JOIN usuario u ON ur.id_usuario = u.id
             WHERE id_proyecto = $1 AND id_usuario = $2`, [id_proyecto, id_usuario_nuevo]);
-            const infoNuevo = resultInsert.rows[0];
-            await nuevoUsuarioRol(infoNuevo, id_rol)
+                const infoNuevo = resultInsert.rows[0];
+                await nuevoUsuarioRol(infoNuevo, id_rol)
 
-            await pool.query('COMMIT');
-            const result = await pool.query(query, [id_proyecto, id_rol]);
-            return res.json({ success: true, message: 'Se realizo el cambio correctamente.', usuarios: result.rows });
-        } else if (tipo === "nuevo") {
-            await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
-            await pool.query('COMMIT');
-            const result = await pool.query(query, [id_proyecto, id_rol]);
-            return res.json({ success: true, message: 'Se asigno el usuario correctamente.', usuarios: result.rows });
+                await pool.query('COMMIT');
+                const result = await pool.query(query, [id_proyecto, id_rol]);
+                return res.json({ success: true, message: 'Se realizo el cambio correctamente.', usuarios: result.rows });
+            } else if (tipo === "nuevo") {
+                await pool.query('INSERT INTO usuario_rol(estado, id_usuario, id_rol, id_proyecto) VALUES (true, $1, $2, $3)', [id_usuario_nuevo, id_rol, id_proyecto]);
+                await pool.query('COMMIT');
+                const result = await pool.query(query, [id_proyecto, id_rol]);
+                return res.json({ success: true, message: 'Se asigno el usuario correctamente.', usuarios: result.rows });
+            }
+        } else {
+            return res.status(203).json({ success: false, message: `No se pueden realizar cambios en este proyecto debido a su estado actual "${estado.nombre}".` });
         }
     } catch (error) {
         await pool.query('ROLLBACK');
@@ -391,6 +397,58 @@ const cambiarEstado = async (req, res) => {
                 }
             })
     } catch (error) {
+        await pool.query('ROLLBACK');
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+const obtenerIdEstadoTerminado = async () => {
+    try {
+        const query = `
+            SELECT id
+            FROM estado
+            WHERE nombre = 'Terminado'
+        `;
+
+        const result = await pool.query(query);
+
+        if (result.rowCount === 1) {
+            return result.rows[0].id;
+        } else {
+            throw new Error("El estado 'Terminado' no se encontró en la base de datos.");
+        }
+    } catch (error) {
+        throw error;
+    }
+};
+const cambiarEstadoTerminado = async (req, res) => {
+    try {
+        const id = req.params.id_proyecto;
+        const idEstadoTerminado = await obtenerIdEstadoTerminado();
+
+        await pool.query('BEGIN');
+
+        await pool.query(
+            `
+            UPDATE proyecto
+            SET id_estado = $1
+            WHERE id = $2
+        `,
+            [idEstadoTerminado, id], async (error, result) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al realizar el cambio de estado." });
+                }
+                if (result) {
+                    const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
+                    const correos = resultCorreos.rows;
+                    await mailCambioEstadoProyecto(correos, 'Terminado', 'Comité de Opciones de Grado - Ingeniería de Sistemas');
+                    await pool.query('COMMIT')
+                    const resultEstado = await pool.query('SELECT e.id, e.nombre FROM proyecto p JOIN estado e ON e.id = p.id_estado WHERE p.id=$1', [id]);
+                    const estado = resultEstado.rows[0];
+                    return res.json({ success: true, estado })
+                }
+            })
+    } catch (error) {
+        console.log(error)
         await pool.query('ROLLBACK');
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
@@ -962,87 +1020,102 @@ const agregarAprobacion = async (req, res) => {
 };
 const removerEstudiante = async (req, res) => {
     try {
+
         const id_estudiante_proyecto = req.params.id_estudiante;
         const id_proyecto = req.params.id_proyecto;
-        const query = 'UPDATE estudiante_proyecto SET estado=false WHERE id=$1';
-        const values = [id_estudiante_proyecto];
+        const resultEstado = await pool.query('SELECT e.id, e.nombre FROM proyecto p JOIN estado e ON e.id = p.id_estado WHERE p.id=$1', [id_proyecto]);
+        const estado = resultEstado.rows[0];
 
-        await pool.query('BEGIN');
-        await pool.query(query, values, async (error) => {
-            if (error) {
-                return res.status(502).json({ success: false, message: "Error al retirar el estudiante." });
-            }
+        if (estado.nombre !== "Terminado" && estado.nombre !== "Rechazado" && estado.nombre !== "Cancelado" && estado.nombre !== "Aprobado comité") {
+            const query = 'UPDATE estudiante_proyecto SET estado=false WHERE id=$1';
+            const values = [id_estudiante_proyecto];
 
-            const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, est.nombre AS nombre_estudiante, est.correo
+            await pool.query('BEGIN');
+            await pool.query(query, values, async (error) => {
+                if (error) {
+                    return res.status(502).json({ success: false, message: "Error al retirar el estudiante." });
+                }
+
+                const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado, est.nombre AS nombre_estudiante, est.correo
             FROM proyecto pr 
             JOIN modalidad m ON m.id = pr.id_modalidad
             JOIN estado e ON e.id = pr.id_estado
             JOIN estudiante_proyecto ep ON ep.id_proyecto = pr.id
             JOIN estudiante est ON ep.id_estudiante = est.id
             WHERE id_proyecto = $1 AND ep.id = $2`, [id_proyecto, id_estudiante_proyecto]);
-            const infoEstudiante = resultEstudiante.rows[0];
-            await removerEstudianteProyecto(infoEstudiante);
+                const infoEstudiante = resultEstudiante.rows[0];
+                await removerEstudianteProyecto(infoEstudiante);
 
-            await pool.query('COMMIT');
+                await pool.query('COMMIT');
 
-            await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD - MM - YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto], (error, result) => {
-                if (error) {
-                    return res.status(502).json({ success: false, message: "Error al obtener los estudiantes." });
+                await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD - MM - YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto], (error, result) => {
+                    if (error) {
+                        return res.status(502).json({ success: false, message: "Error al obtener los estudiantes." });
 
-                } else if (result) {
-                    return res.status(200).json({ success: true, message: 'El estudiantes ha sido retirado correctamente del proyecto.', estudiantes: result.rows });
-                }
+                    } else if (result) {
+                        return res.status(200).json({ success: true, message: 'El estudiantes ha sido retirado correctamente del proyecto.', estudiantes: result.rows });
+                    }
+                });
             });
-        });
+        } else {
+            return res.status(203).json({ success: false, message: `No se pueden realizar cambios en este proyecto debido a su estado actual "${estado.nombre}".` });
+        }
     } catch (error) {
         await pool.query('ROLLBACK');
         return res.status(502).json({ success: false, message: 'Error en el servidor' });
     }
 };
 const agregarEstudiante = async (req, res) => {
-    const id_proyecto = req.params.id;
-    const { nombre, num_identificacion, correo } = req.body;
-
     try {
-        await pool.query('BEGIN');
-        const result = await pool.query('SELECT e.id FROM estudiante e WHERE LOWER(e.num_identificacion) = LOWER($1) OR LOWER(e.correo) = LOWER($2)', [num_identificacion, correo]);
-        if (result.rowCount > 0) {
-            const estudianteId = result.rows[0].id;
-            const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
-            if (resultProyecto.rowCount > 0) {
-                return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
-            } else {
-                await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
+        const id_proyecto = req.params.id;
+        const resultEstado = await pool.query('SELECT e.id, e.nombre FROM proyecto p JOIN estado e ON e.id = p.id_estado WHERE p.id=$1', [id_proyecto]);
+        const estado = resultEstado.rows[0];
 
-                const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado
+        if (estado.nombre !== "Terminado" && estado.nombre !== "Rechazado" && estado.nombre !== "Cancelado" && estado.nombre !== "Aprobado comité") {
+            const { nombre, num_identificacion, correo } = req.body;
+
+
+            await pool.query('BEGIN');
+            const result = await pool.query('SELECT e.id FROM estudiante e WHERE LOWER(e.num_identificacion) = LOWER($1) OR LOWER(e.correo) = LOWER($2)', [num_identificacion, correo]);
+            if (result.rowCount > 0) {
+                const estudianteId = result.rows[0].id;
+                const resultProyecto = await pool.query('SELECT 1 FROM estudiante_proyecto pr WHERE pr.id_estudiante = $1 AND pr.estado = true', [estudianteId]);
+                if (resultProyecto.rowCount > 0) {
+                    return res.status(203).json({ success: false, message: 'El estudiante con número de identificación ' + num_identificacion + ' o correo ' + correo + 'ya tiene un proyecto activo. No es posible asignarlo a otro proyecto.' });
+                } else {
+                    await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ( $1, $2)', [id_proyecto, estudianteId]);
+
+                    const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado
                 FROM proyecto pr 
                 JOIN modalidad m ON m.id = pr.id_modalidad
                 JOIN estado e ON e.id = pr.id_estado
                 WHERE pr.id = $1`, [id_proyecto]);
+                    const infoEstudiante = resultEstudiante.rows[0];
+                    await nuevoEstudianteProyecto(infoEstudiante, nombre, correo);
+
+                    await pool.query('COMMIT');
+                }
+            } else {
+                const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
+                const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
+                await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
+
+                const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado
+            FROM proyecto pr 
+            JOIN modalidad m ON m.id = pr.id_modalidad
+            JOIN estado e ON e.id = pr.id_estado
+            WHERE pr.id = $1`, [id_proyecto]);
                 const infoEstudiante = resultEstudiante.rows[0];
                 await nuevoEstudianteProyecto(infoEstudiante, nombre, correo);
 
                 await pool.query('COMMIT');
             }
+
+            const estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto])
+            return res.status(200).json({ success: true, message: 'Se ha creado un nuevo estudiante y asignado al proyecto.', estudiantes: estudiantes.rows });
         } else {
-            const insertEstudianteResult = await pool.query('INSERT INTO estudiante(nombre, num_identificacion, correo) VALUES ($1, $2, $3) RETURNING id', [nombre, num_identificacion, correo]);
-            const nuevoEstudianteId = insertEstudianteResult.rows[0].id;
-            await pool.query('INSERT INTO estudiante_proyecto(id_proyecto, id_estudiante) VALUES ($1, $2)', [id_proyecto, nuevoEstudianteId]);
-
-            const resultEstudiante = await pool.query(`SELECT pr.nombre, pr.codigo, m.nombre AS nombre_modalidad, e.nombre AS nombre_estado
-            FROM proyecto pr 
-            JOIN modalidad m ON m.id = pr.id_modalidad
-            JOIN estado e ON e.id = pr.id_estado
-            WHERE pr.id = $1`, [id_proyecto]);
-            const infoEstudiante = resultEstudiante.rows[0];
-            await nuevoEstudianteProyecto(infoEstudiante, nombre, correo);
-
-            await pool.query('COMMIT');
+            return res.status(203).json({ success: false, message: `No se pueden realizar cambios en este proyecto debido a su estado actual "${estado.nombre}".` });
         }
-
-        const estudiantes = await pool.query(`SELECT ROW_NUMBER() OVER (ORDER BY ep.id) AS id, ep.id AS id_estudiante_proyecto, e.id AS id_estudiante, ep.id_proyecto, e.nombre, e.correo, e.num_identificacion, TO_CHAR(e.fecha_grado, 'DD-MM-YYYY') AS fecha_grado FROM estudiante e INNER JOIN estudiante_proyecto ep ON e.id = ep.id_estudiante WHERE ep.id_proyecto = $1 AND ep.estado = TRUE`, [id_proyecto])
-        return res.status(200).json({ success: true, message: 'Se ha creado un nuevo estudiante y asignado al proyecto.', estudiantes: estudiantes.rows });
-
     } catch (error) {
         await pool.query('ROLLBACK');
         if (error.code === "23505" && (error.constraint === "estudiante_correo_key" || error.constraint === "estudiante_num_identificacion_key")) {
@@ -1050,6 +1123,7 @@ const agregarEstudiante = async (req, res) => {
         }
         return res.status(500).json({ success: false, message: 'Ha ocurrido un error al registrar el estudiante. Por favor inténtelo más tarde.' });
     }
+
 };
 
 const obtenerItemsCumplimiento = async (req, res) => {
@@ -1221,7 +1295,7 @@ const obtenerSustentacionProyectos = async (req, res) => {
         return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
-const obtenerProyectosSustentacion= async (req, res) => {
+const obtenerProyectosSustentacion = async (req, res) => {
     try {
         await pool.query(
             `SELECT 
@@ -1483,6 +1557,7 @@ module.exports = {
     agregarEstudiante,
     asignarFechaGrado,
     cambiarEstado,
+    cambiarEstadoTerminado,
     obtenerItemsCumplimiento,
     obtenerReunionesCanceladas,
     obtenerReunionesCompletas,
