@@ -357,7 +357,6 @@ const verUsuario = async (req, res) => {
         }
 
     } catch (error) {
-        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
@@ -534,8 +533,6 @@ const modificarProyecto = async (req, res) => {
 const cambioUsuarioRol = async (req, res) => {
     try {
         const { tipo, id_proyecto, id_usuario_anterior, id_usuario_nuevo, id_rol } = req.body;
-        console.log(id_usuario_anterior)
-        console.log(id_usuario_nuevo)
         const query = `
             SELECT
                 ROW_NUMBER() OVER (ORDER BY ur.id) AS id,
@@ -626,7 +623,6 @@ const cambioUsuarioRol = async (req, res) => {
         }
     } catch (error) {
         await pool.query('ROLLBACK');
-        console.log(error)
         res.status(500).json({ success: false, message: 'Ha ocurrido un error al cambiar o asignar el usuario. Por favor inténtelo más tarde.' });
     }
 };

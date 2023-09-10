@@ -49,7 +49,6 @@ const obtenerProyecto = async (req, res) => {
       return res.status(203).json({ success: true, message: error })
     }
   } catch (error) {
-    console.log(error)
     return res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -96,7 +95,7 @@ const obtenerEntregasPendientes = async (req, res) => {
       INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
       INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
       INNER JOIN rol r ON ee.id_rol = r.id
-      INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+      INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
       INNER JOIN etapa ep ON he.id_etapa = ep.id AND he.id_etapa = ee.id_etapa
     WHERE 
       p.id = $1 AND
@@ -168,11 +167,11 @@ FROM
     documento_entrega de
 INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
 INNER JOIN proyecto p ON de.id_proyecto = p.id
-INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
 INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
-INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
-INNER JOIN usuario u ON ur.id_usuario = u.id 
-INNER JOIN rol r ON ur.id_rol = r.id 
+INNER JOIN rol r ON ee.id_rol = r.id 
+LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
+LEFT JOIN usuario u ON ur.id_usuario = u.id
 WHERE 
     de.id NOT IN (
         SELECT id_doc_entrega 
@@ -223,7 +222,7 @@ FROM
     documento_entrega de
     INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
     INNER JOIN proyecto p ON de.id_proyecto = p.id
-    INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+    INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
     INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
     INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
     INNER JOIN usuario u ON ur.id_usuario = u.id
@@ -314,7 +313,6 @@ WHERE r.id_proyecto = $2 AND e.nombre = $1 GROUP BY r.id, r.nombre, r.fecha, r.e
       return res.status(203).json({ success: true, message: 'No hay reuniones completas' })
     }
   } catch (error) {
-    console.log(error)
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -604,7 +602,6 @@ const guardarInfoActa = async (req, res) => {
     res.status(200).json({ success: true, message: 'Se ha guardado la información del acta de reunión exitosamente.' });
 
   } catch (error) {
-    console.log(error)
     res.status(502).json({ success: false, message: 'Ha ocurrido un error al guardar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -731,7 +728,6 @@ const obtenerInfoCliente = async (req, res) => {
       return res.status(404).json({ success: false, message: 'No hay un cliente asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   } catch (error) {
-    console.log(error)
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }
 };
@@ -846,7 +842,6 @@ const crearReunionInvitados = async (req, res) => {
       } else if (roleName.startsWith("jurado")) {
         
         const juradoIndex = parseInt(roleName.split(" ")[1]);
-        console.log(jurado[juradoIndex].id)
         await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true AND id_proyecto=$3))`, [id, jurado[juradoIndex].id , id_proyecto]);
       }
     }
@@ -855,7 +850,6 @@ const crearReunionInvitados = async (req, res) => {
     res.status(201).json({ success: true, message: 'La reunión fue creada exitosamente y los invitados han sido notificados.' });
 
   } catch (error) {
-    console.log(error)
     await pool.query('ROLLBACK');
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
   }

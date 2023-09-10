@@ -263,7 +263,6 @@ const crearEspacio = async (req, res) => {
 
         const query = 'INSERT INTO espacio_entrega (nombre, descripcion, fecha_apertura_entrega, fecha_cierre_entrega, fecha_apertura_calificacion,  fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
         const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion, id_rol, id_modalidad, id_etapa, id_rubrica, final];
-
         const resultModalidad = await pool.query('SELECT id, acronimo FROM modalidad WHERE id = $1', [id_modalidad]);
         const modalidad = resultModalidad.rows[0];
         const resultEtapa = await pool.query('SELECT id, nombre FROM etapa WHERE id = $1', [id_etapa]);
@@ -274,10 +273,10 @@ const crearEspacio = async (req, res) => {
         if (modalidad.acronimo === 'COT' && etapa.nombre !== 'Propuesta') {
             return res.status(502).json({ success: false, message: 'En la modalidad de Coterminal, solo es posible generar entregas para la etapa de propuesta.' });
         }
-        if (rol.nombre === 'Jurado' && modalidad.nombre !== 'Coterminal' && modalidad.nombre !== 'Auxiliar de Investigación') {
+        if (rol.nombre === 'Jurado' && modalidad.acronimo !== 'COT' && modalidad.nombre !== 'AUX') {
             return res.status(502).json({ success: false, message: 'Las modalidades de Coterminal y Auxiliar de Investigación no incluyen la participación de un jurado.' });
         }
-        if (rol.nombre === 'Lector' && modalidad.nombre !== 'Auxiliar de Investigación') {
+        if (rol.nombre === 'Lector' && modalidad.acronimo === 'AUX') {
             return res.status(502).json({ success: false, message: 'La modalidad de Auxiliar de Investigación no incluyen la participación de un lector.' });
         }
         await pool.query(query, values, (error) => {
@@ -544,7 +543,7 @@ const verEntregasPendientesProyecto = async (req, res) => {
                 FROM 
             proyecto p
             INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
-            INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+            INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
             INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
             INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
             INNER JOIN rol r ON ee.id_rol = r.id
@@ -601,7 +600,7 @@ const verEntregasRealizadasSinCalificarProyecto = async (req, res) => {
             documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
         INNER JOIN usuario u ON ur.id_usuario = u.id
@@ -656,7 +655,7 @@ const verEntregasRealizadasCalificadasProyecto = async (req, res) => {
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
@@ -721,7 +720,7 @@ const verEntregasPendientes = async (req, res) => {
             INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
             INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
             INNER JOIN rol r ON ee.id_rol = r.id
-            INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+            INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
             INNER JOIN etapa ep ON he.id_etapa = ep.id AND he.id_etapa = ee.id_etapa
           WHERE 
             (NOT EXISTS (
@@ -774,10 +773,10 @@ const verEntregasRealizadasSinCalificar = async (req, res) => {
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
         INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo 
-        INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
-        INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
-        INNER JOIN usuario u ON ur.id_usuario = u.id
-        INNER JOIN rol r ON ur.id_rol = r.id
+        INNER JOIN etapa ep ON he.id_etapa = ep.id AND he.id_etapa = ee.id_etapa
+        INNER JOIN rol r ON ee.id_rol = r.id 
+        LEFT JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol AND ur.estado = TRUE
+        LEFT JOIN usuario u ON ur.id_usuario = u.id
         WHERE 
             de.id NOT IN (
                 SELECT id_doc_entrega 
@@ -825,7 +824,7 @@ const verEntregasRealizadasCalificadas = async (req, res) => {
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id
@@ -885,7 +884,7 @@ const verEntregasPendientesUsuarioRol = async (req, res) => {
           END AS estado_entrega
         FROM proyecto p
         INNER JOIN espacio_entrega ee ON p.id_modalidad = ee.id_modalidad
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto 
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN rol r ON ee.id_rol = r.id
         INNER JOIN estado es ON p.id_estado = es.id AND LOWER(es.nombre) = 'en desarrollo'
@@ -1004,7 +1003,7 @@ const verEntregasRealizadasCalificadasUsuarioRol = async (req, res) => {
         documento_entrega de
         INNER JOIN espacio_entrega ee ON de.id_espacio_entrega = ee.id
         INNER JOIN proyecto p ON de.id_proyecto = p.id
-        INNER JOIN historial_etapa he ON p.id = he.id_proyecto
+        INNER JOIN historial_etapa he ON p.id = he.id_proyecto AND he.anio = ee.anio AND he.periodo = ee.periodo
         INNER JOIN etapa ep ON he.id_etapa = ep.id AND  he.id_etapa = ee.id_etapa
         INNER JOIN usuario_rol ur ON p.id = ur.id_proyecto AND ee.id_rol = ur.id_rol
         INNER JOIN usuario u ON ur.id_usuario = u.id AND u.id=$1
