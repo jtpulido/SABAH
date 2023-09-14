@@ -20,7 +20,7 @@ const inicioSesion = async (req, res) => {
           return res.status(401).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
         }
         if (match) {
-          const token = jwt.sign({ id: usuario.id }, JWT_SECRET, { expiresIn: '1h' });
+          const token = jwt.sign({ id: usuario.id , tipo:"P"}, JWT_SECRET, { expiresIn: '1h' });
           return res.status(200).json({ success: true, token, tipo_usuario: usuario.id_tipo_usuario, id_usuario: usuario.id });
         } else {
           return res.status(401).json({ success: false, message: 'Autenticación fallida: Contraseña inválida.' });
@@ -41,7 +41,7 @@ const inicioSesion = async (req, res) => {
               return res.status(401).json({ success: false, message: 'Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
             }
             if (match) {
-              const token = jwt.sign({ id: usuario.id }, JWT_SECRET, { expiresIn: '1h' });
+              const token = jwt.sign({ id: usuario.id ,tipo:"P"}, JWT_SECRET, { expiresIn: '1h' });
               return res.status(200).json({ success: true, token, tipo_usuario: 'proyecto', id_usuario: usuario.id });
             } else {
               return res.status(401).json({ success: false, message: 'Autenticación fallida: Contraseña inválida.' });
@@ -130,7 +130,7 @@ const cambiarContrasenaProyecto = async (req, res) => {
 const codigoProy = async (req, res) => {
   try {
     const result = await pool.query("SELECT MAX(codigo) FROM proyecto WHERE codigo LIKE 'TEM%'");
-    const codigo = result.rows[0].max;
+    let codigo = result.rows[0].max;
     if (codigo !== null) {
       return res.json({ success: true, codigo });
     } else {

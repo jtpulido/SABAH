@@ -1133,7 +1133,7 @@ const respuestaSolicitud = async (tipo, aprobado, descripcion, proyecto, correo_
     const mailOptions = {
         from: process.env.EMAIL_USERNAME,
         to: recipients.join(','),
-        subject: 'Respuesta Solicitud ${tipo}',
+        subject: `Respuesta Solicitud ${tipo}`,
         text: `
 Estimado(a) Usuario,
     

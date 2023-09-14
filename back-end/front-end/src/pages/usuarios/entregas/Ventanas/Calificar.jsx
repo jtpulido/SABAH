@@ -20,6 +20,7 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
+    DialogContentText,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
@@ -64,7 +65,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             await validarDocumentoRetroalimentacion(entrega.id)
         }
         setLoading(false);
-        console.log(entrega)
     };
 
     const handleCancel = () => {
@@ -195,7 +195,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
             }
-            console.log(data)
             return data.pendientes
         } catch (error) {
             setLoading(true);
@@ -209,7 +208,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
             const data = await response.json();
-            console.log(data)
             if (response.status === 200) {
                 return data.aprobo
             }
@@ -220,40 +218,48 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             mostrarMensaje('Lo siento, ha ocurrido un error.', 'error');
         }
     };
-    const cambiarEstado = async () => {
-        try {
-            const proyecto = {
-                id: entrega.id_proyecto,
-                id_etapa: entrega.id_etapa,
-                id_modalidad: entrega.id_modalidad,
-                nombre: entrega.nombre_proyecto
-            };
 
-            const response = await fetch(`http://localhost:5000/verificar-calificaciones/cambiar-estado`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ proyecto })
-            });
-            const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error");
-            } else {
-
-                mostrarMensaje(data.message, "success")
-            }
-        } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
-        }
-    };
     const validarCambioEstado = async () => {
         try {
             const pendientes = await validarEntregasPendientes();
             if (pendientes === false) {
                 const aprobo = await validarAproboEtapa();
                 if (aprobo === true) {
-                    await cambiarEstado()
+                    try {
+                        const proyecto = {
+                            id: entrega.id_proyecto,
+                            id_etapa: entrega.id_etapa,
+                            id_modalidad: entrega.id_modalidad,
+                            nombre: entrega.nombre_proyecto
+                        };
+
+                        const response = await fetch(`http://localhost:5000/verificar-calificaciones/cambiar-estado`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ proyecto })
+                        });
+                        const data = await response.json();
+                        if (!data.success) {
+                            mostrarMensaje(data.message, "error");
+                        } else {
+                            mostrarMensaje(data.message, "success")
+
+                            if (data.estado === "Aprobado" && data.etapa === "Proyecto de grado 2") {
+                                const postulado = {
+                                    id: entrega.id_proyecto,
+                                    id_modalidad: entrega.id_modalidad,
+                                    anio: entrega.anio,
+                                    periodo: entrega.periodo
+                                  };
+                                onSubmit(postulado);
+                            }
+                        }
+                    } catch (error) {
+                        mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+                    }
                 }
             }
+      
         } catch (error) {
             mostrarMensaje('Ocurrió un error al validar las entregas pendientes:', 'error');
         }
@@ -297,7 +303,6 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 setComentario({});
                 setAspectos([]);
                 setLoading(false);
-                onSubmit();
                 mostrarMensaje(data.message, 'success');
                 await validarCambioEstado()
             } else if (response.status === 502) {
@@ -367,235 +372,237 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
             });
     };
-
+   
+ 
     return (
-        <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
-            <CssBaseline />
+        <div>
+            <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
+                <CssBaseline />
 
-            <DialogTitle variant="h1" color="primary">
-                {titulo}
-            </DialogTitle>
-            <DialogContent dividers>
-                {loading ? (
-                    <Box sx={{ display: 'flex' }}>
-                        <CircularProgress />
-                    </Box>
-                ) : (
-                    <>
-                        <Typography variant="h2" color="secondary">
-                            Información general de la entrega
-                        </Typography>
-                        <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="h6" color="primary">
-                                    Nombre de la entrega
-                                </Typography>
-                                <TextField value={entrega.nombre_espacio_entrega} fullWidth />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="h6" color="primary">
-                                    Evaluador
-                                </Typography>
-                                <TextField value={entrega.nombre_rol} fullWidth />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="h6" color="primary">
-                                    Fecha de apertura entrega
-                                </Typography>
-                                <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="h6" color="primary">
-                                    Fecha de cierre entrega
-                                </Typography>
-                                <TextField value={formatFecha(entrega.fecha_cierre_entrega)} fullWidth />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="h6" color="primary">
-                                    Fecha de apertura calificación
-                                </Typography>
-                                <TextField value={formatFecha(entrega.fecha_apertura_calificacion)} fullWidth />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="h6" color="primary">
-                                    Fecha de cierre calificación
-                                </Typography>
-                                <TextField value={formatFecha(entrega.fecha_cierre_calificacion)} fullWidth />
-                            </Grid>
-                        </Grid>
-                        <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Typography variant="h2" color="secondary">
-                            Información de la entrega del proyecto
-                        </Typography>
-                        <Divider sx={{ mt: 1, mb: 1 }} />
-                        <Grid container spacing={2}>
-
-                            <Grid item xs={12} sm={6} >
-                                <Typography variant="h6" color="primary">
-                                    Nombre del proyecto
-                                </Typography>
-                                <TextField value={entrega.nombre_proyecto} multiline fullWidth />
-                            </Grid>
-                            {tipo !== "pendiente" && (
-                                <>
-                                    <Grid item xs={12} sm={6} >
-                                        <Typography variant="h6" color="primary">
-                                            Evaluador
-                                        </Typography>
-                                        <TextField value={entrega.evaluador} fullWidth />
-                                    </Grid>
-
-                                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                                        <Typography variant="h6" color="primary">
-                                            Fecha de entrega
-                                        </Typography>
-                                        <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
-                                    </Grid>
-                                    {tipo === "cerrado" && (
-                                        <>
-                                            <Grid item xs={12} sm={6} md={4} lg={4}>
-                                                <Typography variant="h6" color="primary">
-                                                    Nota
-                                                </Typography>
-                                                <TextField value={"Aún no puede calificar"} fullWidth />
-                                            </Grid>
-                                        </>
-                                    )}
-                                    {tipo === "vencido" && (
-                                        <>
-                                            <Grid item xs={12} sm={6} md={4} lg={4}>
-                                                <Typography variant="h6" color="primary">
-                                                    Nota
-                                                </Typography>
-                                                <TextField value={"Ya no puede realizar la calificación"} fullWidth />
-                                            </Grid>
-                                        </>
-                                    )}
-                                    {tipo === "calificado" && (
-                                        <>
-                                            <Grid item xs={12} sm={6} md={4} lg={4}>
-                                                <Typography variant="h6" color="primary">
-                                                    Fecha de calificación
-                                                </Typography>
-                                                <TextField value={formatFecha(entrega.fecha_evaluacion)} fullWidth />
-                                            </Grid>
-                                            <Grid item xs={12} sm={6} md={4} lg={4}>
-                                                <Typography variant="h6" color="primary">
-                                                    Nota
-                                                </Typography>
-                                                <TextField value={entrega.nota_final} fullWidth />
-                                            </Grid>
-                                        </>
-                                    )}
-                                    <Grid item xs={12} sm={6} md={4} lg={4}>
-                                        <Typography variant="h6" color="primary">
-                                            Documento entregado
-                                        </Typography>
-
-                                        <Button type="submit" endIcon={<DownloadTwoTone />} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
-                                    </Grid>
-                                </>
-                            )}
-                        </Grid>
-                        {tipo === "calificar" && aspectos.length > 0 && (
-                            <Accordion sx={{ mt: 1, mb: 1 }}>
-                                <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
-                                    <Typography variant="h2" color="secondary">
-                                        Calificar entrega
+                <DialogTitle variant="h1" color="primary">
+                    {titulo}
+                </DialogTitle>
+                <DialogContent dividers>
+                    {loading ? (
+                        <Box sx={{ display: 'flex' }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <>
+                            <Typography variant="h2" color="secondary">
+                                Información general de la entrega
+                            </Typography>
+                            <Divider sx={{ mt: 1, mb: 1 }} />
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Nombre de la entrega
                                     </Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                        <form onSubmit={guardarCalificacion} style={{ width: '100%' }}>
-                                            {aspectos.map((aspecto) => (
-                                                <Box key={aspecto.id_aspecto}>
-                                                    <Stack spacing={1} marginBottom={2}>
-                                                        <Typography variant="h4" color="secondary">
-                                                            {aspecto.aspecto_nombre}
-                                                        </Typography>
-                                                        <Typography variant="h6" color="primary">
-                                                            Puntaje *
-                                                        </Typography>
-                                                        <TextField
-                                                            type="number"
-                                                            value={puntaje[aspecto.id_aspecto] || ''}
-                                                            onChange={(e) => handlePuntajeChange(aspecto.id_aspecto, e.target.value)}
-                                                            inputProps={{
-                                                                min: 0,
-                                                                max: aspecto.aspecto_puntaje,
-                                                            }}
-                                                            required
-                                                            error={
-                                                                !puntaje[aspecto.id_aspecto] ||
-                                                                puntaje[aspecto.id_aspecto] > aspecto.aspecto_puntaje ||
-                                                                puntaje[aspecto.id_aspecto] < 0
-                                                            }
-                                                            helperText={`Valor debe estar entre 0 y ${aspecto.aspecto_puntaje}`}
-                                                            fullWidth
-                                                        />
-                                                        <Typography variant="h6" color="primary">
-                                                            Comentario *
-                                                        </Typography>
-                                                        <TextField
-                                                            value={comentario[aspecto.id_aspecto] || ''}
-                                                            onChange={(e) => handleComentarioChange(aspecto.id_aspecto, e.target.value)}
-                                                            minRows={1}
-                                                            required
-                                                            fullWidth
-                                                            multiline
-                                                            error={!comentario[aspecto.id_aspecto]}
-                                                            helperText={!comentario[aspecto.id_aspecto] && 'Por favor, ingresa un comentario'}
-                                                        />
-                                                    </Stack>
-                                                </Box>
-                                            ))}
-                                            <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
-                                                Documento
-                                            </Typography>
-                                            <TextField fullWidth placeholder="Agregue el documento" type='file' onChange={handleInputChange} />
+                                    <TextField value={entrega.nombre_espacio_entrega} fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Evaluador
+                                    </Typography>
+                                    <TextField value={entrega.nombre_rol} fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Fecha de apertura entrega
+                                    </Typography>
+                                    <TextField value={formatFecha(entrega.fecha_apertura_entrega)} fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Fecha de cierre entrega
+                                    </Typography>
+                                    <TextField value={formatFecha(entrega.fecha_cierre_entrega)} fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Fecha de apertura calificación
+                                    </Typography>
+                                    <TextField value={formatFecha(entrega.fecha_apertura_calificacion)} fullWidth />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="h6" color="primary">
+                                        Fecha de cierre calificación
+                                    </Typography>
+                                    <TextField value={formatFecha(entrega.fecha_cierre_calificacion)} fullWidth />
+                                </Grid>
+                            </Grid>
+                            <Divider sx={{ mt: 1, mb: 1 }} />
+                            <Typography variant="h2" color="secondary">
+                                Información de la entrega del proyecto
+                            </Typography>
+                            <Divider sx={{ mt: 1, mb: 1 }} />
+                            <Grid container spacing={2}>
 
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
-                                                <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 250 }}>
-                                                    Guardar
-                                                </Button>
-                                            </Box>
-                                        </form>
-                                    </Box>
-                                </AccordionDetails>
-                            </Accordion>
-                        )}
-                        {tipo === "calificado" && (
-                            <>
-                                {existeDocRetroalimentacion && (
+                                <Grid item xs={12} sm={6} >
+                                    <Typography variant="h6" color="primary">
+                                        Nombre del proyecto
+                                    </Typography>
+                                    <TextField value={entrega.nombre_proyecto} multiline fullWidth />
+                                </Grid>
+                                {tipo !== "pendiente" && (
                                     <>
-                                        <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
-                                            Documento retroalimentación
-                                        </Typography>
-                                        <Button type="submit" startIcon={<Download />} variant='outlined' onClick={handleDescargarRetroalimentacion} sx={{ width: 250 }}> Descargar</Button>
+                                        <Grid item xs={12} sm={6} >
+                                            <Typography variant="h6" color="primary">
+                                                Evaluador
+                                            </Typography>
+                                            <TextField value={entrega.evaluador} fullWidth />
+                                        </Grid>
+
+                                        <Grid item xs={12} sm={6} md={4} lg={4}>
+                                            <Typography variant="h6" color="primary">
+                                                Fecha de entrega
+                                            </Typography>
+                                            <TextField value={formatFecha(entrega.fecha_entrega)} fullWidth />
+                                        </Grid>
+                                        {tipo === "cerrado" && (
+                                            <>
+                                                <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                    <Typography variant="h6" color="primary">
+                                                        Nota
+                                                    </Typography>
+                                                    <TextField value={"Aún no puede calificar"} fullWidth />
+                                                </Grid>
+                                            </>
+                                        )}
+                                        {tipo === "vencido" && (
+                                            <>
+                                                <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                    <Typography variant="h6" color="primary">
+                                                        Nota
+                                                    </Typography>
+                                                    <TextField value={"Ya no puede realizar la calificación"} fullWidth />
+                                                </Grid>
+                                            </>
+                                        )}
+                                        {tipo === "calificado" && (
+                                            <>
+                                                <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                    <Typography variant="h6" color="primary">
+                                                        Fecha de calificación
+                                                    </Typography>
+                                                    <TextField value={formatFecha(entrega.fecha_evaluacion)} fullWidth />
+                                                </Grid>
+                                                <Grid item xs={12} sm={6} md={4} lg={4}>
+                                                    <Typography variant="h6" color="primary">
+                                                        Nota
+                                                    </Typography>
+                                                    <TextField value={entrega.nota_final} fullWidth />
+                                                </Grid>
+                                            </>
+                                        )}
+                                        <Grid item xs={12} sm={6} md={4} lg={4}>
+                                            <Typography variant="h6" color="primary">
+                                                Documento entregado
+                                            </Typography>
+
+                                            <Button type="submit" endIcon={<DownloadTwoTone />} fullWidth variant='outlined' onClick={handleDescargarArchivo}> Descargar Archivo</Button>
+                                        </Grid>
                                     </>
                                 )}
+                            </Grid>
+                            {tipo === "calificar" && aspectos.length > 0 && (
                                 <Accordion sx={{ mt: 1, mb: 1 }}>
                                     <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
                                         <Typography variant="h2" color="secondary">
-                                            Ver calificación por aspecto
+                                            Calificar entrega
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        <CustomDataGrid rows={aspectosCalificados} columns={columnas} mensaje="No se encontraron las calificaciones." />
+                                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <form onSubmit={guardarCalificacion} style={{ width: '100%' }}>
+                                                {aspectos.map((aspecto) => (
+                                                    <Box key={aspecto.id_aspecto}>
+                                                        <Stack spacing={1} marginBottom={2}>
+                                                            <Typography variant="h4" color="secondary">
+                                                                {aspecto.aspecto_nombre}
+                                                            </Typography>
+                                                            <Typography variant="h6" color="primary">
+                                                                Puntaje *
+                                                            </Typography>
+                                                            <TextField
+                                                                type="number"
+                                                                value={puntaje[aspecto.id_aspecto] || ''}
+                                                                onChange={(e) => handlePuntajeChange(aspecto.id_aspecto, e.target.value)}
+                                                                inputProps={{
+                                                                    min: 0,
+                                                                    max: aspecto.aspecto_puntaje,
+                                                                }}
+                                                                required
+                                                                error={
+                                                                    !puntaje[aspecto.id_aspecto] ||
+                                                                    puntaje[aspecto.id_aspecto] > aspecto.aspecto_puntaje ||
+                                                                    puntaje[aspecto.id_aspecto] < 0
+                                                                }
+                                                                helperText={`Valor debe estar entre 0 y ${aspecto.aspecto_puntaje}`}
+                                                                fullWidth
+                                                            />
+                                                            <Typography variant="h6" color="primary">
+                                                                Comentario *
+                                                            </Typography>
+                                                            <TextField
+                                                                value={comentario[aspecto.id_aspecto] || ''}
+                                                                onChange={(e) => handleComentarioChange(aspecto.id_aspecto, e.target.value)}
+                                                                minRows={1}
+                                                                required
+                                                                fullWidth
+                                                                multiline
+                                                                error={!comentario[aspecto.id_aspecto]}
+                                                                helperText={!comentario[aspecto.id_aspecto] && 'Por favor, ingresa un comentario'}
+                                                            />
+                                                        </Stack>
+                                                    </Box>
+                                                ))}
+                                                <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                                    Documento
+                                                </Typography>
+                                                <TextField fullWidth placeholder="Agregue el documento" type='file' onChange={handleInputChange} />
+
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
+                                                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 250 }}>
+                                                        Guardar
+                                                    </Button>
+                                                </Box>
+                                            </form>
+                                        </Box>
                                     </AccordionDetails>
                                 </Accordion>
-                            </>
-                        )}
-                    </>
-                )}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleCancel}>Cerrar</Button>
-            </DialogActions>
-
-
-        </Dialog >
+                            )}
+                            {tipo === "calificado" && (
+                                <>
+                                    {existeDocRetroalimentacion && (
+                                        <>
+                                            <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                                Documento retroalimentación
+                                            </Typography>
+                                            <Button type="submit" startIcon={<Download />} variant='outlined' onClick={handleDescargarRetroalimentacion} sx={{ width: 250 }}> Descargar</Button>
+                                        </>
+                                    )}
+                                    <Accordion sx={{ mt: 1, mb: 1 }}>
+                                        <AccordionSummary expandIcon={<ExpandMore color='secondary' fontSize="large" />}>
+                                            <Typography variant="h2" color="secondary">
+                                                Ver calificación por aspecto
+                                            </Typography>
+                                        </AccordionSummary>
+                                        <AccordionDetails>
+                                            <CustomDataGrid rows={aspectosCalificados} columns={columnas} mensaje="No se encontraron las calificaciones." />
+                                        </AccordionDetails>
+                                    </Accordion>
+                                </>
+                            )}
+                        </>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel}>Cerrar</Button>
+                </DialogActions>
+            </Dialog >
+         
+        </div>
     )
 }
 

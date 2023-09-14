@@ -150,16 +150,6 @@ export default function Reuniones() {
                 <Visibility />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Crear Acta de Reunión">
-              <IconButton color="secondary" onClick={() => abrirActa(row.id, 'crear')} style={{ display: idActa === null ? 'block' : 'none', marginLeft: '10px' }}>
-                <DescriptionIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Descargar Acta de Reunión">
-              <IconButton color="secondary" onClick={() => abrirActa(row.id, 'descargar')} style={{ display: idActa !== null ? 'block' : 'none', marginLeft: '10px' }}>
-                <PictureAsPdfIcon />
-              </IconButton>
-            </Tooltip>
           </Box >
         );
       },
@@ -230,7 +220,7 @@ export default function Reuniones() {
       sessionStorage.setItem('estado_acta', 'descargar');
     }
     sessionStorage.setItem('proyecto_id_reunion', id);
-    navigate('/proyecto/ActaReunion');
+    navigate('/comite/ActaReunion');
   };
 
   return (

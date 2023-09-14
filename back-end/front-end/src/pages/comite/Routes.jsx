@@ -15,6 +15,8 @@ import Lectores from "./usuarios_normales/lectores/Lectores";
 import Jurados from "./usuarios_normales/jurados/Jurados";
 import Directores from "./usuarios_normales/directores/Directores";
 import Reuniones from "./reuniones/Reuniones";
+import Sustentaciones from "./proyectos/Sustentaciones";
+import ProyectosMeritorios from "./proyectos/ProyectosMeritorios";
 
 export default function RoutesCmt() {
 
@@ -31,6 +33,8 @@ export default function RoutesCmt() {
                 <Route path="aspectos" element={<Aspectos />} />
                 <Route path="espacio" element={<Espacios />} />
                 <Route path="verProyecto" element={<VerProyecto />} />
+                <Route path="sustentaciones" element={<Sustentaciones />} />
+                <Route path="proyectos/meritorios" element={<ProyectosMeritorios />} />
                 <Route path="reportes" element={<Reportes />} />
                 <Route path="Reuniones" element={<Reuniones />} />
             </Route>

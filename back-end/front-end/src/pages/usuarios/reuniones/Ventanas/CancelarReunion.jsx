@@ -56,7 +56,7 @@ function CancelarReunion(props) {
                 mostrarMensaje(data.message, "error");
             } else {
                 mostrarMensaje(data.message, "success");
-                handleCancel();
+                onSubmit()
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");

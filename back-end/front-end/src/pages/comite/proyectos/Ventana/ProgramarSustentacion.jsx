@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Typography, DialogTitle, Dialog, Button, DialogActions, DialogContent } from "@mui/material";
+import { Typography, DialogTitle, Dialog, Button, DialogActions, DialogContent, TextField } from "@mui/material";
 import { CalendarMonth, SaveOutlined } from '@mui/icons-material';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs from 'dayjs';
 
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 import { useSnackbar } from 'notistack';
+import { DateTimePicker } from '@mui/x-date-pickers';
 
-function CambiarFecha(props) {
+function ProgramarSustentacion(props) {
 
-    const { onClose, estudiante, onSubmit, open, ...other } = props;
-    const id = sessionStorage.getItem('id_proyecto');
+    const { onClose, sustentacion, onSubmit, open, ...other } = props;
     const token = useSelector(selectToken);
 
     const { enqueueSnackbar } = useSnackbar();
@@ -23,31 +21,34 @@ function CambiarFecha(props) {
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
+    const [lugarSustentacion, setLugarSustentacion] = useState('');
 
-    const [fechaGrado, setFechaGrado] = useState('');
+    const [fechaSustentacion, setFechaSustentacion] = useState('');
 
     const handleEntering = () => {
-               setFechaGrado( dayjs(estudiante.fecha_grado, 'DD-MM-YYYY'))
+        setFechaSustentacion(sustentacion.fecha_sustentacion)
     };
 
     const handleCancel = () => {
         onClose();
-        setFechaGrado('')
+        setFechaSustentacion('')
+        setLugarSustentacion('')
     };
 
-    const modificarFechaGrado = async (e) => {
+    const modificarFechaSustentacion = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch("http://localhost:5000/comite/estudiante/cambiarfecha", {
-                method: "PUT",
+            const response = await fetch("http://localhost:5000/comite/programarSustentacion", {
+                method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id_proyecto: id, id_estudiante: estudiante.id_estudiante, fecha_grado: fechaGrado })
+                body: JSON.stringify({ id: sustentacion.id_proyecto, anio: sustentacion.anio, periodo: sustentacion.periodo, lugar: lugarSustentacion, fecha: fechaSustentacion })
             });
             const data = await response.json();
             if (data.success) {
-                onSubmit(data.estudiantes)
+                onSubmit(data.sustentacion)
                 mostrarMensaje("Se ha actualizado la fecha de grado", "success");
-                setFechaGrado('')
+                setFechaSustentacion('')
+                setLugarSustentacion('')
             } else {
                 mostrarMensaje(data.message, "error")
             }
@@ -56,25 +57,28 @@ function CambiarFecha(props) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
     };
-
+    const handleLugarChange = (value) => {
+        const isOnlyWhitespace = /^\s*$/.test(value);
+        setLugarSustentacion(isOnlyWhitespace ? "" : value);
+    };
 
     return (
         <Dialog open={open} TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel} {...other} >
-            <form onSubmit={(e) => modificarFechaGrado(e)}>
-                <DialogTitle variant="h1" color="secondary">Cambiar Fecha de Grado</DialogTitle>
+            <form onSubmit={(e) => modificarFechaSustentacion(e)}>
+                <DialogTitle variant="h1" color="secondary">Programar Sustentación</DialogTitle>
                 <DialogContent dividers >
 
                     <Typography variant="h6" color="primary">
                         Fecha
                     </Typography>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
+                        <DateTimePicker
                             required
-                            value={fechaGrado}
-                            onChange={(newValue) => setFechaGrado(newValue)}
-                            format="DD-MM-YYYY"
-                            error={!fechaGrado}
-                            helperText={'Ingrese la fecha de grado del estudiante.'}
+                            value={fechaSustentacion}
+                            onChange={(newValue) => setFechaSustentacion(newValue)}
+                            format="DD/MM/YYYY hh:mm A"
+                            error={!fechaSustentacion}
+                            helperText={'Ingrese la fecha de sustentación'}
                             fullWidth
                             sx={{ minWidth: '100%' }}
                             components={{
@@ -84,13 +88,24 @@ function CambiarFecha(props) {
                             }}
                         />
                     </LocalizationProvider>
-
+                    <Typography variant="h6" color="primary">
+                        Lugar
+                    </Typography>
+                    <TextField
+                        autoFocus
+                        value={lugarSustentacion}
+                        onChange={(e) => handleLugarChange(e.target.value)}
+                        fullWidth error={!lugarSustentacion}
+                        helperText={'Ingresa el lugar de la sustentación'}
+                        multiline
+                        required
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancel}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }} disabled={fechaGrado === estudiante.fecha_grado}>
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }}>
                         Guardar
                     </Button>
                 </DialogActions>
@@ -99,11 +114,11 @@ function CambiarFecha(props) {
     );
 }
 
-CambiarFecha.propTypes = {
+ProgramarSustentacion.propTypes = {
     onClose: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
     open: PropTypes.bool.isRequired,
-    estudiante: PropTypes.object.isRequired,
+    sustentacion: PropTypes.object.isRequired,
 };
 
-export default CambiarFecha;
+export default ProgramarSustentacion;

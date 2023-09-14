@@ -12,6 +12,15 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
+const { obtenerInfoDirector, obtenerInfoLector, obtenerInfoJurado, obtenerInfoCliente } = require('../controllers/proyecto.controller')
+
+router.post('/comite/obtenerInfoDirector', passport.authenticate('jwt', { session: false }), obtenerInfoDirector);
+router.post('/comite/obtenerInfoLector', passport.authenticate('jwt', { session: false }), obtenerInfoLector);
+router.post('/comite/obtenerInfoJurado', passport.authenticate('jwt', { session: false }), obtenerInfoJurado);
+router.post('/comite/obtenerInfoCliente', passport.authenticate('jwt', { session: false }), obtenerInfoCliente);
+
+
+
 const {
   obtenerProyecto,
   obtenerProyectosTerminados,
@@ -45,7 +54,13 @@ const {
   obtenerReunionesPendientes,
   obtenerReunionesCanceladas,
   obtenerReunionesCompletas,
-  obtenerInvitados
+  obtenerInvitados,
+  obtenerProyectosMeritorios,
+  obtenerProyectosPostulados,
+  obtenerSustentacionProyectos,
+  elegirProyectoMeritorio,
+  postularProyectoMeritorio,
+  programarSustentacion
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -112,6 +127,12 @@ router.get('/comite/etapas', authenticateJWT, obtenerEtapas);
 router.get('/comite/modalidades', authenticateJWT, obtenerModalidades);
 router.get('/comite/roles', authenticateJWT, obtenerRoles);
 
+router.get('/comite/proyecto/postulado/meritorio', authenticateJWT, obtenerProyectosMeritorios);
+router.post('/comite/proyecto/postulado/meritorio', authenticateJWT, elegirProyectoMeritorio);
+router.get('/comite/proyecto/postulado', authenticateJWT, obtenerProyectosPostulados);
+router.post('/comite/proyecto/postulado', authenticateJWT, postularProyectoMeritorio);
+router.get('/comite/sustentacion', authenticateJWT, obtenerSustentacionProyectos);
+
 router.get('/comite/rubricas', authenticateJWT, obtenerRubricas);
 router.post('/comite/crearRubrica', authenticateJWT, crearRubrica);
 router.delete('/comite/rubrica/:rubrica_id', authenticateJWT, eliminarRubrica);
@@ -148,6 +169,8 @@ router.get('/comite/obtenerReunionesPendientes', authenticateJWT, obtenerReunion
 router.get('/comite/obtenerReunionesCompletas', authenticateJWT, obtenerReunionesCompletas);
 router.get('/comite/obtenerReunionesCanceladas', authenticateJWT, obtenerReunionesCanceladas);
 router.get('/comite/obtenerInvitados/:id', passport.authenticate('jwt', { session: false }), obtenerInvitados);
+
+router.post('/comite/programarSustentacion', passport.authenticate('jwt', { session: false }), programarSustentacion);
 
 
 module.exports = router;

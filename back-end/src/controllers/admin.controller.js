@@ -357,6 +357,7 @@ const verUsuario = async (req, res) => {
         }
 
     } catch (error) {
+        console.log(error)
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };

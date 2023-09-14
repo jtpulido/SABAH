@@ -69,7 +69,6 @@ export default function VerProyectos() {
                 mostrarMensaje(data.message, "error");
                 setExiste(false);
             } else {
-                console.log(data)
                 setProyecto(data.proyecto);
                 setEstudiantes(data.estudiantes);
                 setDirector(data.director);

@@ -894,15 +894,12 @@ const verificarCalificacionesPendientes = async (req, res) => {
             if (error) {
                 return res.status(502).json({ success: false, message: 'Ha ocurrido un error al validar las entregas.' });
             }
-            console.log(result)
             if (result) {
                 const pendientes = result.rows[0].cantidad_registros;
 
                 if (pendientes === '0') {
-                    console.log("nO HAY ENTREGAS PERNDIENTES")
                     return res.status(200).json({ success: true, pendientes: false });
                 } else {
-                    console.log("HAY HAY ENTREGAS PERNDIENTES")
                     return res.status(203).json({ success: true, pendientes: true });
                 }
             }
@@ -913,7 +910,6 @@ const verificarCalificacionesPendientes = async (req, res) => {
 };
 const verificarAproboEntregasCalificadas = async (req, res) => {
     const { proyectoId, etapaId, anio, periodo, modalidadId } = req.params;
-
     try {
         const query =
             `SELECT
@@ -947,7 +943,6 @@ const verificarAproboEntregasCalificadas = async (req, res) => {
 
         const values = [proyectoId, anio, periodo, etapaId, modalidadId];
         const result = await pool.query(query, values);
-        console.log(result)
         if (result.rowCount === 0) {
             return res.status(203).json({ success: false, message: 'No se encontró el proyecto.' });
         }
@@ -959,8 +954,8 @@ const verificarAproboEntregasCalificadas = async (req, res) => {
 };
 const cambiarEstadoEntregasFinales = async (req, res) => {
     try {
-        const { proyecto} = req.body;
-        const { id, id_etapa, id_modalidad ,nombre} = proyecto;
+        const { proyecto } = req.body;
+        const { id, id_etapa, id_modalidad, nombre } = proyecto;
         let id_nuevo_estado = "";
 
         // Consultar la modalidad actual del proyecto
@@ -975,35 +970,35 @@ const cambiarEstadoEntregasFinales = async (req, res) => {
         const resultEstado = await pool.query('SELECT id, nombre FROM estado');
         const estados = resultEstado.rows;
 
-       // Determinar el nuevo estado basado en la modalidad y la etapa
-       let nuevoEstadoFiltrado = [];
+        // Determinar el nuevo estado basado en la modalidad y la etapa
+        let nuevoEstadoFiltrado = [];
 
-       if (modalidad.nombre === 'Coterminal') {
-           // Filtrar el estado "Aprobado proyecto de grado 1"
-           nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado propuesta");
-       } else {
-           switch (etapa.nombre) {
-               case 'Propuesta':
-                   // Filtrar el estado "Aprobado propuesta"
-                   nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado propuesta");
-                   break;
-               case 'Proyecto de grado 1':
-                   // Filtrar el estado "Aprobado proyecto de grado 1"
-                   nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado proyecto de grado 1");
-                   break;
-               case 'Proyecto de grado 2':
-                   // Filtrar el estado "Aprobado"
-                   nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado");
-                   break;
-               default:
-                   // Manejar otro caso si es necesario
-                   break;
-           }
-       }
+        if (modalidad.nombre === 'Coterminal') {
+            // Filtrar el estado "Aprobado proyecto de grado 1"
+            nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado propuesta");
+        } else {
+            switch (etapa.nombre) {
+                case 'Propuesta':
+                    // Filtrar el estado "Aprobado propuesta"
+                    nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado propuesta");
+                    break;
+                case 'Proyecto de grado 1':
+                    // Filtrar el estado "Aprobado proyecto de grado 1"
+                    nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado proyecto de grado 1");
+                    break;
+                case 'Proyecto de grado 2':
+                    // Filtrar el estado "Aprobado"
+                    nuevoEstadoFiltrado = estados.filter(estado => estado.nombre === "Aprobado");
+                    break;
+                default:
+                    // Manejar otro caso si es necesario
+                    break;
+            }
+        }
 
-       if (nuevoEstadoFiltrado.length > 0) {
-           id_nuevo_estado = nuevoEstadoFiltrado[0].id;
-       }
+        if (nuevoEstadoFiltrado.length > 0) {
+            id_nuevo_estado = nuevoEstadoFiltrado[0].id;
+        }
         await pool.query('BEGIN');
         await pool.query(
             `
@@ -1013,19 +1008,18 @@ const cambiarEstadoEntregasFinales = async (req, res) => {
         `,
             [id_nuevo_estado, id], async (error, result) => {
                 if (error) {
-                    console.log(error)
                     return res.status(502).json({ success: false, message: "Lo siento, ha ocurrido un error al realizar el cambio de estado." });
                 }
                 if (result) {
                     const resultCorreos = await pool.query('SELECT e.correo FROM estudiante_proyecto ep JOIN estudiante e ON ep.id_estudiante = e.id WHERE id_proyecto=$1 and estado=true', [id]);
                     const correos = resultCorreos.rows
-                    await mailCambioEstadoProyecto(correos,  nuevoEstadoFiltrado[0].nombre, `Entregas finales - ${etapa.nombre}`);
+
+                    await mailCambioEstadoProyecto(correos, nuevoEstadoFiltrado[0].nombre, `Entregas finales - ${etapa.nombre}`);
                     await pool.query('COMMIT')
-                    return res.json({ success: true, message: `El proyecto ${nombre} aprobo la etapa ${etapa.nombre}` })
+                    return res.json({ success: true, message: `El proyecto ${nombre} aprobo la etapa ${etapa.nombre}`, etapa: etapa.nombre, estado: nuevoEstadoFiltrado[0].nombre })
                 }
             })
     } catch (error) {
-        console.log(error)
         await pool.query('ROLLBACK');
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
@@ -1035,5 +1029,5 @@ module.exports = {
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud,
     agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion,
     obtenerReunion, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,
-    verificarCalificacionesPendientes, verificarAproboEntregasCalificadas,cambiarEstadoEntregasFinales
+    verificarCalificacionesPendientes, verificarAproboEntregasCalificadas, cambiarEstadoEntregasFinales
 }
