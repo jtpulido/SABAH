@@ -98,7 +98,7 @@ export default function VerUsuario() {
     navigate(`/admin/verProyecto`);
   }
 
-  const infoUsuario = useCallback(async () => {
+  const infoUsuario = async () => {
     try {
       const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
         method: "GET",
@@ -118,7 +118,7 @@ export default function VerUsuario() {
       setExiste(false);
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
-  }, [id, token]);
+  };
 
   const rolDirector = useCallback(async () => {
     try {
@@ -248,7 +248,7 @@ export default function VerUsuario() {
   }, [rolDirector, rolJurado, rolLector, infoUsuario, llenarTablaDirector, llenarTablaJurado, llenarTablaLector]);
 
   return (
-    <div >
+    <>
       <AppBar position="static" color="transparent" variant="contained" >
         <Toolbar>
           <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
@@ -258,7 +258,9 @@ export default function VerUsuario() {
             <EditIcon color="secondary" sx={{ fontSize: 30, marginRight: "5px", cursor: "pointer" }} onClick={abrirVentanaModificarUsuario} />
           </Tooltip>
         </Toolbar>
+
       </AppBar>
+
       <ModificarUsuario
         open={abrirModificarUsuario}
         onClose={cerrarDialogUsuario}
@@ -335,6 +337,7 @@ export default function VerUsuario() {
       ) : (
         <Typography variant="h6" color="primary">{mostrarMensaje.mensaje}</Typography>
       )}
-    </div>
+
+    </>
   );
 }

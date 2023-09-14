@@ -692,9 +692,11 @@ const obtenerInfoDirector = async (req, res) => {
 
 const obtenerInfoLector = async (req, res) => {
   const { id } = req.body;
+  console.log(id)
   try {
     const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=2) AND u.estado=true', [id]);
     const lector = result.rows[0];
+    console.log('nombre' + lector.nombre);
     if (result.rowCount > 0) {
       return res.json({ success: true, lector });
     } else {

@@ -371,7 +371,7 @@ function CrearReunion(props) {
                         </Grid>
                         <Grid item xs={6}>
                             <Typography variant="h6" color="primary">
-                                Link
+                                Enlace/Lugar
                             </Typography>
                             <TextField
                                 value={link}

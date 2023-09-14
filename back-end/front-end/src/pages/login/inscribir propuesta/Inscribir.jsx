@@ -145,12 +145,15 @@ export const Inscribir = () => {
         const now = new Date();
         const year = now.getFullYear().toString();
         const month = (now.getMonth() + 1).toString().padStart(2, "0");
-        return `${year}-${month}`;
+        return `${year}`;
     };
 
     const generateCode = (consecutivo) => {
+        const now = new Date();
         const formattedDate = getFormattedDate();
-        return `TEM_${formattedDate}-${consecutivo}`;
+        const month = (now.getMonth() + 1).toString().padStart(2, "0");
+        const periodo = getPeriodo(month);
+        return `TEM_${formattedDate}-${periodo}-${consecutivo}`;
     };
 
     const getPeriodo = (month) => {

@@ -48,6 +48,7 @@ function ModificarUsuario(props) {
     };
 
     const infoUsuario = useCallback(async () => {
+        alert('holal')
         try {
             const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
                 method: "GET",

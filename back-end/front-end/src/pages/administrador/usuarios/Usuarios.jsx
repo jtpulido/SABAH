@@ -104,7 +104,7 @@ export default function Usuarios() {
 
     const verUsuario = (id) => {
         sessionStorage.setItem('admin_id_usuario', id);
-        navigate(`/admin/verUsuario`)
+        navigate(`/admin/verUsuario`);
     };
 
     const llenarTablaUsuarios = useCallback(async () => {
@@ -152,7 +152,7 @@ export default function Usuarios() {
     }, [token, llenarTablaUsuarios]);
 
     return (
-        <div >
+        <>
             <AppBar position="static" color="transparent" variant="contained" >
                 <Toolbar>
                     <Typography variant="h1" color="secondary" fontWeight="bold" sx={{ flexGrow: 1 }}>
@@ -173,10 +173,11 @@ export default function Usuarios() {
                 onClose={cerrarDialogUsuarioModificar}
                 onSubmit={cerrarDialogModificarUsuario}
             />
+
             <Box sx={{ m: 3 }}>
                 <CustomDataGrid rows={rowsUsuarios} columns={columns} mensaje="No hay usuarios" />
             </Box>
 
-        </div>
+        </>
     );
 }

@@ -14,8 +14,6 @@ import { Create, Visibility, Close } from '@mui/icons-material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
-import CancelarReunion from "./CancelarReunion";
-import EditarReunion from "./EditarReunion";
 import VerReunion from "./VerReunion";
 
 
@@ -129,17 +127,6 @@ export default function Reuniones() {
                 <Visibility />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Editar Reunión">
-              <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => abrirEditarReunion(row.id)}>
-                <Create />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Cancelar Reunión">
-              <IconButton color="secondary"
-                onClick={() => abrirCancelarReunion(row.id)}>
-                <Close />
-              </IconButton >
-            </Tooltip>
           </Box>
         );
       },
@@ -201,39 +188,6 @@ export default function Reuniones() {
     },
   ]);
 
-  // Cancelar reunion
-  const [abrirCancelar, setAbrirCancelar] = useState(false);
-  const abrirCancelarReunion = (id) => {
-    sessionStorage.setItem('proyecto_id_reunion', id);
-    setAbrirCancelar(true);
-  };
-  const cerrarCancelarReunion = () => {
-    llenarTablaPendientes();
-    llenarTablaCanceladas();
-    setAbrirCancelar(false);
-  };
-  const cerrarReunionCancelada = () => {
-    llenarTablaPendientes();
-    llenarTablaCanceladas();
-  };
-
-  // Editar reunion
-  const [abrirEditar, setAbrirEditar] = useState(false);
-  const abrirEditarReunion = (id) => {
-    const registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
-    const reunionCadena = JSON.stringify(registroEncontrado);
-    sessionStorage.setItem('info_reunion_editar', reunionCadena);
-    sessionStorage.setItem('proyecto_id_reunion', id);
-    setAbrirEditar(true);
-  };
-  const cerrarEditarReunion = () => {
-    llenarTablaPendientes();
-    setAbrirEditar(false);
-  };
-  const cerrarReunionEditada = () => {
-    llenarTablaPendientes();
-  };
-
   // Ver reunion
   const [abrirVer, setAbrirVer] = useState(false);
   const abrirVerReunion = (id, tipo) => {
@@ -293,16 +247,6 @@ export default function Reuniones() {
         open={abrirVer}
         onSubmit={cerrarReunionVer}
         onClose={cerrarVerReunion}
-      />
-      <CancelarReunion
-        open={abrirCancelar}
-        onSubmit={cerrarReunionCancelada}
-        onClose={cerrarCancelarReunion}
-      />
-      <EditarReunion
-        open={abrirEditar}
-        onSubmit={cerrarReunionEditada}
-        onClose={cerrarEditarReunion}
       />
 
       <Box sx={{ m: 3 }}>
