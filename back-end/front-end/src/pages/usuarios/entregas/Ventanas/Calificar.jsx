@@ -49,6 +49,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const [titulo, setTitulo] = useState("");
 
     const handleEntering = async () => {
+        console.log(entrega)
         setTitulo(
             tipo === "pendiente" ? "Ver Entrega" :
                 tipo === "calificar" ? "Ver/Calificar Entrega" :
@@ -218,7 +219,25 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             mostrarMensaje('Lo siento, ha ocurrido un error.', 'error');
         }
     };
-
+    const asignarCodigo = async (id, acronimo, anio, periodo) => {
+        
+        try {
+          const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
+          });
+          const data = await response.json();
+          if (!data.success) {
+            mostrarMensaje(data.message, "error")
+          } else {
+            mostrarMensaje(`Se ha asignado el código ${data.codigo} al proyecto`, "success");
+          }
+        } catch (error) {
+          mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+        }
+     
+      }
     const validarCambioEstado = async () => {
         try {
             const pendientes = await validarEntregasPendientes();
@@ -243,7 +262,9 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                             mostrarMensaje(data.message, "error");
                         } else {
                             mostrarMensaje(data.message, "success")
-
+                            if (data.estado === "Aprobado propuesta" && data.etapa === "Propuesta") {
+                                asignarCodigo(entrega.id_proyecto, entrega.acronimo, entrega.anio, entrega.periodo)
+                            }
                             if (data.estado === "Aprobado" && data.etapa === "Proyecto de grado 2") {
                                 const postulado = {
                                     id: entrega.id_proyecto,

@@ -269,7 +269,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
                                         <Typography variant="h6" color="primary">
                                             Evaluador
                                         </Typography>
-                                        <TextField value={entrega.evaluador} fullWidth />
+                                        <TextField value={entrega.evaluador||''} fullWidth />
                                     </Grid>
 
                                     <Grid item xs={12} sm={6} md={4} lg={4}>

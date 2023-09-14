@@ -31,7 +31,6 @@ router.post('/usuario/documento/guardarCalificacion', upload.single('file'), asy
     await guardarCalificacionDoc(req, res, file);
 
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: 'Error al subir el archivo y guardar el documento y la entrega' });
   }
 });

@@ -27,7 +27,7 @@ function CambiarFecha(props) {
     const [fechaGrado, setFechaGrado] = useState('');
 
     const handleEntering = () => {
-               setFechaGrado( dayjs(estudiante.fecha_grado, 'DD-MM-YYYY'))
+        setFechaGrado(dayjs(estudiante.fecha_grado, 'DD-MM-YYYY'))
     };
 
     const handleCancel = () => {

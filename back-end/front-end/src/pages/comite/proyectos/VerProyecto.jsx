@@ -7,7 +7,7 @@ import './VerProyecto.css';
 
 import CambiarCodigo from './Ventana/CambiarCodigo';
 import CambiarNombre from './Ventana/CambiarNombre';
-import { Add, Edit, EventAvailable, Person, Remove } from "@mui/icons-material";
+import { Add, Edit, EditAttributes, EditCalendar, EditNote, EventAvailable, Person, Remove } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
@@ -17,6 +17,7 @@ import CambiarEtapa from "./Ventana/CambiarEtapa";
 import CambiarEstado from "./Ventana/CambiarEstado";
 import TerminarProyecto from "./Ventana/TerminarProyecto";
 import ProgramarSustentacion from "./Ventana/ProgramarSustentacion";
+import CambiarProgramacionSustentacion from "./Ventana/CambiarProgramacionSustentacion";
 
 export default function VerProyectos() {
 
@@ -46,6 +47,7 @@ export default function VerProyectos() {
   const [openEtapa, setOpenEtapa] = useState(false);
   const [openFechaGrado, setOpenFechaGrado] = useState(false);
   const [openSustentacion, setOpenSustentacion] = useState(false);
+  const [openModificarSustentacion, setOpenModificarSustentacion] = useState(false);
   const [rol, setRol] = useState("");
   const [info, setInfo] = useState({});
   const [accion, setAccion] = useState("");
@@ -57,23 +59,27 @@ export default function VerProyectos() {
 
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
-    try {
-      const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
-      });
-      const data = await response.json();
-      if (!data.success) {
-        mostrarMensaje(data.message, "error")
+    if (proyecto.estado === "Aprobado propuesta") {
+      try {
+        const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          mostrarMensaje(data.message, "error")
+          setExiste(false)
+        } else {
+          actualizarProyecto(data.codigo)
+          mostrarMensaje("Se ha asignado un código al proyecto", "success");
+        }
+      } catch (error) {
         setExiste(false)
-      } else {
-        actualizarProyecto(data.codigo)
-        mostrarMensaje("Se ha asignado un código al proyecto", "success");
+        mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
       }
-    } catch (error) {
-      setExiste(false)
-      mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+    } else {
+      mostrarMensaje("Solo es posible asignar el código si el estado del proyecto se encuentra en Aprobado propuesta", "info");
     }
   }
 
@@ -211,6 +217,7 @@ export default function VerProyectos() {
     setOpenTerminar(false);
   }
   const cerrarDialogTerminado = async (newValue) => {
+    actualizarEstado(newValue)
     setOpenTerminar(false);
 
   }
@@ -235,6 +242,9 @@ export default function VerProyectos() {
   }
   const cerrarDialogEstadoCambiado = (newValue) => {
     actualizarEstado(newValue)
+    if (newValue.estado === "Aprobado propuesta") {
+      asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)
+    }
     setOpenEstado(false);
   }
   const abrirDialogCambiarEtapa = () => {
@@ -276,15 +286,12 @@ export default function VerProyectos() {
     };
   }
   const abrirDialogProgramarSustentacion = () => {
-    if (sustentacion === null) {
-      const sustentacion = {
-        id_proyecto: id,
-        anio: proyecto.anio,
-        periodo: proyecto.periodo
-      };
-      setSustentacion(sustentacion)
-    }
-
+    const new_sustentacion = {
+      id_proyecto: id,
+      anio: proyecto.anio,
+      periodo: proyecto.periodo
+    };
+    setSustentacion(new_sustentacion)
     setOpenSustentacion(true);
   };
 
@@ -292,9 +299,22 @@ export default function VerProyectos() {
     setOpenSustentacion(false);
   }
   const cerrarDialogSustentacionProgramada = (newValue) => {
-    setOpenFechaGrado(false);
+    setOpenSustentacion(false);
     if (newValue) {
       setExisteSustentacion(true)
+      setSustentacion(newValue)
+    };
+  }
+  const abrirDialogModificarSustentacion = () => {
+    setOpenModificarSustentacion(true);
+  };
+
+  const cerrarDialogModificarSustentacion = () => {
+    setOpenModificarSustentacion(false);
+  }
+  const cerrarDialogSustentacionModificada = (newValue) => {
+    setOpenModificarSustentacion(false);
+    if (newValue) {
       setSustentacion(newValue)
     };
   }
@@ -372,45 +392,49 @@ export default function VerProyectos() {
           >
             {proyecto.codigo || ''}
           </Typography>
-          {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
-            <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
-              width: 200, m: 1
-            }}>
-              Asignar Código
-            </Button>
-          ) : (
-            <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarCodigo} sx={{
-              width: 200, m: 1
-            }}>
-              Modificar código
-            </Button>
-          )}
-
-          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, m: 1 }}>
-            Modificar nombre
-          </Button>
-          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEtapa} sx={{ width: 200, m: 1 }}>
-            Cambiar etapa
-          </Button>
-          <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
-            Cambiar estado
-          </Button>
-          {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' ? (
+          {proyecto && proyecto.estado !== "Terminado"&& proyecto.estado !== "Rechazado"&& proyecto.estado !== "Cancelado"&& proyecto.estado !== "Aprobado comité"? (
             <div>
-              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogProgramarSustentacion} sx={{ width: 200, m: 1 }}>
-                Programar Sustentación
-              </Button>
+              {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
+                <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
+                  width: 200, m: 1
+                }}>
+                  Asignar Código
+                </Button>
+              ) : (
+                <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarCodigo} sx={{
+                  width: 200, m: 1
+                }}>
+                  Modificar código
+                </Button>
+              )}
 
-            </div>
-          ) : null}
-          {proyecto.estado === 'Aprobado' ? (
-            <div>
-              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
-                Terminar Proyecto
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarNombre} sx={{ width: 200, m: 1 }}>
+                Modificar nombre
               </Button>
-              <Button variant="outlined" disableElevation size="small" onClick={postularMeritorio} sx={{ width: 200, m: 1 }}>
-                Postular a meritorio
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEtapa} sx={{ width: 200, m: 1 }}>
+                Cambiar etapa
               </Button>
+              <Button variant="outlined" disableElevation size="small" onClick={abrirDialogCambiarEstado} sx={{ width: 200, m: 1 }}>
+                Cambiar estado
+              </Button>
+              {proyecto.etapa === 'Proyecto de grado 2' && proyecto.estado === 'En desarrollo' && proyecto.acronimo !== 'COT' ? (
+                <div>
+                  <Button variant="outlined" disableElevation size="small" onClick={abrirDialogProgramarSustentacion} sx={{ width: 200, m: 1 }}>
+                    Programar Sustentación
+                  </Button>
+
+                </div>
+              ) : null}
+              {proyecto.estado === 'Aprobado' ? (
+                <div>
+                  <Button variant="outlined" disableElevation size="small" onClick={abrirDialogTerminar} sx={{ width: 200, m: 1 }}>
+                    Terminar Proyecto
+                  </Button>
+                  <Button variant="outlined" disableElevation size="small" onClick={postularMeritorio} sx={{ width: 200, m: 1 }}>
+                    Postular a meritorio
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : null}
           <CambiarCodigo
@@ -448,6 +472,12 @@ export default function VerProyectos() {
             onClose={cerrarDialogProgramarSustentacion}
             sustentacion={sustentacion || {}}
             onSubmit={cerrarDialogSustentacionProgramada}
+          />
+          <CambiarProgramacionSustentacion
+            open={openModificarSustentacion}
+            onClose={cerrarDialogModificarSustentacion}
+            sustentacion={sustentacion || {}}
+            onSubmit={cerrarDialogSustentacionModificada}
           />
           <Box >
             <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px" }}>
@@ -633,7 +663,15 @@ export default function VerProyectos() {
                         fullWidth
                       />
                     </Grid>
-
+                    <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+                        <Tooltip title="Programar Sustentación">
+                          <IconButton color="secondary" size="large" onClick={abrirDialogModificarSustentacion}>
+                            <EditNote fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
                   </Grid>
 
                 ) : (<Typography variant="h6" color="primary">No se han asignado una fecha de sustentación</Typography>
@@ -713,7 +751,7 @@ export default function VerProyectos() {
                         </Tooltip>
                         <Tooltip title="Modificar fecha de grado">
                           <IconButton variant="outlined" color='secondary' size="large" onClick={() => abrirDialogCambiarFechaGrado(estudiante)} sx={{ marginLeft: '8px' }}>
-                            <EventAvailable fontSize="inherit" />
+                            <EditCalendar fontSize="inherit" />
                           </IconButton>
                         </Tooltip>
                       </Box>
