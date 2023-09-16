@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     TextField,
@@ -21,6 +21,8 @@ function ModificarUsuario(props) {
     const { onClose, onSubmit, open, id } = props;
     const token = useSelector(selectToken);
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
@@ -45,9 +47,11 @@ function ModificarUsuario(props) {
         const isOnlyWhitespace = /^\s*$/.test(value);
         setCorreo(isOnlyWhitespace ? "" : value);
     };
+
     const handleEntering = async () => {
         infoUsuario()
-    }
+    };
+
     const infoUsuario = async () => {
         try {
             const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
@@ -66,10 +70,12 @@ function ModificarUsuario(props) {
         catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
-    }
+    };
 
     const modificarUsuario = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             const usuario = {
                 id: id,
@@ -91,6 +97,7 @@ function ModificarUsuario(props) {
         } catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
+        setIsLoading(false);
     };
 
     return (
@@ -134,8 +141,8 @@ function ModificarUsuario(props) {
 
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

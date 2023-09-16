@@ -51,10 +51,10 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
             setInputValue2(value);
         }
     };
-    
+
     const handleReset = async (event) => {
         event.preventDefault();
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/; // Expresión regular para validar la contraseña (mínimo 8 caracteres, al menos una letra y un número)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&+=!])([A-Za-z\d@#$%^&+=!]){8,}$/;
 
         if (inputValue1 !== "" && inputValue2 !== "") {
             if (inputValue1 !== inputValue2) {
@@ -122,6 +122,10 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
                 footer={null}
                 className='modal_recuperar3'
             >
+                <div className="div">
+                    <p className='text2'>La contraseña debe tener al menos 8 caracteres, incluir al menos una letra, un número y un carácter especial.</p>
+                </div>
+
                 <div className="div">
                     <p className='text'>Ingrese su nueva contraseña</p>
                 </div>

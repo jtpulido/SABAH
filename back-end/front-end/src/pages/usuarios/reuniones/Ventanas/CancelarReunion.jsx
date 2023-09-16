@@ -20,6 +20,7 @@ function CancelarReunion(props) {
     const { onClose, onSubmit, open, ...other } = props;
 
     const [justificacion, setJustificacion] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
@@ -39,7 +40,7 @@ function CancelarReunion(props) {
 
     const guardarSolicitud = async (event) => {
         event.preventDefault();
-
+        setIsLoading(true);
         try {
             const response = await fetch("http://localhost:5000/usuario/cancelarReunion", {
                 method: "POST",
@@ -61,6 +62,7 @@ function CancelarReunion(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
+        setIsLoading(false);
     };
 
     return (
@@ -90,8 +92,8 @@ function CancelarReunion(props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Cancelar

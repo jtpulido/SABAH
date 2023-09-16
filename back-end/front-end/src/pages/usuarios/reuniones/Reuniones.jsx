@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 
 import { selectToken } from "../../../store/authSlice";
-import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 
 import {
   Box, Typography, Button, IconButton, Tooltip, Toolbar, AppBar,
 } from '@mui/material';
 import { Create, Visibility, AddCircleOutline, Close } from '@mui/icons-material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../../layouts/DataGrid";
@@ -37,6 +37,14 @@ export default function Reuniones() {
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCompletadas, setRowsCompletadas] = useState([]);
   const [rowsCanceladas, setRowsCanceladas] = useState([]);
+
+  const [objetivos, setObjetivos] = useState("");
+  const [resultados, setResultados] = useState("");
+  const [tareas, setTareas] = useState("");
+  const [compromisos, setCompromisos] = useState("");
+  const [info, setInfo] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
   const mostrarMensaje = (mensaje, variante) => {
@@ -175,6 +183,7 @@ export default function Reuniones() {
       headerAlign: "center",
       align: "center",
       renderCell: ({ row }) => {
+        const idActa = row && row.id_acta;
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
             <Tooltip title="Ver Reunión">
@@ -185,6 +194,11 @@ export default function Reuniones() {
             <Tooltip title="Editar Reunión">
               <IconButton color="secondary" style={{ marginRight: '10px' }} onClick={() => abrirEditarReunion(row.id, 'completa')}>
                 <Create />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Descargar Acta de Reunión">
+              <IconButton color="secondary" onClick={() => abrirActa(row.id, row.id_proyecto)} disabled={idActa === null || isLoading}>
+                <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
           </Box >
@@ -235,7 +249,7 @@ export default function Reuniones() {
     setAbrirCancelar(true);
   };
   const cerrarCancelarReunion = () => {
-    
+
     setAbrirCancelar(false);
   };
   const cerrarReunionCancelada = () => {
@@ -251,12 +265,12 @@ export default function Reuniones() {
   const abrirEditarReunion = (id, tipo) => {
 
     let registroEncontrado;
-    if (tipo === 'pendiente'&& rowsPendientes.length > 0) {
+    if (tipo === 'pendiente' && rowsPendientes.length > 0) {
       registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
-    } else if (tipo === 'completa'&& rowsCompletadas.length > 0) {
+    } else if (tipo === 'completa' && rowsCompletadas.length > 0) {
       registroEncontrado = rowsCompletadas.find(reunion => reunion.id === id);
     }
-    
+
     if (registroEncontrado) {
       try {
         const reunionCadena = JSON.stringify(registroEncontrado);
@@ -285,9 +299,9 @@ export default function Reuniones() {
     let registroEncontrado;
     if (tipo === 'pendiente' && rowsPendientes.length > 0) {
       registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
-    } else if (tipo === 'cancelada'&& rowsCanceladas.length > 0) {
+    } else if (tipo === 'cancelada' && rowsCanceladas.length > 0) {
       registroEncontrado = rowsCanceladas.find(reunion => reunion.id === id);
-    } else if (tipo === 'completa'&& rowsCompletadas.length > 0) {
+    } else if (tipo === 'completa' && rowsCompletadas.length > 0) {
       registroEncontrado = rowsCompletadas.find(reunion => reunion.id === id);
     }
 
@@ -310,6 +324,91 @@ export default function Reuniones() {
   };
   const cerrarReunionVer = () => {
     llenarTablaPendientes();
+  };
+
+  // Acta de Reunion
+  const abrirActa = async (id, id_proyecto) => {
+    setIsLoading(true);
+    try {
+      await Promise.allSettled([
+        traerInfo(id)
+      ]);
+      await generarPDF(id_proyecto, id);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const traerInfo = async (idReunion) => {
+    try {
+      const response = await fetch(`http://localhost:5000/usuario/obtenerInfoActa/${idReunion}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setInfo(data.acta);
+        setObjetivos(data.acta.descrip_obj);
+        setResultados(data.acta.resultados_reu);
+        setTareas(data.acta.tareas_ant);
+        setCompromisos(data.acta.compromisos);
+      }
+
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
+  };
+
+  const generarPDF = async (id, idReunion) => {
+    try {
+      const infoproyecto = await fetch(`http://localhost:5000/usuario/obtenerProyecto/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+      const data_proyecto = await infoproyecto.json();
+      const infoinvitados = await fetch(`http://localhost:5000/usuario/obtenerInvitados/${idReunion}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+      const data_invitados = await infoinvitados.json();
+      const data = {
+        fecha: info.fecha,
+        compromisos: compromisos,
+        objetivos: objetivos,
+        tareas: tareas,
+        nombre: info.nombre,
+        resultados: resultados,
+        data_proyecto,
+        data_invitados
+      };
+      const response = await fetch('http://localhost:5000/usuario/generarPDF', {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+
+      const blob = await response.blob();
+      const fileName = `${data.nombre}.pdf`;
+      const url = URL.createObjectURL(blob);
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = fileName;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+
+      downloadLink.click();
+
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+
+    } catch (error) {
+      mostrarMensaje("Ha ocurrido un error al generar el PDF. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
   };
 
   return (

@@ -28,8 +28,12 @@ function CambiarCodigo(props) {
     const [valido, setValido] = useState(false);
     const [helperText, setHelperText] = useState("No puede modificar la modalidad, el año, ni el periodo.");
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const modificarCodigo = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             const nuevoCodigo = `${modalidad}_${anio}-${periodo}-${formatNumber(nuevoConsecutivo)}`;
 
@@ -57,7 +61,7 @@ function CambiarCodigo(props) {
         catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
-
+        setIsLoading(false);
     };
     useEffect(() => {
         if (proyectoCodigo) {
@@ -152,10 +156,10 @@ function CambiarCodigo(props) {
 
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel}>
+                <Button onClick={handleCancel}> disabled={isLoading}
                     Cerrar
                 </Button>
-                <Button onClick={(e) => modificarCodigo(e)} disabled={!valido} variant="contained" startIcon={<SaveOutlined />} sx={{
+                <Button onClick={(e) => modificarCodigo(e)} disabled={!valido || isLoading} variant="contained" startIcon={<SaveOutlined />} sx={{
                     width: 150,
                 }}>
                     Guardar

@@ -12,6 +12,8 @@ function CambiarNombre(props) {
     const id = sessionStorage.getItem('admin_id_proyecto');
     const token = useSelector(selectToken);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -30,6 +32,8 @@ function CambiarNombre(props) {
 
     const modificarNombre = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             const response = await fetch("http://localhost:5000/admin/cambiarNombre", {
                 method: "POST",
@@ -48,6 +52,7 @@ function CambiarNombre(props) {
         catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
+        setIsLoading(false);
     };
 
     const handleNombreChange = (value) => {
@@ -78,10 +83,10 @@ function CambiarNombre(props) {
 
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>
+                    <Button onClick={handleCancel} disabled={isLoading}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }} disabled={nombre === proyectoNombre}>
+                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }} disabled={(nombre === proyectoNombre) || isLoading}>
                         Guardar
                     </Button>
                 </DialogActions>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 
 import { selectToken } from "../../../store/authSlice";
-import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 import { useSnackbar } from 'notistack';
 
@@ -10,8 +9,7 @@ import {
 } from '@mui/material';
 import CustomDataGrid from "../../layouts/DataGrid";
 
-import { Create, Visibility, Close } from '@mui/icons-material';
-import DescriptionIcon from '@mui/icons-material/Description';
+import { Visibility } from '@mui/icons-material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 import VerReunion from "./VerReunion";
@@ -29,7 +27,13 @@ export default function Reuniones() {
     enqueueSnackbar(mensaje, { variant: variante });
   };
 
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [objetivos, setObjetivos] = useState("");
+  const [resultados, setResultados] = useState("");
+  const [tareas, setTareas] = useState("");
+  const [compromisos, setCompromisos] = useState("");
+  const [info, setInfo] = useState("");
+
 
   const llenarTablaPendientes = async () => {
     try {
@@ -105,7 +109,7 @@ export default function Reuniones() {
     const commonColumns = [
       { field: 'fecha', headerName: 'Fecha y Hora', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'nombre', headerName: 'Nombre', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
-      { field: 'enlace', headerName: 'Link', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
+      { field: 'enlace', headerName: 'Enlace/Lugar', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" },
       { field: 'roles_invitados', headerName: 'Invitados', flex: 0.2, minWidth: 150, headerAlign: "center", align: "center" }
     ];
     return [...commonColumns, ...extraColumns];
@@ -123,7 +127,7 @@ export default function Reuniones() {
         return (
           <Box sx={{ display: 'flex' }}>
             <Tooltip title="Ver Reunión">
-              <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => abrirVerReunion(row.id, 'pendiente')}>
+              <IconButton color="secondary" style={{ marginRight: '20px' }} onClick={() => abrirVerReunion(row.id, 'pendiente', row.id_proyecto)}>
                 <Visibility />
               </IconButton>
             </Tooltip>
@@ -146,8 +150,13 @@ export default function Reuniones() {
         return (
           <Box sx={{ display: 'flex' }}>
             <Tooltip title="Ver Reunión">
-              <IconButton color="secondary" style={{ marginLeft: '10px' }} onClick={() => abrirVerReunion(row.id, 'completa')}>
+              <IconButton color="secondary" style={{ marginRight: '10px' }} onClick={() => abrirVerReunion(row.id, 'completa', row.id_proyecto)}>
                 <Visibility />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Descargar Acta de Reunión">
+              <IconButton color="secondary" onClick={() => abrirActa(row.id, row.id_proyecto)} disabled={idActa === null || isLoading}>
+                <PictureAsPdfIcon />
               </IconButton>
             </Tooltip>
           </Box >
@@ -168,7 +177,7 @@ export default function Reuniones() {
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '35px' }}>
             <Tooltip title="">
-              <IconButton color="secondary" onClick={() => abrirVerReunion(row.id, 'cancelada')}>
+              <IconButton color="secondary" onClick={() => abrirVerReunion(row.id, 'cancelada', row.id_proyecto)}>
                 <Visibility />
               </IconButton>
             </Tooltip>
@@ -180,7 +189,7 @@ export default function Reuniones() {
 
   // Ver reunion
   const [abrirVer, setAbrirVer] = useState(false);
-  const abrirVerReunion = (id, tipo) => {
+  const abrirVerReunion = (id, tipo, id_proyecto) => {
     let registroEncontrado;
     if (tipo === 'pendiente') {
       registroEncontrado = rowsPendientes.find(reunion => reunion.id === id);
@@ -195,6 +204,7 @@ export default function Reuniones() {
         const reunionCadena = JSON.stringify(registroEncontrado);
         sessionStorage.setItem('info_reunion_ver', reunionCadena);
         sessionStorage.setItem('proyecto_id_reunion', id);
+        sessionStorage.setItem('comite_id_proyecto', id_proyecto);
         setAbrirVer(true);
       } catch (error) {
         mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
@@ -212,15 +222,88 @@ export default function Reuniones() {
   };
 
   // Acta de Reunion
-  const abrirActa = (id, tipo) => {
-
-    if (tipo === 'crear') {
-      sessionStorage.setItem('estado_acta', 'crear');
-    } else if (tipo === 'descargar') {
-      sessionStorage.setItem('estado_acta', 'descargar');
+  const abrirActa = async (id, id_proyecto) => {
+    setIsLoading(true);
+    try {
+      await Promise.allSettled([
+        traerInfo(id)
+      ]);
+      await generarPDF(id_proyecto, id);
+    } finally {
+      setIsLoading(false);
     }
-    sessionStorage.setItem('proyecto_id_reunion', id);
-    navigate('/comite/ActaReunion');
+  };
+
+  const traerInfo = async (idReunion) => {
+    try {
+      const response = await fetch(`http://localhost:5000/comite/obtenerInfoActa/${idReunion}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setInfo(data.acta);
+        setObjetivos(data.acta.descrip_obj);
+        setResultados(data.acta.resultados_reu);
+        setTareas(data.acta.tareas_ant);
+        setCompromisos(data.acta.compromisos);
+      }
+
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
+  };
+
+  const generarPDF = async (proyecto_id, idReunion) => {
+    try {
+      const infoproyecto = await fetch(`http://localhost:5000/comite/verProyecto/${proyecto_id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+      const data_proyecto = await infoproyecto.json();
+      const infoinvitados = await fetch(`http://localhost:5000/comite/obtenerInvitados/${idReunion}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+
+      });
+      const data_invitados = await infoinvitados.json();
+      const data = {
+        fecha: info.fecha,
+        compromisos: compromisos,
+        objetivos: objetivos,
+        tareas: tareas,
+        nombre: info.nombre,
+        resultados: resultados,
+        data_proyecto,
+        data_invitados
+      };
+      const response = await fetch('http://localhost:5000/comite/generarPDF', {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+
+      const blob = await response.blob();
+      const fileName = `${data.nombre}.pdf`;
+      const url = URL.createObjectURL(blob);
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = fileName;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+
+      downloadLink.click();
+
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+
+    } catch (error) {
+      mostrarMensaje("Ha ocurrido un error al generar el PDF. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
+    }
   };
 
   return (

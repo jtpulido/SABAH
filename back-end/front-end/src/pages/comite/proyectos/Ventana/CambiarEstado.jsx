@@ -19,6 +19,8 @@ function CambiarEstado(props) {
     const [estado, setEstado] = useState('');
     const [estados, setEstados] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleEntering = () => {
         obtenerEstados()
     };
@@ -37,6 +39,7 @@ function CambiarEstado(props) {
 
     const modificarEstado = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
             const response = await fetch("http://localhost:5000/comite/cambiarEstado", {
                 method: "POST",
@@ -62,6 +65,7 @@ function CambiarEstado(props) {
         catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
+        setIsLoading(false);
     };
 
 
@@ -114,10 +118,10 @@ function CambiarEstado(props) {
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>
+                    <Button onClick={handleCancel} disabled={isLoading}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }} >
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{ width: 150 }} >
                         Guardar
                     </Button>
                 </DialogActions>

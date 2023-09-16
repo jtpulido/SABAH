@@ -23,6 +23,8 @@ function CrearSolicitud(props) {
     const [tipos, setTipos] = useState([]);
     const [proyectos, setProyectos] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const obtenerTiposSolicitudes = async () => {
         try {
             const response = await fetch("http://localhost:5000/proyecto/tipoSolicitud", {
@@ -80,6 +82,7 @@ function CrearSolicitud(props) {
 
     const guardarSolicitud = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
         const solicitudData = {
             justificacion,
             id_tipo_solicitud: idTipo,
@@ -105,6 +108,7 @@ function CrearSolicitud(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
+        setIsLoading(false);
     };
 
     const handleEntering = async () => {
@@ -186,8 +190,8 @@ function CrearSolicitud(props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

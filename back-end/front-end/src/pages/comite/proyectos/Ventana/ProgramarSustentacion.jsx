@@ -27,6 +27,8 @@ function ProgramarSustentacion(props) {
     const [proyectos, setProyectos] = useState([]);
     const [lugarSustentacion, setLugarSustentacion] = useState('');
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const [fechaSustentacion, setFechaSustentacion] = useState('');
 
     const handleEntering = () => {
@@ -82,6 +84,7 @@ function ProgramarSustentacion(props) {
 
     const programarSustentacion = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         if (
             newSustentacion.id_proyecto &&
             newSustentacion.anio &&
@@ -119,6 +122,7 @@ function ProgramarSustentacion(props) {
         } else {
             mostrarMensaje("Intentalo de nuevo.", "info");
         }
+        setIsLoading(false);
     };
     const handleLugarChange = (value) => {
         const isOnlyWhitespace = /^\s*$/.test(value);
@@ -183,10 +187,10 @@ function ProgramarSustentacion(props) {
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>
+                    <Button onClick={handleCancel} disabled={isLoading}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }}>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{ width: 150 }}>
                         Guardar
                     </Button>
                 </DialogActions>

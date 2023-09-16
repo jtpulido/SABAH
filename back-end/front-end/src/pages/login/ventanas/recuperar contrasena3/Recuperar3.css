@@ -44,6 +44,12 @@
     color: #576A3D;
 }
 
+.text2 {
+    justify-content: space-between;
+    color: #576A3D;
+    font-weight: bold;
+}
+
 .div_input {
     display: flex;
     flex-direction: column;

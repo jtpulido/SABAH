@@ -27,6 +27,8 @@ function CambiarEtapa(props) {
     const [periodo, setPeriodo] = useState('');
     const { enqueueSnackbar } = useSnackbar();
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
@@ -53,6 +55,8 @@ function CambiarEtapa(props) {
 
     const modificarEtapa = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             const response = await fetch("http://localhost:5000/admin/cambiarEtapa", {
                 method: "POST",
@@ -82,6 +86,7 @@ function CambiarEtapa(props) {
         } catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error");
         }
+        setIsLoading(false);
     };
 
     const obtenerEtapas = async () => {
@@ -177,10 +182,10 @@ function CambiarEtapa(props) {
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>
+                    <Button onClick={handleCancel} disabled={isLoading}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" disabled={proyecto.anio === anio && proyecto.periodo === periodo} startIcon={<SaveOutlined />} sx={{ width: 150 }}>
+                    <Button type="submit" variant="contained" disabled={(proyecto.anio === anio && proyecto.periodo === periodo) || isLoading} startIcon={<SaveOutlined />} sx={{ width: 150 }}>
                         Guardar
                     </Button>
                 </DialogActions>

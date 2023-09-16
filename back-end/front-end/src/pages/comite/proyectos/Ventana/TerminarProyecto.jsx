@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     Typography,
@@ -27,6 +27,8 @@ function FinalizarProyecto(props) {
     const [respuestasChecked, setRespuestasChecked] = useState([]);
     const [cumplimientos, setCumplimientos] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const token = useSelector(selectToken);
 
     const { enqueueSnackbar } = useSnackbar();
@@ -45,6 +47,7 @@ function FinalizarProyecto(props) {
 
     const terminarProyecto = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         const allCheckboxesMarked = respuestasChecked.every((checked) => checked);
         if (!allCheckboxesMarked) {
             mostrarMensaje("Solo podrá finalizar el proyecto si cumple con todos los requisitos.", "info");
@@ -73,8 +76,8 @@ function FinalizarProyecto(props) {
             } catch (error) {
                 mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error");
             }
-
         }
+        setIsLoading(false);
     };
 
     const obtenerCumplimiento = async () => {
@@ -131,10 +134,10 @@ function FinalizarProyecto(props) {
 
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel}>
+                <Button onClick={handleCancel} disabled={isLoading}>
                     Cerrar
                 </Button>
-                <Button onClick={terminarProyecto} startIcon={<SaveOutlined />} variant="contained" color="primary" sx={{ width: 250 }}>
+                <Button onClick={terminarProyecto} disabled={isLoading} startIcon={<SaveOutlined />} variant="contained" color="primary" sx={{ width: 250 }}>
                     Guardar
                 </Button>
             </DialogActions>

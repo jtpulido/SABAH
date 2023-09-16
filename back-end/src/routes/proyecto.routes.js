@@ -52,15 +52,16 @@ router.post('/proyecto/guardarSolicitud', authenticateJWT, guardarSolicitud);
 router.get('/proyecto/tipoSolicitud', authenticateJWT, obtenerTipoSolicitud);
 
 router.post('/proyecto/guardarInfoActa', authenticateJWT, guardarInfoActa);
-router.post('/proyecto/generarPDF', authenticateJWT, generarPDF);
+
+
 router.get('/proyecto/obtenerInfoActa/:idReunion', authenticateJWT, obtenerInfoActa);
 router.post('/proyecto/guardarLink', authenticateJWT, guardarLink);
 router.get('/proyecto/obtenerLink/:id', authenticateJWT, obtenerLinkProyecto);
 
-router.post('/proyecto/obtenerInfoDirector', passport.authenticate('jwt', { session: false }), obtenerInfoDirector);
-router.post('/proyecto/obtenerInfoLector', passport.authenticate('jwt', { session: false }), obtenerInfoLector);
-router.post('/proyecto/obtenerInfoJurado', passport.authenticate('jwt', { session: false }), obtenerInfoJurado);
-router.post('/proyecto/obtenerInfoCliente', passport.authenticate('jwt', { session: false }), obtenerInfoCliente);
+router.get('/proyecto/obtenerInfoDirector/:id', passport.authenticate('jwt', { session: false }), obtenerInfoDirector);
+router.get('/proyecto/obtenerInfoLector/:id', passport.authenticate('jwt', { session: false }), obtenerInfoLector);
+router.get('/proyecto/obtenerInfoJurado/:id', passport.authenticate('jwt', { session: false }), obtenerInfoJurado);
+router.get('/proyecto/obtenerInfoCliente/:id', passport.authenticate('jwt', { session: false }), obtenerInfoCliente);
 
 router.get('/proyecto/ultIdReunion', passport.authenticate('jwt', { session: false }), ultIdReunion);
 router.post('/proyecto/crearReunionInvitados', passport.authenticate('jwt', { session: false }), crearReunionInvitados);

@@ -16,6 +16,8 @@ function CambiarProgramacionSustentacion(props) {
     const { onClose, sustentacion, onSubmit, open, ...other } = props;
     const token = useSelector(selectToken);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
@@ -38,8 +40,9 @@ function CambiarProgramacionSustentacion(props) {
 
     const modificarFechaSustentacion = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
-            const fechaSustentacionDate =  fechaSustentacion.format("DD/MM/YYYY hh:mm A")
+            const fechaSustentacionDate = fechaSustentacion.format("DD/MM/YYYY hh:mm A")
             const response = await fetch(`http://localhost:5000/comite/sustentacion/${sustentacion.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
@@ -58,6 +61,7 @@ function CambiarProgramacionSustentacion(props) {
         catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
+        setIsLoading(false);
     };
     const handleLugarChange = (value) => {
         const isOnlyWhitespace = /^\s*$/.test(value);
@@ -104,10 +108,10 @@ function CambiarProgramacionSustentacion(props) {
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>
+                    <Button onClick={handleCancel} disabled={isLoading}>
                         Cerrar
                     </Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{ width: 150 }}>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{ width: 150 }}>
                         Guardar
                     </Button>
                 </DialogActions>

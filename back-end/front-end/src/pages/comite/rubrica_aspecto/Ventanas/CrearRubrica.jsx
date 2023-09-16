@@ -29,12 +29,12 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearRubrica(props) {
-    const { onClose, onSubmit,open } = props;
+    const { onClose, onSubmit, open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
 
-
+    const [isLoading, setIsLoading] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const [rubricaNombre, setRubricaNombre] = useState('');
@@ -79,6 +79,7 @@ function CrearRubrica(props) {
 
     const crearRubrica = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
         const puntajesSum = selectedAspectos.reduce((sum, aspecto) => sum + (aspectoPuntajes[aspecto.id] || 0), 0);
         if (puntajesSum === 100) {
             try {
@@ -114,6 +115,7 @@ function CrearRubrica(props) {
         } else {
             mostrarMensaje("La suma de los aspectos debe ser 100", "error");
         }
+        setIsLoading(false);
     };
     const handleAspectoSelect = (event) => {
         const aspectoId = event.target.value;
@@ -267,8 +269,8 @@ function CrearRubrica(props) {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

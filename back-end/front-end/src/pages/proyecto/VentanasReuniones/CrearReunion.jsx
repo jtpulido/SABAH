@@ -24,6 +24,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function CrearReunion(props) {
 
     const id = sessionStorage.getItem('id_proyecto');
+    const id_modalidad = sessionStorage.getItem('proyecto_id_modaliad');
     const token = useSelector(selectToken);
 
     const { onClose, onSubmit, open, ...other } = props;
@@ -38,75 +39,73 @@ function CrearReunion(props) {
 
     const [ultIdReunion, setUltIdReunion] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const obtenerInfoDirector = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoDirector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoDirector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 203) {
+                mostrarMensaje(data.message, "info");
+            } else if (response.status === 200) {
                 setDirector(data.director);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     }, [token, id]);
 
     const obtenerInfoLector = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoLector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoLector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 203) {
+                mostrarMensaje(data.message, "info");
+            } else if (response.status === 200) {
                 setLector(data.lector);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     }, [token, id]);
 
     const obtenerInfoJurado = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoJurado", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoJurado/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 203) {
+                mostrarMensaje(data.message, "info");
+            } else if (response.status === 200) {
                 setJurado(data.jurado);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     }, [token, id]);
 
     const obtenerInfoCliente = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoCliente", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoCliente/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 203) {
+                mostrarMensaje(data.message, "info");
+            } else if (response.status === 200) {
                 setCliente(data.cliente);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     }, [token, id]);
 
@@ -131,8 +130,10 @@ function CrearReunion(props) {
         obtenerInfoDirector();
         obtenerInfoLector();
         obtenerInfoJurado();
-        obtenerInfoCliente();
         obtenerUltIdReunion();
+        if (id_modalidad === '1') {
+            obtenerInfoCliente();
+        }
     };
 
     const { enqueueSnackbar } = useSnackbar();
@@ -235,6 +236,7 @@ function CrearReunion(props) {
 
     const guardarSolicitud = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
 
         if (fecha === '' || fecha === undefined || selectedTime === null) {
             mostrarMensaje("Por favor seleccione un valor de fecha y hora válidos.", "error");
@@ -295,6 +297,7 @@ function CrearReunion(props) {
                 }
             }
         }
+        setIsLoading(false);
     };
 
     return (
@@ -388,8 +391,8 @@ function CrearReunion(props) {
                                 Invitados
                             </Typography>
                             <Grid container spacing={0}>
-                                <Grid item xs={6}>
-                                    {cliente.nombre_repr && (
+                                {cliente.nombre_repr && (
+                                    <Grid item xs={6}>
                                         <React.Fragment>
                                             <Checkbox
                                                 checked={clienteChecked}
@@ -400,10 +403,10 @@ function CrearReunion(props) {
                                                 Cliente - {cliente.nombre_repr}
                                             </Typography>
                                         </React.Fragment>
-                                    )}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {director.nombre && (
+                                    </Grid>
+                                )}
+                                {director.nombre && (
+                                    <Grid item xs={6}>
                                         <React.Fragment>
                                             <Checkbox
                                                 checked={directorChecked}
@@ -414,10 +417,10 @@ function CrearReunion(props) {
                                                 Director - {director.nombre}
                                             </Typography>
                                         </React.Fragment>
-                                    )}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {lector.nombre && (
+                                    </Grid>
+                                )}
+                                {lector.nombre && (
+                                    <Grid item xs={6}>
                                         <React.Fragment>
                                             <Checkbox
                                                 checked={lectorChecked}
@@ -428,8 +431,8 @@ function CrearReunion(props) {
                                                 Lector - {lector.nombre}
                                             </Typography>
                                         </React.Fragment>
-                                    )}
-                                </Grid>
+                                    </Grid>
+                                )}
                                 {jurado.length > 0 && jurado.map((juradoMember, index) => (
                                     <Grid item xs={6} key={index}>
                                         <Checkbox
@@ -448,8 +451,8 @@ function CrearReunion(props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar
