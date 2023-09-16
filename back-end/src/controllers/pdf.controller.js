@@ -10,7 +10,7 @@ const generarPDF = async (req, res) => {
     const tituloParte1 = 'FACULTAD DE INGENIERÍA\nPROGRAMA INGENIERÍA DE SISTEMAS\nCOMITÉ OPCIONES DE GRADO';
     const tituloParte3 = 'OPCIONES DESARROLLO TECNOLÓGICO Y PROYECTO DE GRADO';
 
-    const imagePath = path.join(__dirname, 'Logo.png');
+    const imagePath = path.join(__dirname, './../assets/Logo.png');
 
     doc
       .image(imagePath, 50, 50, { width: 100 })
