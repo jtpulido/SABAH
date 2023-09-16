@@ -43,17 +43,18 @@ function FinalizarProyecto(props) {
 
     const handleCancel = () => {
         onClose();
+        setRespuestasChecked([])
+        setCumplimientos([])
     };
 
     const terminarProyecto = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+     
         const allCheckboxesMarked = respuestasChecked.every((checked) => checked);
         if (!allCheckboxesMarked) {
             mostrarMensaje("Solo podrá finalizar el proyecto si cumple con todos los requisitos.", "info");
         } else {
-            mostrarMensaje("Intentalo más tarde.", "warning");
-
+            setIsLoading(true);
             try {
                 const response = await fetch(`${apiBaseUrl}/comite/terminarproyecto/${proyecto.id}`, {
                     method: "POST",
@@ -64,12 +65,14 @@ function FinalizarProyecto(props) {
                 if (response.status === 203) {
                     mostrarMensaje(data.message, "warning");
                 } else if (data.success) {
-                    mostrarMensaje("Ok", "El proyecto cambio a estado terminado");
+                    mostrarMensaje("El proyecto cambio a estado terminado","success");
                     const cambio = {
                         id_estado: data.estado.id,
                         estado: data.estado.nombre
                     };
                     onSubmit(cambio)
+                    setRespuestasChecked([])
+                    setCumplimientos([])
                 } else {
                     mostrarMensaje(data.message, "error");
                 }
@@ -93,6 +96,7 @@ function FinalizarProyecto(props) {
                 mostrarMensaje(data.message, "warning");
             } else if (response.status === 200) {
                 setCumplimientos(data.cumplimientos)
+                setRespuestasChecked(Array.from({ length: data.cumplimientos.length }, () => false));
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
