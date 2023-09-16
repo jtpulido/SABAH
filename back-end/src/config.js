@@ -20,6 +20,7 @@ module.exports = {
     client_id :process.env.GOOGLE_CLIENT_ID,
   },
   API_KEY:process.env.API_KEY,
-  JWT_SECRET: process.env.JWT_SECRET
+  JWT_SECRET: process.env.JWT_SECRET,
+  CORS: process.env.CORS
   
 };

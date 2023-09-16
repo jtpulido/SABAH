@@ -26,7 +26,7 @@ import { Download, ExpandMore, SaveOutlined } from '@mui/icons-material';
 import CustomDataGrid from '../../layouts/DataGrid';
 
 function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
-
+ 
     const token = useSelector(selectToken);
 
     const [loading, setLoading] = useState(true);

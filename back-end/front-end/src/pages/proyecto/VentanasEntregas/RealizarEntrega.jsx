@@ -33,7 +33,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-setLoading(true)
+        setLoading(true)
         if (selectedFile) {
             try {
                 const formData = new FormData();
