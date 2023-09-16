@@ -21,8 +21,9 @@ const { guardarCalificacionDoc, verInfoDocRetroalimentacion } = require('../cont
 
 const multer = require('multer');
 
-const upload = multer({ dest: 'uploads/retro/' });
-//calificación
+const storage = multer.memoryStorage();
+const upload = multer({  storage: storage});
+
 router.post('/usuario/guardarCalificacion', authenticateJWT, guardarCalificacion);
 
 router.post('/usuario/documento/guardarCalificacion', upload.single('file'), async (req, res) => {

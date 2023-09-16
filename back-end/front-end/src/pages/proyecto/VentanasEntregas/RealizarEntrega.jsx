@@ -7,7 +7,7 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions, CssBaseline, Grid,
-    TextField, Typography, Divider
+    TextField, Typography, Divider,Box,CircularProgress
 } from '@mui/material';
 
 
@@ -26,14 +26,14 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
     const token = useSelector(selectToken);
 
     const [selectedFile, setSelectedFile] = useState(null);
-
+    const [loading, setLoading] = useState(false);
     const handleInputChange = (event) => {
         setSelectedFile(event.target.files[0]);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+setLoading(true)
         if (selectedFile) {
             try {
                 const formData = new FormData();
@@ -59,6 +59,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
             }
         }
+        setLoading(false)
     };
 
     const formatFecha = (fecha) => {
@@ -154,11 +155,19 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancelar</Button>
+                    {loading ? (
+                        <Box sx={{ display: 'flex' }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <>
                     <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar
                     </Button>
+                    </>
+                    )}
                 </DialogActions>
             </form>
         </Dialog>

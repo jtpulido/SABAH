@@ -1,58 +1,28 @@
 const { v4: uuidv4 } = require('uuid');
+const { repository,API_KEY } = require('../config')
+const { Readable } = require('stream');
+
 const fs = require('fs');
 const path = require('path');
 const pool = require('../database')
-const verInfoDocEntregado = async (req, res) => {
+const drive = require('../repositorio')
+
+const subirArchivoAGoogleDrive = async (nombreArchivo, mimeType, contenido, carpeta) => {
   try {
-    const id = req.params.id_doc_entrega;
-    const query =
-      `SELECT 
-          de.id,
-          d.nombre AS nombre_documento,
-          d.id AS id_doc,
-          d.uuid,
-          de.fecha_entrega
-      FROM 
-          documento_entrega de
-          INNER JOIN documento d ON de.id_documento = d.id
-      WHERE de.id = $1  
-  `;
-    await pool.query(query, [id], (error, result) => {
-      if (error) {
-        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
-      }
-      if (result.rows.length === 0) {
-
-        return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
-      }
-      const documento = result.rows[0];
-
-      if (!documento) {
-
-        return res.status(404).json({ success: false, message: 'Documento no encontrado' });
-      }
-      const filePath = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\entregas\\", documento.uuid + path.extname(documento.nombre_documento));
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ success: false, message: 'Archivo no encontrado' });
-      }
-      const nombreArchivo = documento.uuid + path.extname(documento.nombre_documento)
-      // Envía el archivo para descargar al front-end.
-      res.json({ success: true, filePath, documento, nombreArchivo });
-    })
-    return res.status(500).json({ success: false, message: 'Error al descargar el archivo' });
-
+ 
+    const response = await drive.files.create({
+      requestBody: {
+        name: nombreArchivo,
+        parents: [carpeta], 
+      },
+      media: {
+        mimeType,
+        body: Readable.from(contenido),
+      },
+    });
+    return response.data.id;
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Error al descargar el archivo' });
-  }
-};
-const descargarDocumento = async (req, res) => {
-  const nombreArchivo = req.params.nombreArchivo;
-  const rutaArchivo = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\entregas\\", nombreArchivo);
-
-  if (fs.existsSync(rutaArchivo)) {
-    res.sendFile(rutaArchivo);
-  } else {
-    res.status(203).json({ success: false, message: 'Archivo no encontrado' });
+    throw error;
   }
 };
 
@@ -69,7 +39,7 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
     const espacioEntregaResult = await pool.query(espacioEntregaQuery, [entrega.id_espacio_entrega]);
 
     if (espacioEntregaResult.rows.length === 0) {
-      return res.status(501).json({ success: false, message: 'Espacio de entrega no encontrado.' });
+      return res.status(203).json({ success: false, message: 'Espacio de entrega no encontrado.' });
     }
 
     const fechaCierreEntrega = new Date(espacioEntregaResult.rows[0].fecha_cierre_entrega);
@@ -95,49 +65,40 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
     let documentoId, uuid, fechaEntrega;
 
     if (existingDocumentResult.rows.length > 0) {
-      // Actualizar el documento existente y la fecha de entrega
+      // Obtener información del documento existente
       documentoId = existingDocumentResult.rows[0].id;
       uuid = existingDocumentResult.rows[0].uuid;
       fechaEntrega = existingDocumentResult.rows[0].fecha_entrega;
-
-      // Eliminar el archivo anterior
-      const fileExtension = path.extname(existingDocumentResult.rows[0].nombre);
-      const previousFilePath = path.join('uploads/entregas/', `${uuid}${fileExtension}`);
-      fs.unlinkSync(previousFilePath);
-
-      // Actualizar el UUID para mantener la consistencia
-      uuid = uuidv4();
-      const newFileName = `${uuid}${fileExtension}`;
-      const newPath = path.join('uploads/entregas/', newFileName);
-      fs.renameSync(file.path, newPath);
-
+    
+      if (uuid) {
+        await eliminarArchivoDeGoogleDrive(uuid);
+      }
+    
+    
+      const fileId = await subirArchivoAGoogleDrive(nombre, file.mimetype, file.buffer,repository.id_entrega);
+    
+      // Actualizar la información del documento en la base de datos (nombre y UUID)
       const documentoUpdateQuery = `
         UPDATE documento
         SET nombre = $1, uuid = $2
         WHERE id = $3
       `;
-      const documentoUpdateValues = [nombre, uuid, documentoId];
-
+      const documentoUpdateValues = [nombre, fileId, documentoId];
+    
       await pool.query(documentoUpdateQuery, documentoUpdateValues);
     } else {
-      // Insertar nuevo documento y entrada de entrega
-      uuid = uuidv4();
-      const fileExtension = path.extname(file.originalname);
-      const fileName = `${uuid}${fileExtension}`;
-      const newPath = path.join('uploads/entregas/', fileName);
-      fs.renameSync(file.path, newPath);
-
+      const fileId = await subirArchivoAGoogleDrive(nombre, file.mimetype, file.buffer,repository.id_entrega);
       const documentoQuery = `
         INSERT INTO documento (nombre, uuid)
         VALUES ($1, $2)
         RETURNING id
       `;
-      const documentoValues = [nombre, uuid];
+      const documentoValues = [nombre, fileId];
 
       const documentoResult = await pool.query(documentoQuery, documentoValues);
       documentoId = documentoResult.rows[0].id;
 
-      fechaEntrega = new Date(); // Marca de tiempo actual
+      fechaEntrega = new Date(); 
     }
 
     // Insertar o actualizar entrada de entrega
@@ -162,8 +123,61 @@ const guardarDocumentoYEntrega = async (req, res, file) => {
     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al guardar el documento y la entrega.' });
   }
 };
+const eliminarArchivoDeGoogleDrive = async (fileId) => {
+  try {
+    await drive.files.delete({
+      fileId: fileId,
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+const verInfoDocEntregado = async (req, res) => {
+  try {
+    const id = req.params.id_doc_entrega;
+    const query =
+      `SELECT 
+          de.id,
+          d.nombre AS nombre_documento,
+          d.id AS id_doc,
+          d.uuid,
+          de.fecha_entrega
+      FROM 
+          documento_entrega de
+          INNER JOIN documento d ON de.id_documento = d.id
+      WHERE de.id = $1  
+  `;
+    await pool.query(query, [id], async (error, result) => {
+      if (error) {
+        return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
+      }
+      if (result.rows.length === 0) {
+        return res.status(203).json({ success: false, message: 'No se encontro el documento entregado.' });
+      }else{
+        const documento = result.rows[0];
+        return res.json({ success: true, documento });
+      }
+    })
+  } catch (error) {
+    return res.status(502).json({ success: false, message: 'Error al obtener la información del documento entregado' });
+  }
+};
 
 
+const descargarDocumento = async (req, res) => {
+  try {
+    const fileId = req.params.uuid;
+    const response = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' });
+    if (response.status !== 200) {
+      throw new Error(`Error al descargar el archivo, comuníquese con el administrador.`);
+    }
+    res.setHeader('Content-Type', response.headers['content-type']);
+    res.setHeader('Content-Disposition', `attachment; filename=${fileId}`);
+    response.data.pipe(res);
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'No se pudo encontrar el archivo entregado, comuníquese con el administrador' });
+  }
+};
 
 const guardarCalificacionDoc = async (req, res, file) => {
 
@@ -180,7 +194,7 @@ const guardarCalificacionDoc = async (req, res, file) => {
     const espacioEntregaResult = await pool.query(espacioEntregaQuery, [id_espacio_entrega]);
 
     if (espacioEntregaResult.rows.length === 0) {
-      return res.status(501).json({ success: false, message: 'Espacio de entrega no encontrado.' });
+      return res.status(502).json({ success: false, message: 'Espacio de entrega no encontrado.' });
     }
 
     const fechaCierreCal = new Date(espacioEntregaResult.rows[0].fecha_cierre_calificacion);
@@ -207,18 +221,13 @@ const guardarCalificacionDoc = async (req, res, file) => {
     const query = 'UPDATE calificacion SET nota_final = $1 WHERE id = $2';
     await pool.query(query, [nota_final, id_calificacion]);
 
-    // Insertar nuevo documento y entrada de entrega
-    uuid = uuidv4();
-    const fileExtension = path.extname(file.originalname);
-    const fileName = `${uuid}${fileExtension}`;
-    const newPath = path.join('uploads/retro/', fileName);
-    fs.renameSync(file.path, newPath);
+    const fileId = await subirArchivoAGoogleDrive(nombre, file.mimetype, file.buffer,repository.id_retroalimentacion);
 
     const documentoQuery = `
       INSERT INTO documento_retroalimentacion (nombre, uuid, id_calificacion)
       VALUES ($1, $2, $3)
 `;
-    const documentoValues = [nombre, uuid, id_calificacion];
+    const documentoValues = [nombre, fileId, id_calificacion];
 
     await pool.query(documentoQuery, documentoValues);
 
@@ -242,40 +251,35 @@ const verInfoDocRetroalimentacion = async (req, res) => {
         documento_retroalimentacion
       WHERE id_calificacion= $1  
       `;
-    await pool.query(query, [id], (error, result) => {
+    await pool.query(query, [id], async (error, result) => {
       if (error) {
         return res.status(502).json({ success: false, message: 'Ha ocurrido un error al obtener la información de los espacios creados. Por favor, intente de nuevo más tarde.' });
       }
       if (result.rows.length === 0) {
-
-        return res.status(203).json({ success: true, message: 'No se encontro el documento entregado.' });
+        return res.status(203).json({ success: false, message: 'No se encontro el documento entregado.' });
+      }else{
+        const documento = result.rows[0];
+        return res.json({ success: true, documento });
       }
-      const documento = result.rows[0];
-
-      if (!documento) {
-        return res.status(203).json({ success: false, message: 'Documento no encontrado' });
-      }
-      const filePath = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\retro\\", documento.uuid + path.extname(documento.nombre_documento));
-      if (!fs.existsSync(filePath)) {
-        return res.status(203).json({ success: false, message: 'Archivo no encontrado' });
-      }
-      const nombreArchivo = documento.uuid + path.extname(documento.nombre_documento)
-      res.json({ success: true, filePath, documento, nombreArchivo });
+      
     })
-    return res.status(502).json({ success: false, message: 'Error al descargar el archivo' });
   } catch (error) {
-    return res.status(502).json({ success: false, message: 'Error al descargar el archivo' });
+    return res.status(502).json({ success: false, message: 'Error al obtener la información del documento de retroalimentación' });
   }
 };
 
 const descargarDocumentoRetroalimentacion = async (req, res) => {
-  const nombreArchivo = req.params.nombreArchivo;
-  const rutaArchivo = path.join("C:\\Users\\Tatiana Pulido\\Proyecto\\SABAH\\back-end\\uploads\\entregas\\", nombreArchivo);
-
-  if (fs.existsSync(rutaArchivo)) {
-    res.sendFile(rutaArchivo);
-  } else {
-    res.status(203).json({ success: false, message: 'Archivo no encontrado' });
+  try {
+    const fileId = req.params.uuid;
+    const response = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' });
+    if (response.status !== 200) {
+      throw new Error(`Error al descargar el archivo, comuníquese con el administrador.}`);
+    }
+    res.setHeader('Content-Type', response.headers['content-type']);
+    res.setHeader('Content-Disposition', `attachment; filename=${fileId}`);
+    response.data.pipe(res);
+  } catch (error) {
+    res.status(502).json({ success: false, message: 'No se pudo encontrar el archivo entregado, comuníquese con el administrador.' });
   }
 };
 module.exports = {

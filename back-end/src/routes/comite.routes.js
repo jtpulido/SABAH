@@ -156,8 +156,8 @@ router.get('/comite/entregas/realizadas/calificadas', authenticateJWT, verEntreg
 router.get('/comite/entregas/realizadas/porCalificar', authenticateJWT, verEntregasRealizadasSinCalificar);
 router.get('/comite/documento/:id_doc_entrega', authenticateJWT, verInfoDocEntregado);
 router.get('/comite/retroalimentacion/documento/:id', authenticateJWT, verInfoDocRetroalimentacion);
-router.get('/descargar/:nombreArchivo', descargarDocumento);
-router.get('/descargar/retroalimentacion/:nombreArchivo', descargarDocumentoRetroalimentacion);
+router.get('/descargar/:uuid', descargarDocumento);
+router.get('/descargar/retroalimentacion/:uuid', descargarDocumentoRetroalimentacion);
 router.get('/comite/documento/aspectos/:id_esp_entrega', authenticateJWT, verAspectosEspacio);
 
 router.get('/comite/calificacion/aspectos/:id_calificacion', authenticateJWT, verCalificacionAspectos);

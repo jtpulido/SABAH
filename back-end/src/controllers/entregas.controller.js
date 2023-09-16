@@ -273,7 +273,7 @@ const crearEspacio = async (req, res) => {
         if (modalidad.acronimo === 'COT' && etapa.nombre !== 'Propuesta') {
             return res.status(502).json({ success: false, message: 'En la modalidad de Coterminal, solo es posible generar entregas para la etapa de propuesta.' });
         }
-        if (rol.nombre === 'Jurado' && modalidad.acronimo !== 'COT' && modalidad.nombre !== 'AUX') {
+        if (rol.nombre === 'Jurado' &&(modalidad.acronimo === 'COT' || modalidad.acronimo === 'AUX') ) {
             return res.status(502).json({ success: false, message: 'Las modalidades de Coterminal y Auxiliar de Investigación no incluyen la participación de un jurado.' });
         }
         if (rol.nombre === 'Lector' && modalidad.acronimo === 'AUX') {
@@ -299,6 +299,22 @@ const modificarEspacio = async (req, res) => {
 
         const formatted_fecha_apertura_calificacion = moment(fecha_apertura_calificacion, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
         const formatted_fecha_cierre_calificacion = moment(fecha_cierre_calificacion, "DD/MM/YYYY hh:mm A").format("YYYY-MM-DD HH:mm:ss");
+        const resultModalidad = await pool.query('SELECT id, acronimo FROM modalidad WHERE id = $1', [id_modalidad]);
+        const modalidad = resultModalidad.rows[0];
+        const resultEtapa = await pool.query('SELECT id, nombre FROM etapa WHERE id = $1', [id_etapa]);
+        const etapa = resultEtapa.rows[0];
+        const resultRol = await pool.query('SELECT id, nombre FROM rol WHERE id = $1', [id_rol]);
+        const rol = resultRol.rows[0];
+
+        if (modalidad.acronimo === 'COT' && etapa.nombre !== 'Propuesta') {
+            return res.status(502).json({ success: false, message: 'En la modalidad de Coterminal, solo es posible generar entregas para la etapa de propuesta.' });
+        }
+        if (rol.nombre === 'Jurado' &&(modalidad.acronimo !== 'COT' ||modalidad.acronimo !== 'AUX') ) {
+            return res.status(502).json({ success: false, message: 'Las modalidades de Coterminal y Auxiliar de Investigación no incluyen la participación de un jurado.' });
+        }
+        if (rol.nombre === 'Lector' && modalidad.acronimo === 'AUX') {
+            return res.status(502).json({ success: false, message: 'La modalidad de Auxiliar de Investigación no incluyen la participación de un lector.' });
+        }
         const entregasQuery = 'SELECT id FROM documento_entrega WHERE id_espacio_entrega = $1 LIMIT 1';
         const entregasValues = [espacio_id];
         const entregasResult = await pool.query(entregasQuery, entregasValues);
@@ -309,7 +325,7 @@ const modificarEspacio = async (req, res) => {
             const query = `UPDATE espacio_entrega
                 SET nombre = $1, descripcion = $2, fecha_apertura_entrega= $3, fecha_cierre_entrega= $4, fecha_apertura_calificacion= $5, fecha_cierre_calificacion= $6
                 WHERE id = $7`;
-            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion];
+            const values = [nombre, descripcion, formatted_fecha_apertura_entrega, formatted_fecha_cierre_entrega, formatted_fecha_apertura_calificacion, formatted_fecha_cierre_calificacion,espacio_id];
             await pool.query(query, values, (error, result) => {
                 if (error) {
                     return res.status(502).json({ success: false, message: 'Ha ocurrido un error al modificar el espacio. Por favor, intente de nuevo más tarde.' });

@@ -108,6 +108,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, 'error');
             } else if (response.status === 203) {
+                setDocEntregado(data.documento);
                 mostrarMensaje(data.message, 'warning');
             }
         } catch (error) {
@@ -359,42 +360,55 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
         return dayjs(fecha).format('DD-MM-YYYY HH:mm:ss');
     };
 
+    const descargarArchivo = (url, nombreDocumento) => {
+        fetch(url, {
+            method: 'HEAD',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        })
+        .then((response) => {
+            if (response.status === 200) {
+                return fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+            } else {
+                mostrarMensaje('El archivo no existe, comuníquese con el administrador.', 'error');
+                throw new Error('El archivo no existe');
+            }
+        })
+        .then((response) => response.blob())
+        .then((blob) => {
+            saveAs(blob, nombreDocumento);
+        })
+        .catch((error) => {
+            mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
+        });
+    };
+    
     const handleDescargarArchivo = () => {
-        const url = `http://localhost:5000/descargar/${linkDocEntregado}`;
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then((response) => response.blob())
-            .then((blob) => {
-                saveAs(blob, docEntregado.nombre_documento);
-            })
-            .catch((error) => {
-                mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
-            });
+        if (docEntregado) {
+            const url = `http://localhost:5000/descargar/${docEntregado.uuid}`;
+        descargarArchivo(url, docEntregado.nombre_documento);
+        }else{ 
+        mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
+        }
     };
+    
     const handleDescargarRetroalimentacion = () => {
-        const url = `http://localhost:5000/descargar/retroalimentacion/${linkDocRetro}`;
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then((response) => response.blob())
-            .then((blob) => {
-                saveAs(blob, docRetroalimentacion.nombre_documento);
-            })
-            .catch((error) => {
-                mostrarMensaje(`Error al descargar el archivo: ${error}`, 'error');
-            });
+        if (docRetroalimentacion) {
+        const url = `http://localhost:5000/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
+        descargarArchivo(url, docRetroalimentacion.nombre_documento);
+    }else{ 
+        mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
+        }
     };
-   
- 
+    
     return (
         <div>
             <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>

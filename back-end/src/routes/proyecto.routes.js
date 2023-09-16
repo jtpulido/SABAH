@@ -20,8 +20,8 @@ const router = Router()
 const multer = require('multer');
 
 const { guardarDocumentoYEntrega, } = require('../controllers/documento.controller');
-
-const upload = multer({ dest: 'uploads/entregas/' });
+const storage = multer.memoryStorage();
+const upload = multer({  storage: storage});
 
 router.post('/entrega/guardar', upload.single('file'), async (req, res) => {
   try {
