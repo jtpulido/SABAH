@@ -28,7 +28,7 @@ import { Edit, SaveOutlined } from '@mui/icons-material';
 
 
 function VerModificarRubrica(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
     const { onClose, onSubmit, rubrica = {}, open, ...other } = props;
 
@@ -77,7 +77,7 @@ function VerModificarRubrica(props) {
 
     const obtenerAspectos = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/aspecto", {
+            const response = await fetch(`${apiBaseUrl}/comite/aspecto`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -110,7 +110,7 @@ function VerModificarRubrica(props) {
                     })),
                 };
 
-                const response = await fetch(`http://localhost:5000/comite/rubrica/${rubrica.id}`, {
+                const response = await fetch(`${apiBaseUrl}/comite/rubrica/${rubrica.id}`, {
                     method: 'PUT',
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(rubricaData),
@@ -182,7 +182,7 @@ function VerModificarRubrica(props) {
 
     const habilitarEdicion = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/usoRubrica/${rubrica.id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/usoRubrica/${rubrica.id}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

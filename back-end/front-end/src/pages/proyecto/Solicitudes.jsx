@@ -14,7 +14,7 @@ import CrearSolicitud from "./VentanasSolicitud/CrearSolicitud";
 
 
 export default function Proyectos() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const token = useSelector(selectToken);
   const id = sessionStorage.getItem('id_proyecto');
   const { enqueueSnackbar } = useSnackbar();
@@ -69,7 +69,7 @@ export default function Proyectos() {
 
   const llenarTabla = async (endpoint, setRowsFunc, id) => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/${endpoint}/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

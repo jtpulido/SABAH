@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 
 function CambiarNombre(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, proyectoNombre, onSubmit, open, ...other } = props;
     const id = sessionStorage.getItem('id_proyecto');
     const token = useSelector(selectToken);
@@ -34,7 +34,7 @@ function CambiarNombre(props) {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/comite/cambiarNombre", {
+            const response = await fetch(`${apiBaseUrl}/comite/cambiarNombre`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id, nombre: nombre.trim() })

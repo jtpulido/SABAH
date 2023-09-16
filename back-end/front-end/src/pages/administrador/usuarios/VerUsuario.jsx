@@ -16,7 +16,7 @@ import CustomDataGrid from "../../layouts/DataGrid";
 import ModificarUsuario from "./ModificarUsuario";
 
 export default function VerUsuario() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('admin_id_usuario');
   const token = useSelector(selectToken);
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ export default function VerUsuario() {
 
   const infoUsuario = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/verUsuario/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -122,7 +122,7 @@ export default function VerUsuario() {
 
   const rolDirector = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/rolDirector/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/rolDirector/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -141,7 +141,7 @@ export default function VerUsuario() {
 
   const rolLector = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/rolLector/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/rolLector/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -160,7 +160,7 @@ export default function VerUsuario() {
 
   const rolJurado = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/rolJurado/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/rolJurado/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -179,7 +179,7 @@ export default function VerUsuario() {
 
   const llenarTablaDirector = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/obtenerProyectosDirector/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/obtenerProyectosDirector/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -199,7 +199,7 @@ export default function VerUsuario() {
 
   const llenarTablaLector = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/obtenerProyectosLector/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/obtenerProyectosLector/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -219,7 +219,7 @@ export default function VerUsuario() {
 
   const llenarTablaJurado = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/obtenerProyectosJurado/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/obtenerProyectosJurado/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

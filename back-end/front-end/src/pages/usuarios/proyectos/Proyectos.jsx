@@ -13,7 +13,7 @@ import CustomDataGrid from "../../layouts/DataGrid";
 
 
 export default function Proyectos() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const idUsuario = sessionStorage.getItem('user_id_usuario');
     const idRol = sessionStorage.getItem('id_rol');
     const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function Proyectos() {
 
     const llenarTablaEnCurso = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectosDesarrolloRol/${idUsuario}/${idRol}`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/obtenerProyectosDesarrolloRol/${idUsuario}/${idRol}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -98,7 +98,7 @@ export default function Proyectos() {
 
     const llenarTablaCerrados = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectosCerradosRol/${idUsuario}/${idRol}`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/obtenerProyectosCerradosRol/${idUsuario}/${idRol}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

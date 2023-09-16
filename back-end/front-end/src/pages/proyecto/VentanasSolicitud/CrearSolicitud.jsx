@@ -11,6 +11,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CrearSolicitud(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const token = useSelector(selectToken);
 
     const id = sessionStorage.getItem('id_proyecto');
@@ -24,7 +25,7 @@ function CrearSolicitud(props) {
 
     const obtenerTiposSolicitudes = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/tipoSolicitud", {
+            const response = await fetch(`${apiBaseUrl}/proyecto/tipoSolicitud`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -66,7 +67,7 @@ function CrearSolicitud(props) {
             creado_proyecto: true
         };
         try {
-            const response = await fetch("http://localhost:5000/proyecto/guardarSolicitud", {
+            const response = await fetch(`${apiBaseUrl}/proyecto/guardarSolicitud`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(solicitudData)

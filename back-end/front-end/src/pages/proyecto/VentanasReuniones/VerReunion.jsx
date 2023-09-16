@@ -10,7 +10,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function VerReunion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('id_proyecto');
     const idReunion = sessionStorage.getItem('proyecto_id_reunion');
     const id_modalidad = sessionStorage.getItem('proyecto_id_modaliad');
@@ -49,7 +49,7 @@ function VerReunion(props) {
 
     const obtenerInfoDirector = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoDirector/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoDirector/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -67,7 +67,7 @@ function VerReunion(props) {
 
     const obtenerInfoLector = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoLector/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoLector/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -85,7 +85,7 @@ function VerReunion(props) {
 
     const obtenerInfoJurado = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoJurado/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoJurado/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -103,7 +103,7 @@ function VerReunion(props) {
 
     const obtenerInfoCliente = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoCliente/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoCliente/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -145,7 +145,7 @@ function VerReunion(props) {
     useEffect(() => {
         const obtenerInvitados = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/proyecto/obtenerInvitados/${idReunion}`, {
+                const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInvitados/${idReunion}`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
                 });

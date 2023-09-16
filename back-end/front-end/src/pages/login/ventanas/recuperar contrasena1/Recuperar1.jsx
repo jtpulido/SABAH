@@ -6,7 +6,7 @@ import { Recuperar2 } from "../recuperar contrasena2/Recuperar2";
 import { useSnackbar } from 'notistack';
 
 export const Recuperar1 = ({ isVisible, closeModal }) => {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   // Modal 1
   const [isModalVisible, setIsModalVisible] = React.useState(isVisible);
 
@@ -48,7 +48,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
     event.preventDefault();
     if (correo !== "") {
       try {
-        const response = await fetch("http://localhost:5000/confirmarCorreo", {
+        const response = await fetch(`${apiBaseUrl}/confirmarCorreo`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ "correo": correo })
@@ -58,7 +58,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
         // Si el correo no existe buscar si existe codigo de proyecto
         if (!data.success) {
           try {
-            const response = await fetch("http://localhost:5000/login/confirmarCodigo", {
+            const response = await fetch(`${apiBaseUrl}/login/confirmarCodigo`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ "codigo": correo })
@@ -70,7 +70,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
               mostrarMensaje("El código de proyecto ingresado está registrado en nuestro sistema.", "success");
               setIsProyecto(true);
               try {
-                const response2 = await fetch("http://localhost:5000/sendEmails", {
+                const response2 = await fetch(`${apiBaseUrl}/sendEmails`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(data.correos)
@@ -109,7 +109,7 @@ export const Recuperar1 = ({ isVisible, closeModal }) => {
           // Enviar codigo de verificacion
           event.preventDefault();
           try {
-            const response2 = await fetch("http://localhost:5000/sendEmail", {
+            const response2 = await fetch(`${apiBaseUrl}/sendEmail`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ correo })

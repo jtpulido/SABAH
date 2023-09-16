@@ -22,7 +22,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function EditarReunion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('user_id_usuario');
     const idRol = sessionStorage.getItem('id_rol');
     const idReunion = sessionStorage.getItem('usuario_id_reunion');
@@ -51,7 +51,7 @@ function EditarReunion(props) {
 
     const obtenerAsistencia = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/usuario/obtenerAsistencia`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/obtenerAsistencia`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
             });
@@ -147,7 +147,7 @@ function EditarReunion(props) {
                         mostrarMensaje("No se ha modificado ninguna información de la reunión.", "error");
                     } else {
                         try {
-                            const response = await fetch("http://localhost:5000/usuario/editarReunion", {
+                            const response = await fetch(`${apiBaseUrl}/usuario/editarReunion`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({
@@ -178,7 +178,7 @@ function EditarReunion(props) {
                 mostrarMensaje("Por favor seleccione un estado de asistencia para la reunión.", "error")
             } else {
                 try {
-                    const response = await fetch("http://localhost:5000/usuario/editarReunion", {
+                    const response = await fetch(`${apiBaseUrl}/usuario/editarReunion`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({

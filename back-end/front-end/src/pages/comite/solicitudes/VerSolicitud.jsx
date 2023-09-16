@@ -15,7 +15,7 @@ import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
 
 function VerSolicitud(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, id_solicitud, onSubmit, open } = props;
 
     const { enqueueSnackbar } = useSnackbar();
@@ -54,7 +54,7 @@ function VerSolicitud(props) {
 
     const obtenerInfoSolicitud = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/solicitudes/verSolicitud/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/solicitudes/verSolicitud/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -73,7 +73,7 @@ function VerSolicitud(props) {
     };
     const obtenerAprobacionesSolicitud = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/solicitudes/verAprobaciones/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/solicitudes/verAprobaciones/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -94,7 +94,7 @@ function VerSolicitud(props) {
         setLoading(true);
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/comite/solicitudes/agregarAprobacion", {
+            const response = await fetch(`${apiBaseUrl}/comite/solicitudes/agregarAprobacion`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ aprobado: approval, comentario: comments, id_solicitud })

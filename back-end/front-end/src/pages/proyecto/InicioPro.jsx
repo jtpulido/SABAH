@@ -11,6 +11,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 const drawerWidth = 240;
 
 function InicioPro() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();

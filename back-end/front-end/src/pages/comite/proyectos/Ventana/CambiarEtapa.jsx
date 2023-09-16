@@ -21,6 +21,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 
 function CambiarEtapa(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, proyecto, onSubmit, open, ...other } = props;
     const token = useSelector(selectToken);
     const [anio, setAnio] = useState(dayjs());
@@ -57,7 +58,7 @@ function CambiarEtapa(props) {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/comite/cambiarEtapa", {
+            const response = await fetch(`${apiBaseUrl}/comite/cambiarEtapa`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ proyecto: proyecto, nueva_etapa: etapa, anio: anio.year(), periodo })
@@ -90,7 +91,7 @@ function CambiarEtapa(props) {
 
     const obtenerEtapas = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/etapas", {
+            const response = await fetch(`${apiBaseUrl}/comite/etapas`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

@@ -17,7 +17,7 @@ import { useSelector } from 'react-redux';
 import { selectToken } from '../../../store/authSlice';
 
 function ModificarUsuario(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open, id } = props;
     const token = useSelector(selectToken);
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
@@ -54,7 +54,7 @@ function ModificarUsuario(props) {
 
     const infoUsuario = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/admin/verUsuario/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/admin/verUsuario/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -82,7 +82,7 @@ function ModificarUsuario(props) {
                 nombre: nombre,
                 correo: correo,
             };
-            const response = await fetch(`http://localhost:5000/admin/modificarUsuario`, {
+            const response = await fetch(`${apiBaseUrl}/admin/modificarUsuario`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(usuario)

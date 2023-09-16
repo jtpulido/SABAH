@@ -19,6 +19,7 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearAspecto(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
@@ -48,7 +49,7 @@ function CrearAspecto(props) {
     const crearAspecto = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:5000/comite/aspecto", {
+            const response = await fetch(`${apiBaseUrl}/comite/aspecto`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ nombre })

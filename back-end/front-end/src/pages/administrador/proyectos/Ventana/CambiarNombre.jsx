@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 
 function CambiarNombre(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, proyectoNombre, onSubmit, open, ...other } = props;
     const id = sessionStorage.getItem('admin_id_proyecto');
     const token = useSelector(selectToken);
@@ -18,7 +18,7 @@ function CambiarNombre(props) {
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
-    
+
     const [nombre, setNombre] = useState('');
 
     const handleEntering = () => {
@@ -35,7 +35,7 @@ function CambiarNombre(props) {
         setIsLoading(true);
 
         try {
-            const response = await fetch("http://localhost:5000/admin/cambiarNombre", {
+            const response = await fetch(`${apiBaseUrl}/admin/cambiarNombre`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id, nombre: nombre.trim() })
@@ -63,7 +63,7 @@ function CambiarNombre(props) {
     return (
         <Dialog open={open} fullWidth maxWidth="md" TransitionProps={{ onEntering: handleEntering }} onClose={handleCancel} {...other} >
             <CssBaseline />
-            <form onSubmit={(e) =>modificarNombre(e)}>
+            <form onSubmit={(e) => modificarNombre(e)}>
                 <DialogTitle variant="h1" color="secondary">Cambiar nombre</DialogTitle>
                 <DialogContent dividers >
                     <Typography variant="h6" color="primary">

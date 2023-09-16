@@ -21,7 +21,7 @@ import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 
 function FinalizarProyecto(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, proyecto, onSubmit, open, ...other } = props;
     const [respuestasChecked, setRespuestasChecked] = useState([]);
     const [cumplimientos, setCumplimientos] = useState([]);
@@ -48,32 +48,32 @@ function FinalizarProyecto(props) {
         if (!allCheckboxesMarked) {
             mostrarMensaje("Solo podrá finalizar el proyecto si cumple con todos los requisitos.", "info");
         } else {
-            mostrarMensaje("Intentalo más tarde.", "warning"); 
-            /** 
-                        try {
-                            const response = await fetch(`http://localhost:5000/comite/terminarproyecto/${proyecto.id}`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                                body: JSON.stringify({ proyecto: proyecto })
-                            });
-                            const data = await response.json();
-                            if (response.status === 203) {
-                                mostrarMensaje(data.message, "warning");
-                            } else if (data.success) {
-                                mostrarMensaje("Ok", "success");
-                            } else {
-                                mostrarMensaje(data.message, "error");
-                            }
-                        } catch (error) {
-                            mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error");
-                        }
-                        */
+            mostrarMensaje("Intentalo más tarde.", "warning");
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/comite/terminarproyecto/${proyecto.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ proyecto: proyecto })
+                });
+                const data = await response.json();
+                if (response.status === 203) {
+                    mostrarMensaje(data.message, "warning");
+                } else if (data.success) {
+                    mostrarMensaje("Ok", "success");
+                } else {
+                    mostrarMensaje(data.message, "error");
+                }
+            } catch (error) {
+                mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error");
+            }
+
         }
     };
 
     const obtenerCumplimiento = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/admin/cumplimiento/${proyecto.acronimo}`, {
+            const response = await fetch(`${apiBaseUrl}/admin/cumplimiento/${proyecto.acronimo}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

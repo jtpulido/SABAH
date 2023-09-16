@@ -11,6 +11,7 @@ import { useSnackbar } from 'notistack';
 import VerModificarUsuario from "../Ventana/VerModificarUsuario";
 
 export default function Jurados() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
@@ -146,7 +147,7 @@ export default function Jurados() {
 
   const llenarTabla = async (endpoint, setRows) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/juradosproyectos/${endpoint}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/juradosproyectos/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

@@ -13,6 +13,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { tokens } from '../../../../theme';
 
 function VerModificarEspacio(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const token = useSelector(selectToken);
@@ -63,7 +64,7 @@ function VerModificarEspacio(props) {
 
     const obtenerRoles = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/roles", {
+            const response = await fetch(`${apiBaseUrl}/comite/roles`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -81,7 +82,7 @@ function VerModificarEspacio(props) {
     };
     const obtenerModalidades = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/modalidades", {
+            const response = await fetch(`${apiBaseUrl}/comite/modalidades`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -99,7 +100,7 @@ function VerModificarEspacio(props) {
     };
     const obtenerEtapas = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/etapas", {
+            const response = await fetch(`${apiBaseUrl}/comite/etapas`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -117,7 +118,7 @@ function VerModificarEspacio(props) {
     };
     const obtenerRubricas = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/rubricas", {
+            const response = await fetch(`${apiBaseUrl}/comite/rubricas`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -207,7 +208,7 @@ function VerModificarEspacio(props) {
             final: entregaFinal
         };
         try {
-            const response = await fetch(`http://localhost:5000/comite/espacio/${espacio.id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/espacio/${espacio.id}`, {
                 method: 'PUT',
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(espacioData)

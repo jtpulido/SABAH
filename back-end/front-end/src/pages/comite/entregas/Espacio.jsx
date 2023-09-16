@@ -13,6 +13,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 export default function Espacios() {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
@@ -24,7 +25,7 @@ export default function Espacios() {
 
     const obtenerEspacios = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/espacio", {
+            const response = await fetch(`${apiBaseUrl}/comite/espacio`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -42,7 +43,7 @@ export default function Espacios() {
     };
     const obtenerEspacioPorId = async (espacio_id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/espacio/${espacio_id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/espacio/${espacio_id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -61,7 +62,7 @@ export default function Espacios() {
     const eliminarEspacio = async (espacio_id) => {
         setOpen(false);
         try {
-            const response = await fetch(`http://localhost:5000/comite/espacio/${espacio_id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/espacio/${espacio_id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

@@ -10,6 +10,7 @@ import CustomDataGrid from "../../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
 import VerModificarUsuario from "../Ventana/VerModificarUsuario";
 export default function Lectores() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
@@ -101,9 +102,9 @@ export default function Lectores() {
     setAbrirVerModificarUsuario(false);
   }
   const cerrarUsuarioCambiado = () => {
-    llenarTabla("http://localhost:5000/comite/lectoresproyectos/activos", setRowsActivos);
-    llenarTabla("http://localhost:5000/comite/lectoresproyectos/cerrados", setRowsCerrados);
-    llenarTabla("http://localhost:5000/comite/lectoresproyectos/inactivos", setRowsInactivos);
+    llenarTabla(`${apiBaseUrl}/comite/lectoresproyectos/activos`, setRowsActivos);
+    llenarTabla(`${apiBaseUrl}/comite/lectoresproyectos/cerrados`, setRowsCerrados);
+    llenarTabla(`${apiBaseUrl}/comite/lectoresproyectos/inactivos`, setRowsInactivos);
     setAbrirVerModificarUsuario(false);
   }
 
@@ -134,9 +135,9 @@ export default function Lectores() {
   };
 
   useEffect(() => {
-    llenarTabla("http://localhost:5000/comite/lectoresproyectos/activos", setRowsActivos);
-    llenarTabla("http://localhost:5000/comite/lectoresproyectos/cerrados", setRowsCerrados);
-    llenarTabla("http://localhost:5000/comite/lectoresproyectos/inactivos", setRowsInactivos);
+    llenarTabla(`${apiBaseUrl}/comite/lectoresproyectos/activos`, setRowsActivos);
+    llenarTabla(`${apiBaseUrl}/comite/lectoresproyectos/cerrados`, setRowsCerrados);
+    llenarTabla(`${apiBaseUrl}/comite/lectoresproyectos/inactivos`, setRowsInactivos);
   }, []);
 
   return (

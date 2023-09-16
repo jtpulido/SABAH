@@ -20,7 +20,7 @@ import ProgramarSustentacion from "./Ventana/ProgramarSustentacion";
 import CambiarProgramacionSustentacion from "./Ventana/CambiarProgramacionSustentacion";
 
 export default function VerProyectos() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
 
@@ -64,7 +64,7 @@ export default function VerProyectos() {
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     if (proyecto.estado === "Aprobado propuesta") {
       try {
-        const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
+        const response = await fetch(`${apiBaseUrl}/comite/asignarCodigo`, {
           method: "POST",
           headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
@@ -88,7 +88,7 @@ export default function VerProyectos() {
 
   const infoProyecto = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/verProyecto/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/verProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -119,7 +119,7 @@ export default function VerProyectos() {
 
   const obtenerlinks = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/obtenerLink/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/obtenerLink/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -140,7 +140,7 @@ export default function VerProyectos() {
   const quitarEstudiante = async (estudiante) => {
     setConfirmarEliminacion(false);
     try {
-      const response = await fetch(`http://localhost:5000/comite/estudiante/${estudiante.id_estudiante_proyecto}/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/estudiante/${estudiante.id_estudiante_proyecto}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -165,7 +165,7 @@ export default function VerProyectos() {
         periodo: proyecto.periodo
 
       };
-      const response = await fetch(`http://localhost:5000/comite/proyecto/postulado`, {
+      const response = await fetch(`${apiBaseUrl}/comite/proyecto/postulado`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ postulado })

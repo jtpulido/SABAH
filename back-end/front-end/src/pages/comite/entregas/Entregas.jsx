@@ -11,7 +11,7 @@ import { useSnackbar } from 'notistack';
 import VerEntrega from './Ventanas/VerEntrega';
 
 export default function Entregas() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const token = useSelector(selectToken);
   const [entrega, setEntrega] = useState({});
   const [tipo, setTipo] = useState("");
@@ -28,7 +28,7 @@ export default function Entregas() {
 
   const llenarTabla = async (url, setData) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/entregas/${url}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/entregas/${url}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

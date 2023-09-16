@@ -17,7 +17,7 @@ import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 
 function AgregarEstudiante(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open } = props;
 
     const id = sessionStorage.getItem('id_proyecto');
@@ -65,7 +65,7 @@ function AgregarEstudiante(props) {
                 correo: correo,
                 num_identificacion: num_identificacion,
             };
-            const response = await fetch(`http://localhost:5000/comite/estudiante/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/estudiante/${id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(estudiante)

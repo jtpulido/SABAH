@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 
 function CambiarEstado(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, proyecto, onSubmit, open, ...other } = props;
     const token = useSelector(selectToken);
 
@@ -42,7 +42,7 @@ function CambiarEstado(props) {
         setIsLoading(true);
 
         try {
-            const response = await fetch("http://localhost:5000/admin/cambiarEstado", {
+            const response = await fetch(`${apiBaseUrl}/admin/cambiarEstado`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ proyecto: proyecto, nuevo_estado: estado })
@@ -71,7 +71,7 @@ function CambiarEstado(props) {
 
     const obtenerEstados = async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/estados", {
+            const response = await fetch(`${apiBaseUrl}/admin/estados`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

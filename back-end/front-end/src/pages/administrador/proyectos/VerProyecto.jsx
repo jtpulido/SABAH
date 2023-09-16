@@ -19,7 +19,7 @@ import CambiarEstado from "./Ventana/CambiarEstado";
 import TerminarProyecto from "./Ventana/TerminarProyecto";
 
 export default function VerProyectos() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('admin_id_proyecto');
   const token = useSelector(selectToken);
 
@@ -62,7 +62,7 @@ export default function VerProyectos() {
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     try {
-      const response = await fetch("http://localhost:5000/admin/asignarCodigo", {
+      const response = await fetch(`${apiBaseUrl}/admin/asignarCodigo`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
@@ -83,7 +83,7 @@ export default function VerProyectos() {
 
   const infoProyecto = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/verProyecto/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/verProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -113,7 +113,7 @@ export default function VerProyectos() {
 
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/entregasProyecto/${endpoint}/${proyecto_id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/entregasProyecto/${endpoint}/${proyecto_id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -133,7 +133,7 @@ export default function VerProyectos() {
   const quitarEstudiante = async (estudiante) => {
     setConfirmarEliminacion(false);
     try {
-      const response = await fetch(`http://localhost:5000/admin/estudiante/${estudiante.id_estudiante_proyecto}/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/estudiante/${estudiante.id_estudiante_proyecto}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

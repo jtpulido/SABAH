@@ -13,7 +13,7 @@ import { useSnackbar } from 'notistack';
 import CrearSolicitud from "./VentanasSolicitud/CrearSolicitud";
 
 export default function Proyectos() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('user_id_usuario');
 
   const token = useSelector(selectToken);
@@ -87,7 +87,7 @@ export default function Proyectos() {
 
   const llenarTabla = async (endpoint, setRowsFunc, id) => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/${endpoint}/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/usuario/${endpoint}/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

@@ -30,7 +30,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function Rubricas() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
@@ -73,7 +73,7 @@ export default function Rubricas() {
     const eliminarRubrica = async (id) => {
         setOpen(false);
         try {
-            const response = await fetch(`http://localhost:5000/comite/rubrica/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/rubrica/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -91,7 +91,7 @@ export default function Rubricas() {
 
     const obtenerRubricas = async () => {
         try {
-            const response = await fetch('http://localhost:5000/comite/obtenerRubricasAspectos', {
+            const response = await fetch(`${apiBaseUrl}/comite/obtenerRubricasAspectos`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

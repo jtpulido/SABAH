@@ -11,6 +11,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CrearSolicitud(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const token = useSelector(selectToken);
 
     const id_usuario = sessionStorage.getItem('user_id_usuario');
@@ -27,7 +28,7 @@ function CrearSolicitud(props) {
 
     const obtenerTiposSolicitudes = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/tipoSolicitud", {
+            const response = await fetch(`${apiBaseUrl}/proyecto/tipoSolicitud`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -45,7 +46,7 @@ function CrearSolicitud(props) {
     };
     const obtenerProyectos = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectos/${id_usuario}`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/obtenerProyectos/${id_usuario}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -91,7 +92,7 @@ function CrearSolicitud(props) {
             id_usuario: id_usuario
         };
         try {
-            const response = await fetch("http://localhost:5000/usuario/guardarSolicitud", {
+            const response = await fetch(`${apiBaseUrl}/usuario/guardarSolicitud`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(solicitudData)

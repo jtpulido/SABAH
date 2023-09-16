@@ -13,7 +13,7 @@ import { selectToken } from '../../../../store/authSlice';
 import { useSnackbar } from 'notistack';
 
 function CambiarFecha(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, estudiante, onSubmit, open, ...other } = props;
     const id = sessionStorage.getItem('admin_id_proyecto');
     const token = useSelector(selectToken);
@@ -42,7 +42,7 @@ function CambiarFecha(props) {
         setIsLoading(true);
 
         try {
-            const response = await fetch("http://localhost:5000/admin/estudiante/cambiarfecha", {
+            const response = await fetch(`${apiBaseUrl}/admin/estudiante/cambiarfecha`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id_proyecto: id, id_estudiante: estudiante.id_estudiante, fecha_grado: fechaGrado })

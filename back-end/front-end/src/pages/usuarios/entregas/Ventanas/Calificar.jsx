@@ -28,7 +28,7 @@ import { Download, DownloadTwoTone, ExpandMore, SaveOutlined } from '@mui/icons-
 import CustomDataGrid from '../../../layouts/DataGrid';
 
 function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
@@ -97,7 +97,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
 
     const infoDocEntrega = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/documento/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/documento/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -121,7 +121,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
 
     const obtenerAspectos = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/documento/aspectos/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/documento/aspectos/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -143,7 +143,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     };
     const obtenerCalificacionAspectos = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/calificacion/aspectos/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/calificacion/aspectos/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -165,7 +165,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     };
     const validarDocumentoRetroalimentacion = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/retroalimentacion/documento/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/retroalimentacion/documento/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -189,7 +189,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     };
     const validarEntregasPendientes = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/verificar-calificaciones-pendientes/${entrega.id_proyecto}/${entrega.id_etapa}/${entrega.anio_proyecto}/${entrega.periodo_proyecto}/${entrega.id_modalidad}`, {
+            const response = await fetch(`${apiBaseUrl}/verificar-calificaciones-pendientes/${entrega.id_proyecto}/${entrega.id_etapa}/${entrega.anio_proyecto}/${entrega.periodo_proyecto}/${entrega.id_modalidad}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -205,7 +205,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     };
     const validarAproboEtapa = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/verificar-calificaciones/${entrega.id_proyecto}/${entrega.id_etapa}/${entrega.anio_proyecto}/${entrega.periodo_proyecto}/${entrega.id_modalidad}`, {
+            const response = await fetch(`${apiBaseUrl}/verificar-calificaciones/${entrega.id_proyecto}/${entrega.id_etapa}/${entrega.anio_proyecto}/${entrega.periodo_proyecto}/${entrega.id_modalidad}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -223,7 +223,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     const asignarCodigo = async (id, acronimo, anio, periodo) => {
         
         try {
-          const response = await fetch("http://localhost:5000/comite/asignarCodigo", {
+          const response = await fetch(`${apiBaseUrl}/comite/asignarCodigo`, {
             method: "POST",
             headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ id: id, acronimo: acronimo, anio: anio, periodo: periodo })
@@ -253,7 +253,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                             nombre: entrega.nombre_proyecto
                         };
 
-                        const response = await fetch(`http://localhost:5000/verificar-calificaciones/cambiar-estado`, {
+                        const response = await fetch(`${apiBaseUrl}/verificar-calificaciones/cambiar-estado`, {
                             method: "PUT",
                             headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                             body: JSON.stringify({ proyecto })
@@ -307,13 +307,13 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
                 formData.append('file', selectedFile);
                 formData.append('calificacionData', JSON.stringify(calificacionData));
                 formData.append('nombreArchivo', JSON.stringify(selectedFile.name));
-                response = await fetch("http://localhost:5000/usuario/documento/guardarCalificacion", {
+                response = await fetch(`${apiBaseUrl}/usuario/documento/guardarCalificacion`, {
                     method: "POST",
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
             } else {
-                response = await fetch('http://localhost:5000/usuario/guardarCalificacion', {
+                response = await fetch(`${apiBaseUrl}/usuario/guardarCalificacion`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify(calificacionData),
@@ -393,7 +393,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     
     const handleDescargarArchivo = () => {
         if (docEntregado) {
-            const url = `http://localhost:5000/descargar/${docEntregado.uuid}`;
+            const url = `${apiBaseUrl}/descargar/${docEntregado.uuid}`;
         descargarArchivo(url, docEntregado.nombre_documento);
         }else{ 
         mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
@@ -402,7 +402,7 @@ function CalificarEntrega({ open, onClose, onSubmit, entrega = {}, tipo }) {
     
     const handleDescargarRetroalimentacion = () => {
         if (docRetroalimentacion) {
-        const url = `http://localhost:5000/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
+        const url = `${apiBaseUrl}/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
         descargarArchivo(url, docRetroalimentacion.nombre_documento);
     }else{ 
         mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');

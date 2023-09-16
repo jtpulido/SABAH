@@ -29,6 +29,7 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearRubrica(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
@@ -57,7 +58,7 @@ function CrearRubrica(props) {
 
     const obtenerAspectos = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/aspecto", {
+            const response = await fetch(`${apiBaseUrl}/comite/aspecto`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -92,7 +93,7 @@ function CrearRubrica(props) {
                     })),
                 };
 
-                const response = await fetch('http://localhost:5000/comite/crearRubrica', {
+                const response = await fetch(`${apiBaseUrl}/comite/crearRubrica`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(rubricaData),

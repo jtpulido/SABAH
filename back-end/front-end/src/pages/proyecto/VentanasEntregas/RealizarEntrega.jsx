@@ -16,7 +16,7 @@ import { SaveOutlined } from '@mui/icons-material';
 import { selectToken } from '../../../store/authSlice';
 
 function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
@@ -41,7 +41,7 @@ function RealizarEntrega({ open, onClose, onSubmit, entrega }) {
                 formData.append('entrega', JSON.stringify(entrega));
                 formData.append('nombreArchivo', JSON.stringify(selectedFile.name));
 
-                const response = await fetch("http://localhost:5000/entrega/guardar", {
+                const response = await fetch(`${apiBaseUrl}/entrega/guardar`, {
                     method: "POST",
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, IconButton, Tooltip } from "@mui/material";
-import { Source, Person, Edit } from '@mui/icons-material';
+import { Source, Edit } from '@mui/icons-material';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import CustomDataGrid from "../../../layouts/DataGrid";
@@ -11,7 +11,7 @@ import { useSnackbar } from 'notistack';
 import VerModificarUsuario from "../Ventana/VerModificarUsuario";
 
 export default function Directores() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
@@ -97,7 +97,7 @@ export default function Directores() {
   }
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/directoresproyectos/${endpoint}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/directoresproyectos/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

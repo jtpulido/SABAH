@@ -22,7 +22,7 @@ import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 
 function FinalizarProyecto(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, proyecto, onSubmit, open, ...other } = props;
     const [respuestasChecked, setRespuestasChecked] = useState([]);
     const [cumplimientos, setCumplimientos] = useState([]);
@@ -55,7 +55,7 @@ function FinalizarProyecto(props) {
             mostrarMensaje("Intentalo más tarde.", "warning");
 
             try {
-                const response = await fetch(`http://localhost:5000/comite/terminarproyecto/${proyecto.id}`, {
+                const response = await fetch(`${apiBaseUrl}/comite/terminarproyecto/${proyecto.id}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ proyecto: proyecto })
@@ -82,7 +82,7 @@ function FinalizarProyecto(props) {
 
     const obtenerCumplimiento = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/cumplimiento/${proyecto.acronimo}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/cumplimiento/${proyecto.acronimo}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

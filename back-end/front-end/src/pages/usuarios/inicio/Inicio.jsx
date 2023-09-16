@@ -7,7 +7,7 @@ import { selectToken } from "../../../store/authSlice";
 import { useSnackbar } from 'notistack';
 
 export default function Inicio() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('user_id_usuario');
 
     const token = useSelector(selectToken);
@@ -31,17 +31,17 @@ export default function Inicio() {
         const obtenerRoles = async () => {
             const idUsuario = id;
             try {
-                const responseDirector = await fetch(`http://localhost:5000/usuario/rolDirector/${idUsuario}`, {
+                const responseDirector = await fetch(`${apiBaseUrl}/usuario/rolDirector/${idUsuario}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
                 });
 
-                const responseLector = await fetch(`http://localhost:5000/usuario/rolLector/${idUsuario}`, {
+                const responseLector = await fetch(`${apiBaseUrl}/usuario/rolLector/${idUsuario}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
                 });
 
-                const responseJurado = await fetch(`http://localhost:5000/usuario/rolJurado/${idUsuario}`, {
+                const responseJurado = await fetch(`${apiBaseUrl}/usuario/rolJurado/${idUsuario}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
                 });
@@ -81,7 +81,7 @@ export default function Inicio() {
 
     const infoUsuario = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/usuario/verUsuario/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/verUsuario/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

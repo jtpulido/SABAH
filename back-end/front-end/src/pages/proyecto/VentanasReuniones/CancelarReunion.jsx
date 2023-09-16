@@ -11,7 +11,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CancelarReunion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('id_proyecto');
     const idReunion = sessionStorage.getItem('proyecto_id_reunion');
     const token = useSelector(selectToken);
@@ -43,7 +43,7 @@ function CancelarReunion(props) {
         setIsLoading(true);
 
         try {
-            const response = await fetch("http://localhost:5000/proyecto/cancelarReunion", {
+            const response = await fetch(`${apiBaseUrl}/proyecto/cancelarReunion`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({

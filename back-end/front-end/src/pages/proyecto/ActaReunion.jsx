@@ -9,7 +9,7 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import SaveIcon from '@mui/icons-material/Save';
 
 export default function ActaReunion() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const idReunion = sessionStorage.getItem('proyecto_id_reunion');
   const estadoActa = sessionStorage.getItem('estado_acta');
   const id = sessionStorage.getItem('id_proyecto');
@@ -32,7 +32,7 @@ export default function ActaReunion() {
 
   const traerInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoActa/${idReunion}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoActa/${idReunion}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -61,13 +61,13 @@ export default function ActaReunion() {
   const generarPDF = async () => {
     setIsLoading(true);
     try {
-      const infoproyecto = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${id}`, {
+      const infoproyecto = await fetch(`${apiBaseUrl}/proyecto/obtenerProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
       });
       const data_proyecto = await infoproyecto.json();
-      const infoinvitados = await fetch(`http://localhost:5000/proyecto/obtenerInvitados/${idReunion}`, {
+      const infoinvitados = await fetch(`${apiBaseUrl}/proyecto/obtenerInvitados/${idReunion}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -83,7 +83,7 @@ export default function ActaReunion() {
         data_proyecto,
         data_invitados
       };
-      const response = await fetch('http://localhost:5000/proyecto/generarPDF', {
+      const response = await fetch(`${apiBaseUrl}/proyecto/generarPDF`, {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
@@ -126,7 +126,7 @@ export default function ActaReunion() {
           compromisos: compromisos
         };
 
-        const response = await fetch("http://localhost:5000/proyecto/guardarInfoActa", {
+        const response = await fetch(`${apiBaseUrl}/proyecto/guardarInfoActa`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

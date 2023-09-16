@@ -13,6 +13,7 @@ import ProgramarSustentacion from "./Ventana/ProgramarSustentacion";
 import CambiarProgramacionSustentacion from "./Ventana/CambiarProgramacionSustentacion";
 
 export default function Sustentaciones() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
   const verProyecto = (id) => {
@@ -59,7 +60,7 @@ export default function Sustentaciones() {
   }
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/${endpoint}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

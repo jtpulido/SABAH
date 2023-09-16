@@ -26,7 +26,7 @@ import { Download, ExpandMore, SaveOutlined } from '@mui/icons-material';
 import CustomDataGrid from '../../../layouts/DataGrid';
 
 function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
@@ -68,7 +68,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const infoDocEntrega = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/documento/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/documento/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -93,7 +93,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const validarDocumentoRetroalimentacion = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/retroalimentacion/documento/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/retroalimentacion/documento/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -121,7 +121,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const obtenerCalificacionAspectos = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/calificacion/aspectos/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/calificacion/aspectos/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -186,7 +186,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
     
     const handleDescargarArchivo = () => {
         if (docEntregado) {
-            const url = `http://localhost:5000/descargar/${docEntregado.uuid}`;
+            const url = `${apiBaseUrl}/descargar/${docEntregado.uuid}`;
         descargarArchivo(url, docEntregado.nombre_documento);
         }else{ 
         mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
@@ -195,7 +195,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
     
     const handleDescargarRetroalimentacion = () => {
         if (docRetroalimentacion) {
-        const url = `http://localhost:5000/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
+        const url = `${apiBaseUrl}/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
         descargarArchivo(url, docRetroalimentacion.nombre_documento);
     }else{ 
         mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');

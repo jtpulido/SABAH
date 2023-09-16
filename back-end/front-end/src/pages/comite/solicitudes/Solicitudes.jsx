@@ -13,7 +13,7 @@ import CustomDataGrid from "../../layouts/DataGrid";
 import { useSnackbar } from 'notistack';
 
 export default function Proyectos() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const token = useSelector(selectToken);
@@ -89,7 +89,7 @@ export default function Proyectos() {
 
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/solicitudes/${endpoint}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/solicitudes/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

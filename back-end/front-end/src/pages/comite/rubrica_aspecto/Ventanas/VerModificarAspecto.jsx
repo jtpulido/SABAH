@@ -20,6 +20,7 @@ import { useSnackbar } from 'notistack';
 import { Edit, SaveOutlined } from '@mui/icons-material';
 
 function VerModificarAspecto(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open, aspecto } = props;
     const { enqueueSnackbar } = useSnackbar();
 
@@ -50,7 +51,7 @@ function VerModificarAspecto(props) {
 
     const modificarAspecto = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspecto.id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/aspecto/${aspecto.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ nombre })

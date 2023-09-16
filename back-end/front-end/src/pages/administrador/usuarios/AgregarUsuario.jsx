@@ -17,7 +17,7 @@ import { useSelector } from 'react-redux';
 import { selectToken } from '../../../store/authSlice';
 
 function AgregarUsuario(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open } = props;
     const token = useSelector(selectToken);
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
@@ -57,7 +57,7 @@ function AgregarUsuario(props) {
                 nombre: nombre,
                 correo: correo,
             };
-            const response = await fetch(`http://localhost:5000/admin/agregarUsuario`, {
+            const response = await fetch(`${apiBaseUrl}/admin/agregarUsuario`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(usuario)

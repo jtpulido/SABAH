@@ -15,6 +15,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CrearEspacio(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const token = useSelector(selectToken);
 
     const { onClose, onSubmit, open, ...other } = props;
@@ -39,7 +40,7 @@ function CrearEspacio(props) {
 
     const obtenerRoles = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/roles", {
+            const response = await fetch(`${apiBaseUrl}/comite/roles`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -57,7 +58,7 @@ function CrearEspacio(props) {
     };
     const obtenerModalidades = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/modalidades", {
+            const response = await fetch(`${apiBaseUrl}/comite/modalidades`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -75,7 +76,7 @@ function CrearEspacio(props) {
     };
     const obtenerEtapas = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/etapas", {
+            const response = await fetch(`${apiBaseUrl}/comite/etapas`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -93,7 +94,7 @@ function CrearEspacio(props) {
     };
     const obtenerRubricas = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/rubricas", {
+            const response = await fetch(`${apiBaseUrl}/comite/rubricas`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -190,7 +191,7 @@ function CrearEspacio(props) {
             final: entregaFinal
         };
         try {
-            const response = await fetch("http://localhost:5000/comite/espacio", {
+            const response = await fetch(`${apiBaseUrl}/comite/espacio`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(espacioData)

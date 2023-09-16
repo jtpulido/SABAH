@@ -26,7 +26,7 @@ import { Download, ExpandMore, SaveOutlined } from '@mui/icons-material';
 import CustomDataGrid from '../../layouts/DataGrid';
 
 function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
- 
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const token = useSelector(selectToken);
 
     const [loading, setLoading] = useState(true);
@@ -67,7 +67,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const infoDocEntrega = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/documento/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/documento/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -90,7 +90,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const validarDocumentoRetroalimentacion = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/retroalimentacion/documento/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/retroalimentacion/documento/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -115,7 +115,7 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
 
     const obtenerCalificacionAspectos = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/calificacion/aspectos/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/calificacion/aspectos/${id}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             });
@@ -155,47 +155,47 @@ function VerEntrega({ open, onClose, entrega = {}, tipo = "" }) {
                 Authorization: `Bearer ${token}`,
             },
         })
-        .then((response) => {
-            if (response.status === 200) {
-                return fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-            } else {
-                mostrarMensaje('El archivo no existe, comuníquese con el administrador.', 'error');
-                throw new Error('El archivo no existe');
-            }
-        })
-        .then((response) => response.blob())
-        .then((blob) => {
-            saveAs(blob, nombreDocumento);
-        })
-        .catch((error) => {
-            mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
-        });
+            .then((response) => {
+                if (response.status === 200) {
+                    return fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                } else {
+                    mostrarMensaje('El archivo no existe, comuníquese con el administrador.', 'error');
+                    throw new Error('El archivo no existe');
+                }
+            })
+            .then((response) => response.blob())
+            .then((blob) => {
+                saveAs(blob, nombreDocumento);
+            })
+            .catch((error) => {
+                mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
+            });
     };
-    
+
     const handleDescargarArchivo = () => {
         if (docEntregado) {
-            const url = `http://localhost:5000/descargar/${docEntregado.uuid}`;
-        descargarArchivo(url, docEntregado.nombre_documento);
-        }else{ 
-        mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
+            const url = `${apiBaseUrl}/descargar/${docEntregado.uuid}`;
+            descargarArchivo(url, docEntregado.nombre_documento);
+        } else {
+            mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
         }
     };
-    
+
     const handleDescargarRetroalimentacion = () => {
         if (docRetroalimentacion) {
-        const url = `http://localhost:5000/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
-        descargarArchivo(url, docRetroalimentacion.nombre_documento);
-    }else{ 
-        mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
+            const url = `${apiBaseUrl}/descargar/retroalimentacion/${docRetroalimentacion.uuid}`;
+            descargarArchivo(url, docRetroalimentacion.nombre_documento);
+        } else {
+            mostrarMensaje('Error al descargar el archivo, comuníquese con el administrador.', 'error');
         }
     };
-    
+
     return (
         <Dialog open={open} fullWidth maxWidth="md" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
             <CssBaseline />

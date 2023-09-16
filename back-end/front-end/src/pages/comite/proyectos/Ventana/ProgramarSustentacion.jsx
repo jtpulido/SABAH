@@ -12,7 +12,7 @@ import { useSnackbar } from 'notistack';
 import { DateTimePicker } from '@mui/x-date-pickers';
 
 function ProgramarSustentacion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, sustentacion, onSubmit, open, ...other } = props;
     const token = useSelector(selectToken);
 
@@ -56,7 +56,7 @@ function ProgramarSustentacion(props) {
 
     const obtenerProyectosSustentacion = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/sustentacion/proyectos", {
+            const response = await fetch(`${apiBaseUrl}/comite/sustentacion/proyectos`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -93,7 +93,7 @@ function ProgramarSustentacion(props) {
             fechaSustentacion
         ) {
             try {
-                const response = await fetch("http://localhost:5000/comite/programarSustentacion", {
+                const response = await fetch(`${apiBaseUrl}/comite/programarSustentacion`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({

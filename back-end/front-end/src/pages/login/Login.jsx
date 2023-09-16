@@ -10,7 +10,7 @@ import { Recuperar1 } from '../login/ventanas/recuperar contrasena1/Recuperar1';
 import { useSnackbar } from 'notistack';
 
 export const Login = () => {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const [cookies, setCookie] = useCookies(['token', 'tipo_usuario']);
 
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ export const Login = () => {
     event.preventDefault();
     if (usuario.username !== "" && usuario.password !== "") {
       try {
-        const response = await fetch("http://localhost:5000/login", {
+        const response = await fetch(`${apiBaseUrl}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(usuario)

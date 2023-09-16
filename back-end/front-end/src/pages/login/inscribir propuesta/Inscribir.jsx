@@ -7,7 +7,7 @@ import Footer from "../../pie_de_pagina/Footer";
 import { useSnackbar } from 'notistack';
 
 export const Inscribir = () => {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
     const [deshabilitar, setDeshabilitar] = useState(true);
     const [nombre, setNombre] = useState("");
@@ -49,7 +49,7 @@ export const Inscribir = () => {
     const [listaDirectores, setListaDirectores] = useState([]);
     const infoDirector = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/getDirectores", {
+            const response = await fetch(`${apiBaseUrl}/getDirectores`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
@@ -70,7 +70,7 @@ export const Inscribir = () => {
     const [consecutivo, setConsecutivo] = useState("");
     const codigoProy = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/codigoProy", {
+            const response = await fetch(`${apiBaseUrl}/codigoProy`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
@@ -93,7 +93,7 @@ export const Inscribir = () => {
     const [listaModalidades, setListaModalidades] = useState([]);
     const getModalidades = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/getModalidades", {
+            const response = await fetch(`${apiBaseUrl}/getModalidades`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
@@ -193,7 +193,7 @@ export const Inscribir = () => {
 
                 // Insertar un nuevo proyecto
                 try {
-                    const response = await fetch("http://localhost:5000/inscribirPropuesta", {
+                    const response = await fetch(`${apiBaseUrl}/inscribirPropuesta`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({

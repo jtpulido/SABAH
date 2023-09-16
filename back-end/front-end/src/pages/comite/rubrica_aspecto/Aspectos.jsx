@@ -28,6 +28,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function Aspectos() {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { enqueueSnackbar } = useSnackbar();
 
     const mostrarMensaje = (mensaje, variante) => {
@@ -41,7 +42,7 @@ export default function Aspectos() {
 
     const obtenerAspectos = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/aspecto", {
+            const response = await fetch(`${apiBaseUrl}/comite/aspecto`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -64,7 +65,7 @@ export default function Aspectos() {
     const eliminarAspecto = async (aspectoId) => {
         setOpen(false);
         try {
-            const response = await fetch(`http://localhost:5000/comite/aspecto/${aspectoId}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/aspecto/${aspectoId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

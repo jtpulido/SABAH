@@ -22,7 +22,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CrearReunion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('id_proyecto');
     const id_modalidad = sessionStorage.getItem('proyecto_id_modaliad');
     const token = useSelector(selectToken);
@@ -43,7 +43,7 @@ function CrearReunion(props) {
 
     const obtenerInfoDirector = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoDirector/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoDirector/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -60,7 +60,7 @@ function CrearReunion(props) {
 
     const obtenerInfoLector = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoLector/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoLector/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -77,7 +77,7 @@ function CrearReunion(props) {
 
     const obtenerInfoJurado = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoJurado/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoJurado/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -94,7 +94,7 @@ function CrearReunion(props) {
 
     const obtenerInfoCliente = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoCliente/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/obtenerInfoCliente/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -111,7 +111,7 @@ function CrearReunion(props) {
 
     const obtenerUltIdReunion = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/ultIdReunion", {
+            const response = await fetch(`${apiBaseUrl}/proyecto/ultIdReunion`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -267,7 +267,7 @@ function CrearReunion(props) {
 
                 } else {
                     try {
-                        const response = await fetch("http://localhost:5000/proyecto/crearReunionInvitados", {
+                        const response = await fetch(`${apiBaseUrl}/proyecto/crearReunionInvitados`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                             body: JSON.stringify({

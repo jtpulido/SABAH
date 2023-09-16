@@ -19,7 +19,7 @@ import VerReunion from "./Ventanas/VerReunion";
 
 
 export default function Reuniones() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const idUsuario = sessionStorage.getItem('user_id_usuario');
   const idRol = sessionStorage.getItem('id_rol');
 
@@ -53,7 +53,7 @@ export default function Reuniones() {
 
   const llenarTablaPendientes = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesPendientes/${idUsuario}/${idRol}`, {
+      const response = await fetch(`${apiBaseUrl}/usuario/obtenerReunionesPendientes/${idUsuario}/${idRol}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -74,7 +74,7 @@ export default function Reuniones() {
 
   const llenarTablaCompletas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCompletas/${idUsuario}/${idRol}`, {
+      const response = await fetch(`${apiBaseUrl}/usuario/obtenerReunionesCompletas/${idUsuario}/${idRol}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -96,7 +96,7 @@ export default function Reuniones() {
 
   const llenarTablaCanceladas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerReunionesCanceladas/${idUsuario}/${idRol}`, {
+      const response = await fetch(`${apiBaseUrl}/usuario/obtenerReunionesCanceladas/${idUsuario}/${idRol}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -341,7 +341,7 @@ export default function Reuniones() {
 
   const traerInfo = async (idReunion) => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/obtenerInfoActa/${idReunion}`, {
+      const response = await fetch(`${apiBaseUrl}/usuario/obtenerInfoActa/${idReunion}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -363,13 +363,13 @@ export default function Reuniones() {
 
   const generarPDF = async (id, idReunion) => {
     try {
-      const infoproyecto = await fetch(`http://localhost:5000/usuario/obtenerProyecto/${id}`, {
+      const infoproyecto = await fetch(`${apiBaseUrl}/usuario/obtenerProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
       });
       const data_proyecto = await infoproyecto.json();
-      const infoinvitados = await fetch(`http://localhost:5000/usuario/obtenerInvitados/${idReunion}`, {
+      const infoinvitados = await fetch(`${apiBaseUrl}/usuario/obtenerInvitados/${idReunion}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -385,7 +385,7 @@ export default function Reuniones() {
         data_proyecto,
         data_invitados
       };
-      const response = await fetch('http://localhost:5000/usuario/generarPDF', {
+      const response = await fetch(`${apiBaseUrl}/usuario/generarPDF`, {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }

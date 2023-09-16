@@ -11,6 +11,7 @@ import { useSnackbar } from 'notistack';
 import CustomDataGrid from "../../layouts/DataGrid";
 
 export default function Proyectos() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const columns = [
     {
@@ -60,7 +61,7 @@ export default function Proyectos() {
 
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/${endpoint}`, {
+      const response = await fetch(`${apiBaseUrl}/admin/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

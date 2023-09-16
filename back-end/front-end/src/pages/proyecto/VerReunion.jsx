@@ -16,6 +16,7 @@ import { useLocation } from "react-router-dom";
 import { useSnackbar } from 'notistack';
 
 export default function VerReunion() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const location = useLocation();
   const token = useSelector(selectToken);
   const theme = useTheme();
@@ -58,7 +59,7 @@ export default function VerReunion() {
               onClick={() => {
                 if (window.confirm('¿Estás seguro de que deseas cancelar la reunión?')) {
                  
-                  fetch('http://localhost:5000/proyecto/cancelarReunion', {
+                  fetch(`${apiBaseUrl}/proyecto/cancelarReunion`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ id: idReunion })

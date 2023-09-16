@@ -22,7 +22,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CrearReunion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('user_id_usuario');
     const idRol = sessionStorage.getItem('id_rol');
 
@@ -45,7 +45,7 @@ function CrearReunion(props) {
 
     const obtenerUltIdReunion = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/usuario/ultIdReunion", {
+            const response = await fetch(`${apiBaseUrl}/usuario/ultIdReunion`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -63,7 +63,7 @@ function CrearReunion(props) {
     const obtenerProyectos = useCallback(async () => {
         const idUsuario = id;
         try {
-            const response = await fetch(`http://localhost:5000/usuario/obtenerProyectosDesarrolloRol/${idUsuario}/${idRol}`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/obtenerProyectosDesarrolloRol/${idUsuario}/${idRol}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -153,7 +153,7 @@ function CrearReunion(props) {
 
                 } else {
                     try {
-                        const response = await fetch("http://localhost:5000/usuario/crearReunionInvitados", {
+                        const response = await fetch(`${apiBaseUrl}/usuario/crearReunionInvitados`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                             body: JSON.stringify({

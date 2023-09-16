@@ -13,7 +13,7 @@ import CustomDataGrid from "../../layouts/DataGrid";
 
 
 export default function Estudiantes() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
 
     const token = useSelector(selectToken);
@@ -66,7 +66,7 @@ export default function Estudiantes() {
 
     const llenarTablaEstudiantes = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/obtenerEstudiantes", {
+            const response = await fetch(`${apiBaseUrl}/admin/obtenerEstudiantes`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

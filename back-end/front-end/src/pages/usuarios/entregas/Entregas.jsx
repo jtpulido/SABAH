@@ -11,6 +11,7 @@ import { useSnackbar } from 'notistack';
 import CalificarEntrega from './Ventanas/Calificar';
 
 export default function Entregas() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id_usuario = sessionStorage.getItem('user_id_usuario');
   const id_rol = sessionStorage.getItem('id_rol');
   const token = useSelector(selectToken);
@@ -29,7 +30,7 @@ export default function Entregas() {
 
   const llenarTabla = async (url, setData) => {
     try {
-      const response = await fetch(`http://localhost:5000/usuario/entregas/${url}/${id_usuario}/${id_rol}`, {
+      const response = await fetch(`${apiBaseUrl}/usuario/entregas/${url}/${id_usuario}/${id_rol}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -193,7 +194,7 @@ export default function Entregas() {
   const postularMeritorio = async () => {
 
     try {
-      const response = await fetch(`http://localhost:5000/comite/proyecto/postulado`, {
+      const response = await fetch(`${apiBaseUrl}/comite/proyecto/postulado`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ postulado })

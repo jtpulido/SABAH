@@ -17,7 +17,7 @@ import RealizarEntrega from "./VentanasEntregas/RealizarEntrega";
 import VerEntrega from "./VentanasEntregas/VerEntrega";
 
 export default function Entregas() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
 
@@ -74,7 +74,7 @@ export default function Entregas() {
         id: id
       };
 
-      const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
+      const response = await fetch(`${apiBaseUrl}/proyecto/guardarLink`, {
         method: "POST",
         body: JSON.stringify(info),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
@@ -104,7 +104,7 @@ export default function Entregas() {
         id: id
       };
 
-      const response = await fetch("http://localhost:5000/proyecto/guardarLink", {
+      const response = await fetch(`${apiBaseUrl}/proyecto/guardarLink`, {
         method: "POST",
         body: JSON.stringify(info),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
@@ -125,7 +125,7 @@ export default function Entregas() {
 
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${proyecto_id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/${endpoint}/${proyecto_id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -143,7 +143,7 @@ export default function Entregas() {
   }
   const obtenerlinks = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerLink/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/obtenerLink/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

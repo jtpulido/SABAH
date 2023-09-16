@@ -5,7 +5,7 @@ import { Button, Modal, Input } from 'antd';
 import { useSnackbar } from 'notistack';
 
 export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const [isModalVisible, setIsModalVisible] = React.useState(isVisible3);
     const [isPasswordVisible1, setIsPasswordVisible1] = useState(false);
     const [isPasswordVisible2, setIsPasswordVisible2] = useState(false);
@@ -65,7 +65,7 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
                 // Si es un proyecto
                 if (isProyecto3 === true) {
                     try {
-                        const response = await fetch("http://localhost:5000/cambiarContrasenaProyecto", {
+                        const response = await fetch(`${apiBaseUrl}/cambiarContrasenaProyecto`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ contrasena: inputValue1 })
@@ -87,7 +87,7 @@ export const Recuperar3 = ({ isVisible3, handleClose3, isProyecto2 }) => {
                     // Si es un usuario normal
                 } else {
                     try {
-                        const response = await fetch("http://localhost:5000/cambiarContrasena", {
+                        const response = await fetch(`${apiBaseUrl}/cambiarContrasena`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ contrasena: inputValue1 })

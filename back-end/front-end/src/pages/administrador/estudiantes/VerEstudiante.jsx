@@ -14,7 +14,7 @@ import CustomDataGrid from "../../layouts/DataGrid";
 
 
 export default function VerEstudiante() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('admin_id_estudiante');
     const token = useSelector(selectToken);
     const navigate = useNavigate();
@@ -74,7 +74,7 @@ export default function VerEstudiante() {
 
     const infoEstudiante = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/admin/verEstudiante/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/admin/verEstudiante/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -96,7 +96,7 @@ export default function VerEstudiante() {
 
     const llenarProyectosActivos = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/admin/obtenerProyectosActivos/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/admin/obtenerProyectosActivos/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -116,7 +116,7 @@ export default function VerEstudiante() {
 
     const llenarProyectosInactivos = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/admin/obtenerProyectosInactivos/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/admin/obtenerProyectosInactivos/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

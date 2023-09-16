@@ -6,7 +6,7 @@ import { Recuperar3 } from "../recuperar contrasena3/Recuperar3";
 import { useSnackbar } from 'notistack';
 
 export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const [isModalVisible, setIsModalVisible] = React.useState(isVisible2);
   const [isProyecto2, setIsProyecto2] = React.useState(isProyecto);
 
@@ -51,7 +51,7 @@ export const Recuperar2 = ({ isVisible2, handleClose2, isProyecto }) => {
     event.preventDefault();
     if (codigoIngresado !== "") {
       try {
-        const response = await fetch("http://localhost:5000/verificarCodigo", {
+        const response = await fetch(`${apiBaseUrl}/verificarCodigo`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ "codigo": codigoIngresado })

@@ -20,6 +20,7 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function VerModificarUsuario(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, onSubmit, open, informacion, rol } = props;
     const { enqueueSnackbar } = useSnackbar();
 
@@ -71,7 +72,7 @@ function VerModificarUsuario(props) {
 
     const cambiarUsuarioRol = async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
+            const response = await fetch(`${apiBaseUrl}/admin/cambioUsuarioRol`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -98,7 +99,7 @@ function VerModificarUsuario(props) {
     }
     const asignarUsuarioRol = async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/cambioUsuarioRol", {
+            const response = await fetch(`${apiBaseUrl}/admin/cambioUsuarioRol`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -137,7 +138,7 @@ function VerModificarUsuario(props) {
 
     const obtenerUsuarios = async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/obtenerUsuarios", {
+            const response = await fetch(`${apiBaseUrl}/admin/obtenerUsuarios`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

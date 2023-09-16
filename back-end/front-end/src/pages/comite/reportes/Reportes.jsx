@@ -8,10 +8,9 @@ import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import CustomDataGrid from '../../layouts/DataGrid';
 import { Add, Delete, Remove, Replay } from '@mui/icons-material';
-import { maxWidth } from '@mui/system';
 
 export default function Reportes() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const token = useSelector(selectToken);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -39,7 +38,7 @@ export default function Reportes() {
 
     const obtenerVistasDisponibles = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/vistas-disponibles`, {
+            const response = await fetch(`${apiBaseUrl}/comite/vistas-disponibles`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -60,7 +59,7 @@ export default function Reportes() {
 
     const obtenerColumnasDisponibles = async (vista) => {
         try {
-            const response = await fetch(`http://localhost:5000/comite/columnas-disponibles/${vistaSeleccionada}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/columnas-disponibles/${vistaSeleccionada}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -88,7 +87,7 @@ export default function Reportes() {
     const handleGenerarReporte = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:5000/comite/generarReporte`, {
+            const response = await fetch(`${apiBaseUrl}/comite/generarReporte`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

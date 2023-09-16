@@ -7,6 +7,7 @@ import './VerProyecto.css';
 import { useSnackbar } from 'notistack';
 
 export default function VerProyectos() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
   const theme = useTheme();
@@ -29,7 +30,7 @@ export default function VerProyectos() {
 
   const infoProyecto = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/obtenerProyecto/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
       });

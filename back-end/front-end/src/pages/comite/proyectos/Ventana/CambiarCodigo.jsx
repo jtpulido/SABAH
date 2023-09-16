@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 
 function CambiarCodigo(props) {
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const id = sessionStorage.getItem('id_proyecto');
     const token = useSelector(selectToken);
 
@@ -37,7 +38,7 @@ function CambiarCodigo(props) {
         try {
             const nuevoCodigo = `${modalidad}_${anio}-${periodo}-${formatNumber(nuevoConsecutivo)}`;
 
-            const response = await fetch("http://localhost:5000/comite/cambiarCodigo", {
+            const response = await fetch(`${apiBaseUrl}/comite/cambiarCodigo`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: id, codigo: nuevoCodigo })

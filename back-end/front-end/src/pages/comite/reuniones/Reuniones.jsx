@@ -16,7 +16,7 @@ import VerReunion from "./VerReunion";
 
 
 export default function Reuniones() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const token = useSelector(selectToken);
   const [rowsPendientes, setRowsPendientes] = useState([]);
   const [rowsCompletadas, setRowsCompletadas] = useState([]);
@@ -37,7 +37,7 @@ export default function Reuniones() {
 
   const llenarTablaPendientes = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/obtenerReunionesPendientes`, {
+      const response = await fetch(`${apiBaseUrl}/comite/obtenerReunionesPendientes`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -58,7 +58,7 @@ export default function Reuniones() {
 
   const llenarTablaCompletas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/obtenerReunionesCompletas`, {
+      const response = await fetch(`${apiBaseUrl}/comite/obtenerReunionesCompletas`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -80,7 +80,7 @@ export default function Reuniones() {
 
   const llenarTablaCanceladas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/obtenerReunionesCanceladas`, {
+      const response = await fetch(`${apiBaseUrl}/comite/obtenerReunionesCanceladas`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -236,7 +236,7 @@ export default function Reuniones() {
 
   const traerInfo = async (idReunion) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/obtenerInfoActa/${idReunion}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/obtenerInfoActa/${idReunion}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -258,13 +258,13 @@ export default function Reuniones() {
 
   const generarPDF = async (proyecto_id, idReunion) => {
     try {
-      const infoproyecto = await fetch(`http://localhost:5000/comite/verProyecto/${proyecto_id}`, {
+      const infoproyecto = await fetch(`${apiBaseUrl}/comite/verProyecto/${proyecto_id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
       });
       const data_proyecto = await infoproyecto.json();
-      const infoinvitados = await fetch(`http://localhost:5000/comite/obtenerInvitados/${idReunion}`, {
+      const infoinvitados = await fetch(`${apiBaseUrl}/comite/obtenerInvitados/${idReunion}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
@@ -280,7 +280,7 @@ export default function Reuniones() {
         data_proyecto,
         data_invitados
       };
-      const response = await fetch('http://localhost:5000/comite/generarPDF', {
+      const response = await fetch(`${apiBaseUrl}/comite/generarPDF`, {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }

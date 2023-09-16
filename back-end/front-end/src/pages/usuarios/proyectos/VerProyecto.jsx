@@ -11,7 +11,8 @@ import VerSolicitud from "../../proyecto/VentanasSolicitud/VerSolicitud";
 import VerEntrega from "../../proyecto/VentanasEntregas/VerEntrega";
 
 export default function VerProyectos() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
+    
     const id = sessionStorage.getItem('id_proyecto');
     const token = useSelector(selectToken);
     const [existe, setExiste] = useState([]);
@@ -59,7 +60,7 @@ export default function VerProyectos() {
     }
     const infoProyecto = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5000/usuario/obtenerProyecto/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/usuario/obtenerProyecto/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -90,7 +91,7 @@ export default function VerProyectos() {
 
     const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${proyecto_id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/${endpoint}/${proyecto_id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -109,7 +110,7 @@ export default function VerProyectos() {
 
     const llenarTablaSolicitudes = async (endpoint, setRowsFunc, id) => {
         try {
-            const response = await fetch(`http://localhost:5000/proyecto/${endpoint}/${id}`, {
+            const response = await fetch(`${apiBaseUrl}/proyecto/${endpoint}/${id}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });

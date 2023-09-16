@@ -12,7 +12,7 @@ import { useSnackbar } from 'notistack';
 import { DateTimePicker } from '@mui/x-date-pickers';
 
 function CambiarProgramacionSustentacion(props) {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const { onClose, sustentacion, onSubmit, open, ...other } = props;
     const token = useSelector(selectToken);
 
@@ -43,7 +43,7 @@ function CambiarProgramacionSustentacion(props) {
         setIsLoading(true);
         try {
             const fechaSustentacionDate = fechaSustentacion.format("DD/MM/YYYY hh:mm A")
-            const response = await fetch(`http://localhost:5000/comite/sustentacion/${sustentacion.id}`, {
+            const response = await fetch(`${apiBaseUrl}/comite/sustentacion/${sustentacion.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: sustentacion.id, id_proyecto: sustentacion.id_proyecto, anio: sustentacion.anio, periodo: sustentacion.periodo, lugar: lugarSustentacion, fecha: fechaSustentacionDate })

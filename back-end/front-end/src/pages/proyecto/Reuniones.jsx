@@ -21,7 +21,7 @@ import VerReunion from "./VentanasReuniones/VerReunion";
 
 
 export default function Reuniones() {
-
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const id = sessionStorage.getItem('id_proyecto');
   const token = useSelector(selectToken);
   const [rowsPendientes, setRowsPendientes] = useState([]);
@@ -37,7 +37,7 @@ export default function Reuniones() {
 
   const llenarTablaPendientes = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesPendientes/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/obtenerReunionesPendientes/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -58,7 +58,7 @@ export default function Reuniones() {
 
   const llenarTablaCompletas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCompletas/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/obtenerReunionesCompletas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -80,7 +80,7 @@ export default function Reuniones() {
 
   const llenarTablaCanceladas = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/proyecto/obtenerReunionesCanceladas/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/proyecto/obtenerReunionesCanceladas/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });

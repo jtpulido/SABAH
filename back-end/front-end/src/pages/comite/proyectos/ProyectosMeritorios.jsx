@@ -7,6 +7,7 @@ import { useSnackbar } from 'notistack';
 import { ChecklistRtl, Visibility } from "@mui/icons-material";
 import CustomDataGrid from "../../layouts/DataGrid";
 export default function ProyectosMeritorios() {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
   const verProyecto = (id) => {
@@ -24,7 +25,7 @@ export default function ProyectosMeritorios() {
 
   const llenarTabla = async (endpoint, setRowsFunc) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/${endpoint}`, {
+      const response = await fetch(`${apiBaseUrl}/comite/${endpoint}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
       });
@@ -43,7 +44,7 @@ export default function ProyectosMeritorios() {
   };
   const elegirMeritorio = async (row) => {
     try {
-      const response = await fetch(`http://localhost:5000/comite/proyecto/postulado/meritorio`, {
+      const response = await fetch(`${apiBaseUrl}/comite/proyecto/postulado/meritorio`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ postulado: row })

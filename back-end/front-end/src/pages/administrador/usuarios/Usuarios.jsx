@@ -19,7 +19,7 @@ import ModificarUsuario from "./ModificarUsuario";
 
 
 export default function Usuarios() {
-
+    const apiBaseUrl = process.env.REACT_APP_API_URL;
     const token = useSelector(selectToken);
     const navigate = useNavigate();
     const [rowsUsuarios, setRowsUsuarios] = useState([]);
@@ -109,7 +109,7 @@ export default function Usuarios() {
 
     const llenarTablaUsuarios = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5000/admin/obtenerUsuarios", {
+            const response = await fetch(`${apiBaseUrl}/admin/obtenerUsuarios`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
@@ -131,7 +131,7 @@ export default function Usuarios() {
 
     const cambiarEstado = useCallback(async (valorId, valorEstado) => {
         try {
-            const response = await fetch("http://localhost:5000/admin/cambiarEstadoUsuario", {
+            const response = await fetch(`${apiBaseUrl}/admin/cambiarEstadoUsuario`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ id: valorId, estado: !valorEstado })
