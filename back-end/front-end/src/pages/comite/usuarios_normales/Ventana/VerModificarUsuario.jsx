@@ -30,6 +30,8 @@ function VerModificarUsuario(props) {
     const [id_usuario, setId_usuario] = useState("");
     const [id_rol, setIdRol] = useState("");
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     };
@@ -124,13 +126,15 @@ function VerModificarUsuario(props) {
     }
     const guardarCambio = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         if (informacion.id_usuario) {
             cambiarUsuarioRol()
         } else {
             asignarUsuarioRol()
         }
-        setCambio(false)
-        setId_usuario("")
+        setCambio(false);
+        setId_usuario("");
+        setIsLoading(false);
     }
     const obtenerUsuarios = async () => {
         try {
@@ -190,8 +194,8 @@ function VerModificarUsuario(props) {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" disabled={!cambio} startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={!cambio || isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

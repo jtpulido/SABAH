@@ -35,6 +35,8 @@ function CrearEspacio(props) {
     const [etapas, setEtapas] = useState([]);
     const [rubricas, setRubricas] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const obtenerRoles = async () => {
         try {
             const response = await fetch("http://localhost:5000/comite/roles", {
@@ -146,6 +148,7 @@ function CrearEspacio(props) {
     };
     const guardarEspacio = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
         const today = dayjs();
         const fechaAperturaEntregaDate = dayjs(fechaAperturaEntrega);
         const fechaCierreEntregaDate = dayjs(fechaCierreEntrega);
@@ -213,6 +216,7 @@ function CrearEspacio(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
+        setIsLoading(false);
     };
 
     const handleEntering = async () => {
@@ -414,8 +418,8 @@ function CrearEspacio(props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

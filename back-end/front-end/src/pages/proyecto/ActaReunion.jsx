@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Typography, useTheme, Box, TextField, CssBaseline, Grid } from "@mui/material";
+import { Typography, Box, TextField, CssBaseline, Grid } from "@mui/material";
 import { Button } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../store/authSlice";
 import { useSnackbar } from 'notistack';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import SaveIcon from '@mui/icons-material/Save';
 
 export default function ActaReunion() {
 
@@ -21,6 +22,8 @@ export default function ActaReunion() {
   const [tareas, setTareas] = useState("");
   const [compromisos, setCompromisos] = useState("");
   const [info, setInfo] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
   const mostrarMensaje = (mensaje, variante) => {
@@ -56,6 +59,7 @@ export default function ActaReunion() {
   }, [estadoActa, idReunion]);
 
   const generarPDF = async () => {
+    setIsLoading(true);
     try {
       const infoproyecto = await fetch(`http://localhost:5000/proyecto/obtenerProyecto/${id}`, {
         method: "GET",
@@ -104,39 +108,47 @@ export default function ActaReunion() {
     } catch (error) {
       mostrarMensaje("Ha ocurrido un error al generar el PDF. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
+    setIsLoading(false);
   };
 
   const guardarInfoActa = async (e) => {
-    try {
-      const infoActa = {
-        id_reunion: idReunion,
-        objetivos: objetivos,
-        resultados: resultados,
-        tareas: tareas,
-        compromisos: compromisos
-      };
+    setIsLoading(true);
+    if (objetivos === '' || resultados === '' || tareas === '' || compromisos === '') {
+      mostrarMensaje("Por favor proporcione toda la información del acta de reunión.", "error");
 
-      const response = await fetch("http://localhost:5000/proyecto/guardarInfoActa", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(infoActa),
-        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+    } else {
+      try {
+        const infoActa = {
+          id_reunion: idReunion,
+          objetivos: objetivos,
+          resultados: resultados,
+          tareas: tareas,
+          compromisos: compromisos
+        };
 
-      });
+        const response = await fetch("http://localhost:5000/proyecto/guardarInfoActa", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(infoActa),
+          headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
 
-      const data = await response.json();
-      if (data.success) {
-        mostrarMensaje(data.message, 'success');
-        navigate('/proyecto/Reuniones');
-      } else {
-        mostrarMensaje(data.message, 'error');
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          mostrarMensaje(data.message, 'success');
+          navigate('/proyecto/Reuniones');
+        } else {
+          mostrarMensaje(data.message, 'error');
+        }
+
+      } catch (error) {
+        mostrarMensaje("Ha ocurrido un error al guardar la información del acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
       }
-
-    } catch (error) {
-      mostrarMensaje("Ha ocurrido un error al guardar la información del acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
+    setIsLoading(false);
   };
 
   return (
@@ -218,16 +230,16 @@ export default function ActaReunion() {
         <Box >
           <Grid container spacing={2}>
             <Grid item xs={12} alignItems="flex-start" >
-            <div style={{ textAlign: 'left' }}>
-              <TextField
-                required
-                rows={3}
-                multiline
-                value={compromisos}
-                onChange={(e) => setCompromisos(e.target.value)}
-                fullWidth
-                error={!compromisos}
-              />
+              <div style={{ textAlign: 'left' }}>
+                <TextField
+                  required
+                  rows={3}
+                  multiline
+                  value={compromisos}
+                  onChange={(e) => setCompromisos(e.target.value)}
+                  fullWidth
+                  error={!compromisos}
+                />
               </div>
             </Grid>
           </Grid>
@@ -235,14 +247,20 @@ export default function ActaReunion() {
       </Box>
 
       {estadoActa === 'crear' && (
-        <Box style={{ marginTop: '30px' }}>
-          <Button variant="contained" onClick={() => guardarInfoActa()}>Guardar Acta</Button>  </Box>
+        <Box style={{ marginTop: '30px', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Button variant="contained" style={{ width: '150px' }} disabled={isLoading} startIcon={<SaveIcon />} onClick={() => guardarInfoActa()}>Guardar Acta</Button>
+          </div>
+        </Box>
       )}
       {estadoActa === 'descargar' && (
-        <Box style={{ marginTop: '30px' }}>
-          <Button variant="contained" startIcon={<CloudDownloadIcon />} onClick={() => generarPDF()}>PDF</Button>  </Box>
+        <Box style={{ marginTop: '30px', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Button variant="contained" style={{ width: '150px' }} disabled={isLoading} startIcon={<CloudDownloadIcon />} onClick={() => generarPDF()}>PDF</Button>
+          </div>
+        </Box>
       )}
-    </div>
+    </div >
 
   );
 }

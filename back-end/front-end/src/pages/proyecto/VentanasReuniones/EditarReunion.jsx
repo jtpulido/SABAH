@@ -44,7 +44,14 @@ function EditarReunion(props) {
     const [jurado, setJurado] = useState([]);
     const [cliente, setCliente] = useState([]);
 
+    const [directorInicial, setDirectorInicial] = useState(false);
+    const [lectorInicial, setLectorInicial] = useState(false);
+    const [juradoInicial, setJuradoInicial] = useState(false);
+    const [clienteInicial, setClienteInicial] = useState(false);
+
     const [checkBoxesInicial, setCheckboxesInicial] = useState([]);
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = useCallback((mensaje, variante) => {
@@ -53,16 +60,16 @@ function EditarReunion(props) {
 
     const obtenerInfoDirector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoDirector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoDirector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setDirector(data.director);
+                setDirectorInicial(true);
+            } else if (response.status === 203) {
+                setDirectorInicial(true);
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -71,61 +78,61 @@ function EditarReunion(props) {
 
     const obtenerInfoLector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoLector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoLector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setLector(data.lector);
+                setLectorInicial(true);
+            } else if (response.status === 203) {
+                setLectorInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const obtenerInfoJurado = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoJurado", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoJurado/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setJurado(data.jurado);
+                setJuradoInicial(true);
+            } else if (response.status === 203) {
+                setJuradoInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const obtenerInfoCliente = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoCliente", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoCliente/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setCliente(data.cliente);
+                setClienteInicial(true);
+            } else if (response.status === 203) {
+                setClienteInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const handleEntering = async () => {
         try {
-            await Promise.all([
+            await Promise.allSettled([
                 obtenerInfoDirector(),
                 obtenerInfoLector(),
                 obtenerInfoJurado(),
@@ -177,7 +184,7 @@ function EditarReunion(props) {
             }
         };
 
-        if (director.nombre && lector.nombre && cliente.nombre_repr && jurado) {
+        if (directorInicial && lectorInicial && clienteInicial && juradoInicial) {
             obtenerInvitados();
         }
     }, [director, lector, cliente, jurado, idReunion, token, mostrarMensaje]);
@@ -289,6 +296,7 @@ function EditarReunion(props) {
 
     const guardarSolicitud = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
 
         if (fecha === '' || fecha === undefined || selectedTime === null) {
             mostrarMensaje("Por favor seleccione un valor de fecha y hora válidos.", "error");
@@ -354,6 +362,7 @@ function EditarReunion(props) {
                 }
             }
         }
+        setIsLoading(false);
     };
 
     return (
@@ -449,8 +458,8 @@ function EditarReunion(props) {
                                 Invitados
                             </Typography>
                             <Grid container spacing={0}>
-                                <Grid item xs={6}>
-                                    {cliente.nombre_repr && (
+                                {cliente.nombre_repr && (
+                                    <Grid item xs={6}>
                                         <React.Fragment>
                                             <Checkbox
                                                 checked={clienteChecked}
@@ -461,10 +470,10 @@ function EditarReunion(props) {
                                                 Cliente - {cliente.nombre_repr}
                                             </Typography>
                                         </React.Fragment>
-                                    )}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {director.nombre && (
+                                    </Grid>
+                                )}
+                                {director.nombre && (
+                                    <Grid item xs={6}>
                                         <React.Fragment>
                                             <Checkbox
                                                 checked={directorChecked}
@@ -474,11 +483,11 @@ function EditarReunion(props) {
                                             <Typography variant="body2" display="inline">
                                                 Director - {director.nombre}
                                             </Typography>
-                                        </React.Fragment>
-                                    )}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {lector.nombre && (
+                                        </React.Fragment>x
+                                    </Grid>
+                                )}
+                                {lector.nombre && (
+                                    <Grid item xs={6}>
                                         <React.Fragment>
                                             <Checkbox
                                                 checked={lectorChecked}
@@ -489,8 +498,8 @@ function EditarReunion(props) {
                                                 Lector - {lector.nombre}
                                             </Typography>
                                         </React.Fragment>
-                                    )}
-                                </Grid>
+                                    </Grid>
+                                )}
                                 {jurado.length > 0 && jurado.map((juradoMember, index) => (
                                     <Grid item xs={6} key={index}>
                                         <Checkbox
@@ -509,8 +518,8 @@ function EditarReunion(props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

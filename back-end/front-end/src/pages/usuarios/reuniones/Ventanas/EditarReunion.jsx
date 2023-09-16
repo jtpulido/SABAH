@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../../store/authSlice";
 import PropTypes from 'prop-types';
@@ -42,12 +42,14 @@ function EditarReunion(props) {
 
     const [asistencia, setAsistencia] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = useCallback((mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
     }, [enqueueSnackbar]);
 
-    const obtenerAsistencia =async () => {
+    const obtenerAsistencia = async () => {
         try {
             const response = await fetch(`http://localhost:5000/usuario/obtenerAsistencia`, {
                 method: "GET",
@@ -122,7 +124,7 @@ function EditarReunion(props) {
 
     const guardarSolicitud = async (event) => {
         event.preventDefault();
-
+        setIsLoading(true);
         if (idEstado === 1) {
 
             if (fecha === '' || fecha === undefined || selectedTime === null) {
@@ -199,6 +201,7 @@ function EditarReunion(props) {
                 }
             }
         }
+        setIsLoading(false);
     };
 
     return (
@@ -316,8 +319,8 @@ function EditarReunion(props) {
 
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

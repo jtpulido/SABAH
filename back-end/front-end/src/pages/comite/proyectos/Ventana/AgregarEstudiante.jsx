@@ -33,6 +33,8 @@ function AgregarEstudiante(props) {
     const [correo, setCorreo] = useState("");
     const [num_identificacion, setNum_Identificacion] = useState("");
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleCancel = () => {
         setCorreo('')
         setNombre('')
@@ -55,6 +57,8 @@ function AgregarEstudiante(props) {
 
     const agregarEstudiante = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             const estudiante = {
                 nombre: nombre,
@@ -77,8 +81,9 @@ function AgregarEstudiante(props) {
                 setNum_Identificacion('')
             }
         } catch (error) {
-          mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error") }
-
+            mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
+        }
+        setIsLoading(false);
     }
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
     return (
@@ -137,8 +142,8 @@ function AgregarEstudiante(props) {
 
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

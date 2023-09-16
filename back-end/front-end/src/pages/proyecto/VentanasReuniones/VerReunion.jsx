@@ -13,6 +13,7 @@ function VerReunion(props) {
 
     const id = sessionStorage.getItem('id_proyecto');
     const idReunion = sessionStorage.getItem('proyecto_id_reunion');
+    const id_modalidad = sessionStorage.getItem('proyecto_id_modaliad');
     const token = useSelector(selectToken);
 
     const reunionCadena = sessionStorage.getItem('info_reunion_ver');
@@ -31,6 +32,16 @@ function VerReunion(props) {
     const [jurado, setJurado] = useState([]);
     const [cliente, setCliente] = useState([]);
 
+    const [directorInicial, setDirectorInicial] = useState(false);
+    const [lectorInicial, setLectorInicial] = useState(false);
+    const [juradoInicial, setJuradoInicial] = useState(false);
+    const [clienteInicial, setClienteInicial] = useState(false);
+
+    const [directorChecked, setDirectorChecked] = useState(false);
+    const [lectorChecked, setLectorChecked] = useState(false);
+    const [juradoChecked, setJuradoChecked] = useState([]);
+    const [clienteChecked, setClienteChecked] = useState(false);
+
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = useCallback((mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -38,16 +49,16 @@ function VerReunion(props) {
 
     const obtenerInfoDirector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoDirector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoDirector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setDirector(data.director);
+                setDirectorInicial(true);
+            } else if (response.status === 203) {
+                setDirectorInicial(true);
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -56,61 +67,61 @@ function VerReunion(props) {
 
     const obtenerInfoLector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoLector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoLector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setLector(data.lector);
+                setLectorInicial(true);
+            } else if (response.status === 203) {
+                setLectorInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const obtenerInfoJurado = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoJurado", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoJurado/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setJurado(data.jurado);
+                setJuradoInicial(true);
+            } else if (response.status === 203) {
+                setJuradoInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const obtenerInfoCliente = async () => {
         try {
-            const response = await fetch("http://localhost:5000/proyecto/obtenerInfoCliente", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/proyecto/obtenerInfoCliente/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "error")
-            } else {
+            if (response.status === 200) {
                 setCliente(data.cliente);
+                setClienteInicial(true);
+            } else if (response.status === 203) {
+                setClienteInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const handleEntering = async () => {
         try {
-            await Promise.all([
+            await Promise.allSettled([
                 obtenerInfoDirector(),
                 obtenerInfoLector(),
                 obtenerInfoJurado(),
@@ -132,7 +143,6 @@ function VerReunion(props) {
     };
 
     useEffect(() => {
-
         const obtenerInvitados = async () => {
             try {
                 const response = await fetch(`http://localhost:5000/proyecto/obtenerInvitados/${idReunion}`, {
@@ -149,9 +159,9 @@ function VerReunion(props) {
                         .filter(invitado => invitado.nombre_usuario !== null)
                         .map(invitado => invitado.nombre_usuario);
 
-                    setClienteChecked(invitadosCliente.includes(cliente.nombre_repr));
                     setDirectorChecked(invitadosUsuarios.includes(director.nombre));
                     setLectorChecked(invitadosUsuarios.includes(lector.nombre));
+                    setClienteChecked(invitadosCliente.includes(cliente.nombre_repr));
                     const newJuradoChecked = jurado.map(juradoMember => invitadosUsuarios.includes(juradoMember.nombre));
                     setJuradoChecked(newJuradoChecked);
                 }
@@ -161,10 +171,10 @@ function VerReunion(props) {
             }
         };
 
-        if (director.nombre && lector.nombre && cliente.nombre_repr && jurado) {
+        if (directorInicial && lectorInicial && clienteInicial && juradoInicial) {
             obtenerInvitados();
         }
-    }, [director, lector, cliente, jurado, idReunion, token, mostrarMensaje]);
+    }, [directorInicial, lectorInicial, clienteInicial, juradoInicial, idReunion, token, mostrarMensaje]);
 
     const handleCancel = () => {
         onClose();
@@ -177,13 +187,12 @@ function VerReunion(props) {
         setJuradoChecked([]);
         setClienteChecked(false);
         setFecha('');
+        setDirectorInicial(false);
+        setLectorInicial(false);
+        setClienteInicial(false);
+        setJuradoInicial(false);
         sessionStorage.removeItem('info_reunion_ver');
     };
-
-    const [directorChecked, setDirectorChecked] = useState(false);
-    const [lectorChecked, setLectorChecked] = useState(false);
-    const [juradoChecked, setJuradoChecked] = useState([]);
-    const [clienteChecked, setClienteChecked] = useState(false);
 
     return (
         <Dialog maxWidth="sm" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
@@ -244,8 +253,8 @@ function VerReunion(props) {
                             Invitados
                         </Typography>
                         <Grid container spacing={0}>
-                            <Grid item xs={6}>
-                                {cliente.nombre_repr && (
+                            {cliente.nombre_repr && (
+                                <Grid item xs={6}>
                                     <React.Fragment>
                                         <Checkbox
                                             checked={clienteChecked}
@@ -255,10 +264,10 @@ function VerReunion(props) {
                                             Cliente - {cliente.nombre_repr}
                                         </Typography>
                                     </React.Fragment>
-                                )}
-                            </Grid>
-                            <Grid item xs={6}>
-                                {director.nombre && (
+                                </Grid>
+                            )}
+                            {director.nombre && (
+                                <Grid item xs={6}>
                                     <React.Fragment>
                                         <Checkbox
                                             checked={directorChecked}
@@ -268,10 +277,10 @@ function VerReunion(props) {
                                             Director - {director.nombre}
                                         </Typography>
                                     </React.Fragment>
-                                )}
-                            </Grid>
-                            <Grid item xs={6}>
-                                {lector.nombre && (
+                                </Grid>
+                            )}
+                            {lector.nombre && (
+                                <Grid item xs={6}>
                                     <React.Fragment>
                                         <Checkbox
                                             checked={lectorChecked}
@@ -281,8 +290,8 @@ function VerReunion(props) {
                                             Lector - {lector.nombre}
                                         </Typography>
                                     </React.Fragment>
-                                )}
-                            </Grid>
+                                </Grid>
+                            )}
                             {jurado.length > 0 && jurado.map((juradoMember, index) => (
                                 <Grid item xs={6} key={index}>
                                     <Checkbox
@@ -294,6 +303,7 @@ function VerReunion(props) {
                                     </Typography>
                                 </Grid>
                             ))}
+
                         </Grid>
                     </Grid>
 

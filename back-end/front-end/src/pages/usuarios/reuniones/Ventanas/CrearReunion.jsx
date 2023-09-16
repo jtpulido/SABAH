@@ -36,6 +36,8 @@ function CrearReunion(props) {
     const [proyectos, setProyecto] = useState([]);
     const [ultIdReunion, setUltIdReunion] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -128,6 +130,7 @@ function CrearReunion(props) {
 
     const guardarSolicitud = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
 
         if (fecha === '' || fecha === undefined || selectedTime === null) {
             mostrarMensaje("Por favor seleccione un valor de fecha y hora válidos.", "error");
@@ -177,6 +180,8 @@ function CrearReunion(props) {
                 }
             }
         }
+
+        setIsLoading(false);
     };
 
     return (
@@ -254,7 +259,7 @@ function CrearReunion(props) {
 
                         <Grid item xs={6}>
                             <Typography variant="h6" color="primary">
-                                Link
+                                Enlace/Lugar
                             </Typography>
                             <TextField
                                 value={link}
@@ -290,8 +295,8 @@ function CrearReunion(props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

@@ -36,7 +36,7 @@ function VerSolicitud(props) {
         obtenerInfoSolicitud(id_solicitud)
         obtenerAprobacionesSolicitud(id_solicitud)
         setLoading(false);
-     };
+    };
 
     const handleCancel = () => {
         onClose();
@@ -56,7 +56,7 @@ function VerSolicitud(props) {
             const data = await response.json();
             if (response.status === 200) {
                 setSolicitud(data.solicitud)
-    
+
             } else if (response.status === 502) {
                 mostrarMensaje(data.message, "error")
             } else if (response.status === 203) {
@@ -67,6 +67,7 @@ function VerSolicitud(props) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
+
     const obtenerAprobacionesSolicitud = async (id) => {
         try {
             const response = await fetch(`http://localhost:5000/comite/solicitudes/verAprobaciones/${id}`, {
@@ -99,21 +100,21 @@ function VerSolicitud(props) {
 
             setIsFormValid(false)
             if (response.status === 200) {
-                mostrarMensaje("Se ha guardado su respuesta!", "success")
-                obtenerInfoSolicitud(id_solicitud)
-                obtenerAprobacionesSolicitud(id_solicitud)
-                onSubmit()
+                mostrarMensaje(data.message, "success");
+                obtenerInfoSolicitud(id_solicitud);
+                obtenerAprobacionesSolicitud(id_solicitud);
+                onSubmit();
             } else if (response.status === 502) {
-                mostrarMensaje(data.message, "error")
+                mostrarMensaje(data.message, "error");
             } else if (response.status === 203 || response.status === 400) {
-                mostrarMensaje(data.message, "warning")
+                mostrarMensaje(data.message, "warning");
             } else {
-                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+                mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
 
             }
         } catch (error) {
-            handleCancel()
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            handleCancel();
+            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
         setLoading(false);
     };
@@ -124,6 +125,7 @@ function VerSolicitud(props) {
         { field: 'fecha', headerName: 'Fecha', flex: 0.2, minWidth: 100, align: "center" },
         { field: 'comentario_aprobacion', headerName: 'Comentario', flex: 0.5, minWidth: 150, align: "center" }
     ];
+    
     const handleApprovalChange = (event) => {
         setApproval(event.target.value);
         checkFormValidity(event.target.value, comments);
@@ -210,7 +212,7 @@ function VerSolicitud(props) {
                             </Grid>
                         </Grid>
                         <Divider sx={{ mt: 1, mb: 1 }} />
-                        {(!solicitud.finalizado) && solicitud.creado_por_proyecto? (
+                        {(!solicitud.finalizado) && solicitud.creado_por_proyecto ? (
 
                             <>
                                 <Accordion>
@@ -247,7 +249,7 @@ function VerSolicitud(props) {
                             </>
                         ) : (
                             <>
-                               
+
                             </>
                         )
                         }

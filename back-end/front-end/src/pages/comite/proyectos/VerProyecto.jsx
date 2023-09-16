@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
+import { Typography, Box, TextField, Grid, CssBaseline, Button, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Link } from "@mui/material";
 
 import { useSelector } from "react-redux";
 import { selectToken } from "../../../store/authSlice";
@@ -7,7 +7,7 @@ import './VerProyecto.css';
 
 import CambiarCodigo from './Ventana/CambiarCodigo';
 import CambiarNombre from './Ventana/CambiarNombre';
-import { Add, Edit, EditAttributes, EditCalendar, EditNote, EventAvailable, Person, Remove } from "@mui/icons-material";
+import { Add, Edit, EditCalendar, EditNote, Person, Remove } from "@mui/icons-material";
 
 import { useSnackbar } from 'notistack';
 import AgregarEstudiante from "./Ventana/AgregarEstudiante";
@@ -57,6 +57,9 @@ export default function VerProyectos() {
   const [existeSustentacion, setExisteSustentacion] = useState(false);
   const [sustentacion, setSustentacion] = useState({});
 
+  const [link_artefacto, setLink_Artefacto] = useState(null);
+  const [link_documento, setLink_Documento] = useState(null);
+  const [link, setLink] = useState('');
 
   const asignarCodigo = async (id, acronimo, anio, periodo) => {
     if (proyecto.estado === "Aprobado propuesta") {
@@ -114,6 +117,26 @@ export default function VerProyectos() {
     }
   };
 
+  const obtenerlinks = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/comite/obtenerLink/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        mostrarMensaje(data.message, "error")
+      } else if (response.status === 203) {
+        mostrarMensaje(data.message, "info")
+      } else if (response.status === 200) {
+        setLink_Artefacto(data.link_artefacto);
+        setLink_Documento(data.link_documento);
+      }
+    } catch (error) {
+      mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+    }
+  };
+
   const quitarEstudiante = async (estudiante) => {
     setConfirmarEliminacion(false);
     try {
@@ -131,7 +154,8 @@ export default function VerProyectos() {
     } catch (error) {
       mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
     }
-  }
+  };
+
   const postularMeritorio = async () => {
     try {
       const postulado = {
@@ -158,19 +182,22 @@ export default function VerProyectos() {
     } catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
-  }
+  };
+
   const actualizarProyecto = (nuevoCodigo) => {
     setProyecto((prevState) => ({
       ...prevState,
       codigo: nuevoCodigo
     }));
   };
+
   const actualizarNombreProyecto = (nuevoNombre) => {
     setProyecto((prevState) => ({
       ...prevState,
       nombre: nuevoNombre
     }));
   };
+
   const actualizarEtapa = (cambio) => {
     setProyecto((prevState) => ({
       ...prevState,
@@ -182,6 +209,7 @@ export default function VerProyectos() {
       estado: cambio.estado
     }));
   };
+
   const actualizarEstado = (cambio) => {
     setProyecto((prevState) => ({
       ...prevState,
@@ -189,10 +217,12 @@ export default function VerProyectos() {
       estado: cambio.estado
     }));
   };
+
   const abrirConfirmarEliminacion = (estudiante) => {
     setEstudiante(estudiante);
     setConfirmarEliminacion(true);
   };
+
   const handleClose = () => {
     setEstudiante({})
     setConfirmarEliminacion(false);
@@ -201,75 +231,91 @@ export default function VerProyectos() {
   const abrirDialogCambiarCodigo = () => {
     setOpen(true);
   };
+
   const cerrarDialogCambiarCodigo = async () => {
     setOpen(false);
-  }
+  };
+
   const cerrarDialogCodigoCambiado = async (newValue) => {
     setOpen(false);
     if (newValue) {
       actualizarProyecto(newValue)
     };
-  }
+  };
+
   const abrirDialogTerminar = () => {
     setOpenTerminar(true);
   };
+
   const cerrarDialogTerminar = async () => {
     setOpenTerminar(false);
-  }
+  };
+
   const cerrarDialogTerminado = async (newValue) => {
     actualizarEstado(newValue)
     setOpenTerminar(false);
+  };
 
-  }
   const abrirDialogCambiarNombre = () => {
     setOpenNombre(true);
   };
+
   const cerrarDialogCambiarNombre = () => {
     setOpenNombre(false);
-  }
+  };
 
   const cerrarDialogNombreCambiado = (newValue) => {
     setOpenNombre(false);
     if (newValue) {
       actualizarNombreProyecto(newValue)
     };
-  }
+  };
+
   const abrirDialogCambiarEstado = () => {
     setOpenEstado(true);
   };
+
   const cerrarDialogCambiarEstado = () => {
     setOpenEstado(false);
-  }
+  };
+
   const cerrarDialogEstadoCambiado = (newValue) => {
     actualizarEstado(newValue)
     if (newValue.estado === "Aprobado propuesta") {
       asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)
     }
     setOpenEstado(false);
-  }
+  };
+
   const abrirDialogCambiarEtapa = () => {
     setOpenEtapa(true);
   };
+
   const cerrarDialogCambiarEtapa = () => {
     setOpenEtapa(false);
-  }
+  };
+
   const cerrarDialogEtapaCambiado = (newValue) => {
     actualizarEtapa(newValue)
     setOpenEtapa(false);
-  }
+  };
+
   const abrirVentanaAgregarEstudiante = () => {
     setAbrirAgregarEstudiante(true);
   };
+
   const cerrarDialogEstudiante = () => {
     setAbrirAgregarEstudiante(false);
-  }
+  };
+
   const cerrarDialogAgregarEstudiante = async (estudiantes) => {
     setAbrirAgregarEstudiante(false);
     if (estudiantes) {
       setEstudiantes(estudiantes)
     };
     setEstudiante({})
-  }
+  };
+
   const abrirDialogCambiarFechaGrado = (estudiante) => {
     setEstudiante(estudiante)
     setOpenFechaGrado(true);
@@ -278,13 +324,15 @@ export default function VerProyectos() {
   const cerrarDialogCambiarFechaGrado = () => {
     setEstudiante({})
     setOpenFechaGrado(false);
-  }
+  };
+
   const cerrarDialogFechaGradoCambiada = (newValue) => {
     setOpenFechaGrado(false);
     if (newValue) {
       setEstudiantes(newValue)
     };
-  }
+  };
+
   const abrirDialogProgramarSustentacion = () => {
     const new_sustentacion = {
       id_proyecto: id,
@@ -297,27 +345,31 @@ export default function VerProyectos() {
 
   const cerrarDialogProgramarSustentacion = () => {
     setOpenSustentacion(false);
-  }
+  };
+
   const cerrarDialogSustentacionProgramada = (newValue) => {
     setOpenSustentacion(false);
     if (newValue) {
       setExisteSustentacion(true)
       setSustentacion(newValue)
     };
-  }
+  };
+
   const abrirDialogModificarSustentacion = () => {
     setOpenModificarSustentacion(true);
   };
 
   const cerrarDialogModificarSustentacion = () => {
     setOpenModificarSustentacion(false);
-  }
+  };
+
   const cerrarDialogSustentacionModificada = (newValue) => {
     setOpenModificarSustentacion(false);
     if (newValue) {
       setSustentacion(newValue)
     };
-  }
+  };
+
   const abrirDialog = (row, accion, rol) => {
     if (accion === "asignar") {
       const infoRol = {
@@ -338,7 +390,8 @@ export default function VerProyectos() {
 
   const cerrarDialog = () => {
     setAbrirVerModificarUsuario(false);
-  }
+  };
+
   const cerrarUsuarioCambiado = (usuarios) => {
     if (usuarios) {
       if (rol === "DIRECTOR") {
@@ -362,17 +415,16 @@ export default function VerProyectos() {
       }
     }
     setAbrirVerModificarUsuario(false);
-  }
-  useEffect(() => {
-    infoProyecto()
-  }, [id]);
+  };
 
+  useEffect(() => {
+    infoProyecto();
+    obtenerlinks();
+  }, [id]);
 
   return (
     <div style={{ margin: "15px" }} >
-
       {existe ? (
-
         <Box sx={{ '& button': { mt: 1 } }}>
           <CssBaseline />
 
@@ -392,7 +444,7 @@ export default function VerProyectos() {
           >
             {proyecto.codigo || ''}
           </Typography>
-          {proyecto && proyecto.estado !== "Terminado"&& proyecto.estado !== "Rechazado"&& proyecto.estado !== "Cancelado"&& proyecto.estado !== "Aprobado comité"? (
+          {proyecto && proyecto.estado !== "Terminado" && proyecto.estado !== "Rechazado" && proyecto.estado !== "Cancelado" && proyecto.estado !== "Aprobado comité" ? (
             <div>
               {proyecto && proyecto.codigo && proyecto.codigo.startsWith("TEM") ? (
                 <Button variant="outlined" disableElevation size="small" onClick={() => asignarCodigo(id, proyecto.acronimo, proyecto.anio, proyecto.periodo)} sx={{
@@ -827,6 +879,29 @@ export default function VerProyectos() {
             </Box>
             </>
           )}
+
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', maxWidth: '100%' }}>
+              <Typography variant="h4" color="secondary" sx={{ mt: "40px", mb: "15px", flexGrow: 1, maxWidth: '98%' }}>
+                Enlaces
+              </Typography>
+
+            </Box>
+            <div style={{ display: 'flex', justifyContent: 'flex' }}>
+              <Box sx={{ border: '1px solid rgba(100, 128, 128, 0.5)', borderRadius: '10px', p: 2, marginRight: '10px', flexGrow: 1, backgroundColor: '#f2f2f2', height: '50px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
+                  <Link href={link_artefacto} variant="h5" style={{ textAlign: 'center', flex: '1', marginTop: 'auto', marginBottom: 'auto' }} target="_blank">Artefactos De Control</Link>
+                </div>
+              </Box>
+
+              <Box sx={{ border: '1px solid rgba(100, 128, 128, 0.5)', borderRadius: '10px', p: 2, marginRight: '10px', flexGrow: 1, backgroundColor: '#f2f2f2', height: '50px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
+                  <Link href={link_documento} variant="h5" style={{ textAlign: 'center', flex: '1', marginTop: 'auto', marginBottom: 'auto' }} target="_blank">Documentos del proyecto</Link>
+                </div>
+              </Box>
+            </div >
+          </Box>
+
         </Box>
       ) : (
         <Typography variant="h6" color="primary">Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.</Typography>

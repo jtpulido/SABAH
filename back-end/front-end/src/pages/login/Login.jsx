@@ -66,6 +66,7 @@ export const Login = () => {
 
           const tipo_usuario = data.tipo_usuario;
           const id_usuario = data.id_usuario;
+          const id_modalidad = data.id_modalidad;
 
           if (tipo_usuario === 'admin') {
             navigate('/admin');
@@ -76,6 +77,7 @@ export const Login = () => {
             navigate('/comite');
           } else if (tipo_usuario === 'proyecto') {
             sessionStorage.setItem('id_proyecto', id_usuario);
+            sessionStorage.setItem('proyecto_id_modaliad', id_modalidad);
             navigate('/proyecto');
           }
 

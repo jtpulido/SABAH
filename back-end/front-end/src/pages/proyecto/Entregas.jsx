@@ -5,7 +5,7 @@ import {
   IconButton, Tooltip, Button, AppBar, Toolbar, Link
 } from "@mui/material";
 
-import { PostAdd, InsertLink, HighlightOff, Upload, Source } from '@mui/icons-material';
+import { InsertLink, Upload, Source } from '@mui/icons-material';
 
 import { useSelector } from "react-redux";
 
@@ -35,6 +35,8 @@ export default function Entregas() {
   const [link_artefacto, setLink_Artefacto] = useState(null);
   const [link_documento, setLink_Documento] = useState(null);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const mostrarMensaje = (mensaje, variante) => {
     enqueueSnackbar(mensaje, { variant: variante });
   };
@@ -63,6 +65,8 @@ export default function Entregas() {
 
   const guardarLinkArtefacto = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
       const info = {
         link: link,
@@ -86,10 +90,13 @@ export default function Entregas() {
     } catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
+    setIsLoading(false);
   };
 
   const guardarLinkDocumento = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
       const info = {
         link: link,
@@ -113,6 +120,7 @@ export default function Entregas() {
     } catch (error) {
       mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
     }
+    setIsLoading(false);
   };
 
   const llenarTabla = async (endpoint, proyecto_id, setRowsFunc) => {
@@ -349,46 +357,18 @@ export default function Entregas() {
             </div>
           </Box>
         </div >
-        <Dialog open={abrirArtefactos} maxWidth="md" onClose={cerrarModalLinkArtefacto}>
-          <DialogTitle variant='h3' color="primary" >
-            Artefactos de control
-            <IconButton onClick={cerrarModalLinkArtefacto} color="secondary" >
-              <HighlightOff />
-            </IconButton>
-          </DialogTitle>
+
+        <Dialog open={abrirArtefactos} fullWidth maxWidth="xs" onClose={cerrarModalLinkArtefacto}>
           <form onSubmit={guardarLinkArtefacto}>
-            <DialogContent>
-              <TextField
-                label="Link carpeta drive" required value={link} onChange={(e) => handleLinkChange(e.target.value)}
-                error={!urlPattern.test(link) && link !== ''}
-                helperText={!urlPattern.test(link) && link !== '' ? 'La URL ingresada no es válida.' : ''}
-                fullWidth
-                multiline
-                InputProps={{
-                  inputProps: {
-                    pattern: urlPattern.source,
-                    title: 'Debe ingresar una URL válida que comience con ftp, http o https.',
-                  },
-                }}
-              />
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'center' }}>
-              <Button type="submit" variant="contained" startIcon={<Upload />} sx={{ width: 150, }} disabled={link === link_artefacto}>
-                Guardar
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
-        <Dialog open={abrirDocumentos} maxWidth="md" onClose={cerrarModalLinkDocumento}>
-          <DialogTitle variant='h3' color="primary">
-            Documentos del proyecto
-            <IconButton onClick={cerrarModalLinkDocumento} color="secondary" >
-              <HighlightOff />
-            </IconButton>
-          </DialogTitle>
-          <form onSubmit={guardarLinkDocumento}>
-            <DialogContent>
-              <TextField label="Link carpeta drive" required value={link} onChange={(e) => handleLinkChange(e.target.value)} error={!urlPattern.test(link) && link !== ''}
+            <DialogTitle variant="h1" color="primary">
+              ARTEFACTOS DE CONTROL
+            </DialogTitle>
+            <DialogContent dividers >
+
+              <Typography variant="h6" color="primary">
+                Link Carpeta Drive
+              </Typography>
+              <TextField required value={link} onChange={(e) => handleLinkChange(e.target.value)} error={!urlPattern.test(link) && link !== ''}
                 helperText={!urlPattern.test(link) && link !== '' ? 'La URL ingresada no es válida.' : ''}
                 fullWidth
                 multiline
@@ -398,15 +378,51 @@ export default function Entregas() {
                     title: 'Debe ingresar una URL válida que comience con ftp, http o https.',
                   },
                 }} />
+
             </DialogContent>
-            <DialogActions sx={{ justifyContent: 'center' }}>
-              <Button type="submit" variant="contained" startIcon={<Upload />} sx={{ width: 150, }} disabled={link === link_documento}>
+            <DialogActions>
+              <Button onClick={cerrarModalLinkArtefacto} disabled={isLoading}>Cerrar</Button>
+              <Button type="submit" variant="contained" disabled={(link === link_documento) || isLoading} startIcon={<Upload />} sx={{
+                width: 150,
+              }}>
                 Guardar
               </Button>
             </DialogActions>
           </form>
         </Dialog>
 
+        <Dialog open={abrirDocumentos} fullWidth maxWidth="xs" onClose={cerrarModalLinkDocumento}>
+          <form onSubmit={guardarLinkDocumento}>
+            <DialogTitle variant="h1" color="primary">
+              DOCUMENTOS DEL PROYECTO
+            </DialogTitle>
+            <DialogContent dividers >
+
+              <Typography variant="h6" color="primary">
+                Link Carpeta Drive
+              </Typography>
+              <TextField required value={link} onChange={(e) => handleLinkChange(e.target.value)} error={!urlPattern.test(link) && link !== ''}
+                helperText={!urlPattern.test(link) && link !== '' ? 'La URL ingresada no es válida.' : ''}
+                fullWidth
+                multiline
+                InputProps={{
+                  inputProps: {
+                    pattern: urlPattern.source,
+                    title: 'Debe ingresar una URL válida que comience con ftp, http o https.',
+                  },
+                }} />
+
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={cerrarModalLinkDocumento} disabled={isLoading}>Cerrar</Button>
+              <Button type="submit" variant="contained" disabled={(link === link_documento) || isLoading} startIcon={<Upload />} sx={{
+                width: 150,
+              }}>
+                Guardar
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
 
         <RealizarEntrega
           open={openDialog}

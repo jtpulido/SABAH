@@ -1,6 +1,6 @@
 const pool = require('../database')
 
-const { agregarLink, nuevaSolicitudProyecto } = require('../controllers/mail.controller');
+const { agregarLink, cancelarReunionProyecto, nuevaSolicitudProyecto, nuevaReunionEstudiantes, editarReunionProyecto } = require('../controllers/mail.controller');
 
 
 const obtenerProyecto = async (req, res) => {
@@ -517,19 +517,6 @@ const obtenerSolicitudesRechazadas = async (req, res) => {
   }
 };
 
-const cancelarReunion = async (req, res) => {
-  const { id_reunion, id_proyecto, justificacion } = req.body;
-  try {
-    const query = `UPDATE reunion SET id_estado=(SELECT id FROM estado_reunion WHERE nombre = 'Cancelada'), justificacion=$3 WHERE id=$1 AND id_proyecto=$2`;
-    const values = [id_reunion, id_proyecto, justificacion];
-    await pool.query(query, values);
-    res.status(200).json({ success: true, message: 'La reunión ha sido cancelada con éxito.' });
-
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'No se pudo completar la cancelación de la reunión.' });
-  }
-};
-
 const obtenerTipoSolicitud = async (req, res) => {
   try {
     const query = 'SELECT * FROM tipo_solicitud';
@@ -673,14 +660,14 @@ const guardarLink = async (req, res) => {
 };
 
 const obtenerInfoDirector = async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   try {
-    const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=1) AND u.estado=true', [id]);
+    const result = await pool.query('SELECT u.id, u.nombre, u.correo FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=1) AND u.estado=true', [id]);
     const director = result.rows[0];
     if (result.rowCount > 0) {
-      return res.json({ success: true, director });
+      return res.status(200).json({ success: true, director });
     } else {
-      return res.status(404).json({ success: false, message: 'No hay un director asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+      return res.status(203).json({ success: true, message: 'No hay un director asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -688,14 +675,14 @@ const obtenerInfoDirector = async (req, res) => {
 };
 
 const obtenerInfoLector = async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   try {
-    const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=2) AND u.estado=true', [id]);
+    const result = await pool.query('SELECT u.id, u.nombre, u.correo FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=2) AND u.estado=true', [id]);
     const lector = result.rows[0];
     if (result.rowCount > 0) {
-      return res.json({ success: true, lector });
+      return res.status(200).json({ success: true, lector });
     } else {
-      return res.status(404).json({ success: false, message: 'No hay un lector asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+      return res.status(203).json({ success: true, message: 'No hay un lector asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -703,14 +690,14 @@ const obtenerInfoLector = async (req, res) => {
 };
 
 const obtenerInfoJurado = async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   try {
-    const result = await pool.query('SELECT u.id, u.nombre FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=3) AND u.estado=true', [id]);
+    const result = await pool.query('SELECT u.id, u.nombre, u.correo FROM usuario u WHERE u.id IN (SELECT id_usuario FROM usuario_rol WHERE id_proyecto=$1 AND estado=true AND id_rol=3) AND u.estado=true', [id]);
     const jurado = result.rows;
     if (result.rowCount > 0) {
       return res.json({ success: true, jurado });
     } else {
-      return res.status(404).json({ success: false, message: 'No hay jurado(s) asigando(s) a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+      return res.status(203).json({ success: true, message: 'No hay jurado(s) asigando(s) a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -718,14 +705,14 @@ const obtenerInfoJurado = async (req, res) => {
 };
 
 const obtenerInfoCliente = async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   try {
     const result = await pool.query('SELECT * FROM cliente WHERE id_proyecto =$1', [id]);
     const cliente = result.rows[0];
     if (result.rowCount > 0) {
       return res.json({ success: true, cliente });
     } else {
-      return res.status(404).json({ success: false, message: 'No hay un cliente asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
+      return res.status(203).json({ success: true, message: 'No hay un cliente asigando a este proyecto. Si cree que esto es un error, póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
@@ -796,8 +783,20 @@ const editarReunion = async (req, res) => {
       }
     }
 
+    // Enviar correo
+    const resultProyecto = await pool.query(`SELECT pr.nombre FROM proyecto pr JOIN reunion r ON r.id_proyecto = pr.id WHERE r.id = $1`, [id]);
+    const nombre_proyecto = resultProyecto.rows[0].nombre;
+
+    const resultCorreos = await pool.query(`SELECT e.correo, e.nombre FROM estudiante e JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id JOIN proyecto pr ON pr.id = ep.id_proyecto JOIN reunion r ON r.id_proyecto = pr.id WHERE r.id = $1 AND ep.estado = true`, [id]);
+    const infoCorreos = resultCorreos.rows;
+
+    const resultInvitados = await pool.query(`SELECT COALESCE(c.correo_repr, u.correo) AS correo, COALESCE(c.nombre_repr, u.nombre) AS nombre FROM invitados i LEFT JOIN cliente c ON i.id_cliente = c.id LEFT JOIN usuario_rol ur ON i.id_usuario_rol = ur.id LEFT JOIN usuario u ON ur.id_usuario = u.id LEFT JOIN rol r ON ur.id_rol = r.id WHERE i.id_reunion = $1`, [id]);
+    const correosInvitados = resultInvitados.rows;
+
+    await editarReunionProyecto(nombre, fecha, enlace, nombre_proyecto, correosInvitados, infoCorreos);
+
     await pool.query('COMMIT');
-    res.status(200).json({ success: true, message: 'Reunión editada exitosamente' });
+    res.status(200).json({ success: true, message: 'La reunión fue editada exitosamente y los involucrados han sido notificados.' });
 
   } catch (error) {
     await pool.query('ROLLBACK');
@@ -809,16 +808,10 @@ const editarReunion = async (req, res) => {
 const crearReunionInvitados = async (req, res) => {
   const { id, nombre, fecha, enlace, id_proyecto, id_estado, director, lector, cliente, jurado, infoChecked } = req.body;
 
-  const roleIds = {
-    "director": director.id,
-    "lector": lector.id,
-    "cliente": cliente.id,
-  };
-
-  const rolID = {
-    "director": 1,
-    "lector": 2,
-  };
+  const roleIds = { "director": director.id, "lector": lector.id, "cliente": cliente.id };
+  const rolID = { "director": 1, "lector": 2 };
+  const nameRol = { "director": director.nombre, "lector": lector.nombre };
+  const correoRol = { "director": director.correo, "lector": lector.correo };
 
   try {
     await pool.query('BEGIN');
@@ -827,6 +820,9 @@ const crearReunionInvitados = async (req, res) => {
     await pool.query(`INSERT INTO reunion(id, nombre, fecha, enlace, id_proyecto, id_estado) VALUES ($1, $2, TO_TIMESTAMP($3, 'DD-MM-YYYY HH24:MI'), $4, $5, $6)`, [id, nombre, fecha, enlace, id_proyecto, id_estado]);
 
     // Agregar invitados
+    const correosInvitados = [];
+    const nombreInvitados = [];
+
     for (let index = 0; index < infoChecked.length; index++) {
       const roleName = infoChecked[index];
       // Verificar si es director, cliente o lector
@@ -834,17 +830,39 @@ const crearReunionInvitados = async (req, res) => {
         if (roleName === 'cliente') {
           await pool.query(`INSERT INTO invitados(id_reunion, id_cliente) VALUES ($1, $2)`, [id, roleIds[roleName]]);
 
+          // Correo
+          correosInvitados.push(cliente.correo_repr);
+          nombreInvitados.push(cliente.nombre_repr)
+
         } else {
           await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=$3 AND estado=true AND id_proyecto=$4))`, [id, roleIds[roleName], rolID[roleName], id_proyecto]);
+
+          // Correo
+          correosInvitados.push(correoRol[roleName]);
+          nombreInvitados.push(nameRol[roleName]);
         }
 
         // Verificar si es jurado
       } else if (roleName.startsWith("jurado")) {
-        
+
         const juradoIndex = parseInt(roleName.split(" ")[1]);
-        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true AND id_proyecto=$3))`, [id, jurado[juradoIndex].id , id_proyecto]);
+        await pool.query(`INSERT INTO invitados(id_reunion, id_usuario_rol) VALUES ($1, (SELECT id FROM usuario_rol WHERE id_usuario=$2 AND id_rol=3 AND estado=true AND id_proyecto=$3))`, [id, jurado[juradoIndex].id, id_proyecto]);
+
+        correosInvitados.push(jurado[juradoIndex].correo);
+        nombreInvitados.push(jurado[juradoIndex].nombre);
       }
     }
+
+    // Enviar correo
+    const resultProyecto = await pool.query(`SELECT nombre FROM proyecto WHERE id=$1`, [id_proyecto]);
+    const nombre_proyecto = resultProyecto.rows[0].nombre;
+
+    const resultCorreos = await pool.query(`SELECT correo, nombre FROM estudiante e
+    JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id
+    WHERE ep.estado = true AND ep.id_proyecto = $1`, [id_proyecto]);
+    const infoCorreos = resultCorreos.rows;
+
+    await nuevaReunionEstudiantes(nombre, fecha, enlace, nombre_proyecto, nombreInvitados, correosInvitados, infoCorreos);
 
     await pool.query('COMMIT');
     res.status(201).json({ success: true, message: 'La reunión fue creada exitosamente y los invitados han sido notificados.' });
@@ -875,6 +893,38 @@ const obtenerInvitados = async (req, res) => {
     }
   } catch (error) {
     res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+  }
+};
+
+const cancelarReunion = async (req, res) => {
+  const { id_reunion, id_proyecto, justificacion } = req.body;
+  try {
+
+    // Cancelar reunión
+    const query = `UPDATE reunion SET id_estado=(SELECT id FROM estado_reunion WHERE nombre = 'Cancelada'), justificacion=$3 WHERE id=$1 AND id_proyecto=$2`;
+    const values = [id_reunion, id_proyecto, justificacion];
+    await pool.query(query, values);
+
+    // Enviar correo
+    const resultProyecto = await pool.query(`SELECT pr.nombre FROM proyecto pr JOIN reunion r ON r.id_proyecto = pr.id WHERE r.id = $1`, [id_reunion]);
+    const nombre_proyecto = resultProyecto.rows[0].nombre;
+
+    const resultCorreos = await pool.query(`SELECT e.correo, e.nombre FROM estudiante e JOIN estudiante_proyecto ep ON ep.id_estudiante = e.id JOIN proyecto pr ON pr.id = ep.id_proyecto JOIN reunion r ON r.id_proyecto = pr.id WHERE r.id = $1 AND ep.estado = true`, [id_reunion]);
+    const infoCorreos = resultCorreos.rows;
+
+    const resultInvitados = await pool.query(`SELECT COALESCE(c.correo_repr, u.correo) AS correo FROM invitados i LEFT JOIN cliente c ON i.id_cliente = c.id LEFT JOIN usuario_rol ur ON i.id_usuario_rol = ur.id LEFT JOIN usuario u ON ur.id_usuario = u.id LEFT JOIN rol r ON ur.id_rol = r.id WHERE i.id_reunion = $1`, [id_reunion]);
+    const correosInvitados = resultInvitados.rows;
+
+    const resultReunion = await pool.query(`SELECT nombre, TO_CHAR(fecha, 'DD-MM-YYYY HH24:MI') AS fecha, enlace FROM reunion where id = $1`, [id_reunion]);
+    const infoReunion = resultReunion.rows[0];
+
+    await cancelarReunionProyecto(infoReunion.nombre, infoReunion.fecha, infoReunion.enlace, nombre_proyecto, correosInvitados, infoCorreos, justificacion);
+
+    res.status(200).json({ success: true, message: 'La reunión ha sido cancelada con éxito y los involucrados han sido notificados.' });
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ success: false, message: 'No se pudo completar la cancelación de la reunión.' });
   }
 };
 

@@ -21,7 +21,7 @@ function InicioAdmin() {
     dispatch(clearSession());
     dispatch(clearCookies());
     sessionStorage.clear();
-    navigate('/')
+    navigate('/');
   };
 
   const [activeButton, setActiveButton] = useState(null);
@@ -43,34 +43,23 @@ function InicioAdmin() {
   };
 
   useEffect(() => {
-    const isVerUsuarioPath = (path) => {
-      const pattern = pathToRegexp('/admin/verUsuario');
-      return pattern.test(path);
-    };
-
     const isVerProyectoPath = (path) => {
       const pattern = pathToRegexp('/admin/verProyecto');
       return pattern.test(path);
     };
 
-    const isVerEstudiantePath = (path) => {
-      const pattern = pathToRegexp('/admin/verEstudiante');
-      return pattern.test(path);
-    };
-
     if (
-      location.pathname === '/admin' ||
-      location.pathname === '/admin/agregarUsuario' ||
-      isVerUsuarioPath(location.pathname)
+      location.pathname === '/admin'
     ) {
       setActiveButton('usuarios');
+
     } else if (
       location.pathname === '/admin/proyectos' ||
       isVerProyectoPath(location.pathname)
     ) {
       setActiveButton('proyectos');
     } else if (
-      location.pathname === '/admin/estudiantes' || isVerEstudiantePath(location.pathname)
+      location.pathname === '/admin/estudiantes'
     ) {
       setActiveButton('estudiantes');
     }

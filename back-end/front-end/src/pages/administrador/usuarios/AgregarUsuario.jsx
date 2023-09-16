@@ -22,6 +22,8 @@ function AgregarUsuario(props) {
     const token = useSelector(selectToken);
     const correoPattern = /^[a-zA-Z0-9._\-]+@unbosque\.edu\.co$/;
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -48,6 +50,8 @@ function AgregarUsuario(props) {
 
     const agregarUsuario = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             const usuario = {
                 nombre: nombre,
@@ -68,6 +72,7 @@ function AgregarUsuario(props) {
         } catch (error) {
             mostrarMensaje("Lo sentimos, ha habido un error en la comunicación con el servidor. Por favor, intenta de nuevo más tarde.", "error")
         }
+        setIsLoading(false);
     };
 
     return (
@@ -111,8 +116,8 @@ function AgregarUsuario(props) {
 
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />} sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

@@ -97,8 +97,13 @@ function InicioCmt() {
     } else if (location.pathname === '/comite/reuniones') {
       setActiveButton('reuniones');
 
-    }
+    } else if (location.pathname === '/comite/sustentaciones') {
+      setActiveButton('sustentaciones');
 
+    } else if (location.pathname === '/comite/proyectos/meritorios') {
+      setActiveButton('proyectos/meritorios');
+
+    }
   }, [location.pathname]);
 
   return (

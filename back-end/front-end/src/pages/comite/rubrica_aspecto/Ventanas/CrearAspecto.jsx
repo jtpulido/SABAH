@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { tokens } from '../../../../theme';
 import { useSelector } from 'react-redux';
 import { selectToken } from '../../../../store/authSlice';
 import {
-    useTheme,
     CircularProgress,
     Box,
     TextField,
@@ -21,13 +19,15 @@ import { useSnackbar } from 'notistack';
 import { SaveOutlined } from '@mui/icons-material';
 
 function CrearAspecto(props) {
-    const { onClose,onSubmit, open } = props;
+    const { onClose, onSubmit, open } = props;
     const { enqueueSnackbar } = useSnackbar();
 
     const token = useSelector(selectToken);
 
     const [nombre, setNombre] = useState("");
     const [loading, setLoading] = useState(true);
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const mostrarMensaje = (mensaje, variante) => {
         enqueueSnackbar(mensaje, { variant: variante });
@@ -46,6 +46,7 @@ function CrearAspecto(props) {
     };
 
     const crearAspecto = async () => {
+        setIsLoading(true);
         try {
             const response = await fetch("http://localhost:5000/comite/aspecto", {
                 method: "POST",
@@ -63,6 +64,7 @@ function CrearAspecto(props) {
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error");
         }
+        setIsLoading(false);
     };
     return (
         <Dialog open={open} fullWidth maxWidth="sm" onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }} >
@@ -94,8 +96,8 @@ function CrearAspecto(props) {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cerrar</Button>
-                    <Button type="submit" variant="contained" startIcon={<SaveOutlined />}  sx={{
+                    <Button onClick={handleCancel} disabled={isLoading}>Cerrar</Button>
+                    <Button type="submit" variant="contained" disabled={isLoading} startIcon={<SaveOutlined />} sx={{
                         width: 150,
                     }}>
                         Guardar

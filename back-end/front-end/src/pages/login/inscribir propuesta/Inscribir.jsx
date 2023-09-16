@@ -153,7 +153,7 @@ export const Inscribir = () => {
         const month = (now.getMonth() + 1).toString().padStart(2, "0");
         const periodo = getPeriodo(month);
         return `TEM_${formattedDate}-${periodo}-${consecutivo}`;
-    };
+    };
 
     const getPeriodo = (month) => {
         if (month >= 1 && month <= 6) {

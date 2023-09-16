@@ -11,7 +11,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 function VerReunion(props) {
 
-    const id = sessionStorage.getItem('id_proyecto');
+    const id = sessionStorage.getItem('comite_id_proyecto');
     const idReunion = sessionStorage.getItem('proyecto_id_reunion');
     const token = useSelector(selectToken);
 
@@ -20,16 +20,32 @@ function VerReunion(props) {
 
     const { onClose, onSubmit, open, ...other } = props;
 
-    const [nombre, setNombre] = useState("");
-    const [link, setLink] = useState("");
+    const [nombre, setNombre] = useState('');
+    const [link, setLink] = useState('');
     const [fecha, setFecha] = useState('');
-    const [justificacion, setJustificacion] = useState("");
+    const [justificacion, setJustificacion] = useState('');
     const [selectedTime, setSelectedTime] = useState(true);
+    const [nombreProyecto, setNombreProyecto] = useState('');
 
     const [director, setDirector] = useState([]);
     const [lector, setLector] = useState([]);
     const [jurado, setJurado] = useState([]);
     const [cliente, setCliente] = useState([]);
+
+    const [directorInicial, setDirectorInicial] = useState(false);
+    const [lectorInicial, setLectorInicial] = useState(false);
+    const [juradoInicial, setJuradoInicial] = useState(false);
+    const [clienteInicial, setClienteInicial] = useState(false);
+
+    const [directorChecked, setDirectorChecked] = useState(false);
+    const [lectorChecked, setLectorChecked] = useState(false);
+    const [juradoChecked, setJuradoChecked] = useState([]);
+    const [clienteChecked, setClienteChecked] = useState(false);
+
+    const [directorAsistencia, setDirectorAsistencia] = useState('');
+    const [lectorAsistencia, setLectorAsistencia] = useState('');
+    const [juradoAsistencia, setJuradoAsistencia] = useState([]);
+    const [clienteAsistencia, setClienteAsistencia] = useState('');
 
     const { enqueueSnackbar } = useSnackbar();
     const mostrarMensaje = useCallback((mensaje, variante) => {
@@ -38,16 +54,16 @@ function VerReunion(props) {
 
     const obtenerInfoDirector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/obtenerInfoDirector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/comite/obtenerInfoDirector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "info")
-            } else {
+            if (response.status === 200) {
                 setDirector(data.director);
+                setDirectorInicial(true);
+            } else if (response.status === 203) {
+                setDirectorInicial(true);
             }
         } catch (error) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
@@ -56,61 +72,61 @@ function VerReunion(props) {
 
     const obtenerInfoLector = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/obtenerInfoLector", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/comite/obtenerInfoLector/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "info")
-            } else {
+            if (response.status === 200) {
                 setLector(data.lector);
+                setLectorInicial(true);
+            } else if (response.status === 203) {
+                setLectorInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const obtenerInfoJurado = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/obtenerInfoJurado", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/comite/obtenerInfoJurado/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "info")
-            } else {
+            if (response.status === 200) {
                 setJurado(data.jurado);
+                setJuradoInicial(true);
+            } else if (response.status === 203) {
+                setJuradoInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const obtenerInfoCliente = async () => {
         try {
-            const response = await fetch("http://localhost:5000/comite/obtenerInfoCliente", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id: id })
+            const response = await fetch(`http://localhost:5000/comite/obtenerInfoCliente/${id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            if (!data.success) {
-                mostrarMensaje(data.message, "info")
-            } else {
+            if (response.status === 200) {
                 setCliente(data.cliente);
+                setClienteInicial(true);
+            } else if (response.status === 203) {
+                setClienteInicial(true);
             }
         } catch (error) {
-            mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
+            mostrarMensaje("Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
     };
 
     const handleEntering = async () => {
         try {
-            await Promise.all([
+            await Promise.allSettled([
                 obtenerInfoDirector(),
                 obtenerInfoLector(),
                 obtenerInfoJurado(),
@@ -125,6 +141,7 @@ function VerReunion(props) {
             const horaReunion = fechaHoraArray[1];
             setFecha(fechaReunion);
             setSelectedTime(horaReunion);
+            setNombreProyecto(reunion.nombre_proyecto)
 
         } catch (error) {
             mostrarMensaje("Ocurrió un error al obtener la información. Por favor, inténtalo de nuevo más tarde.", "error");
@@ -154,6 +171,20 @@ function VerReunion(props) {
                     setLectorChecked(invitadosUsuarios.includes(lector.nombre));
                     const newJuradoChecked = jurado.map(juradoMember => invitadosUsuarios.includes(juradoMember.nombre));
                     setJuradoChecked(newJuradoChecked);
+
+                    const asistencia = {};
+                    data.invitados
+                        .filter(invitado => invitado.nombre !== null)
+                        .forEach(invitado => {
+                            asistencia[invitado.nombre] = invitado.nombre_asistencia;
+                        });
+
+                    setClienteAsistencia(asistencia[cliente.nombre_repr] || '');
+                    setDirectorAsistencia(asistencia[director.nombre] || '');
+                    setLectorAsistencia(asistencia[lector.nombre] || '');
+                    const newJuradoAsistencias = jurado.map(juradoMember => asistencia[juradoMember.nombre] || '');
+                    setJuradoAsistencia(newJuradoAsistencias);
+
                 }
             }
             catch (error) {
@@ -161,10 +192,10 @@ function VerReunion(props) {
             }
         };
 
-        if (director.nombre && lector.nombre && cliente.nombre_repr && jurado) {
+        if (directorInicial && lectorInicial && clienteInicial && juradoInicial) {
             obtenerInvitados();
         }
-    }, [director, lector, cliente, jurado, idReunion, token, mostrarMensaje]);
+    }, [directorInicial, lectorInicial, clienteInicial, juradoInicial, idReunion, token, mostrarMensaje]);
 
     const handleCancel = () => {
         onClose();
@@ -176,14 +207,18 @@ function VerReunion(props) {
         setLectorChecked(false);
         setJuradoChecked([]);
         setClienteChecked(false);
+        setDirectorInicial(false);
+        setLectorInicial(false);
+        setClienteInicial(false);
+        setJuradoInicial(false);
         setFecha('');
+        setDirector([]);
+        setLector([]);
+        setJurado([]);
+        setCliente([]);
+        setNombreProyecto('');
         sessionStorage.removeItem('info_reunion_ver');
     };
-
-    const [directorChecked, setDirectorChecked] = useState(false);
-    const [lectorChecked, setLectorChecked] = useState(false);
-    const [juradoChecked, setJuradoChecked] = useState([]);
-    const [clienteChecked, setClienteChecked] = useState(false);
 
     return (
         <Dialog maxWidth="sm" fullWidth TransitionComponent={Transition} open={open} {...other} onClose={handleCancel} TransitionProps={{ onEntering: handleEntering }}>
@@ -228,7 +263,7 @@ function VerReunion(props) {
                     </Grid>
                     <Grid item xs={6}>
                         <Typography variant="h6" color="primary">
-                            Link
+                            Enlace/Lugar
                         </Typography>
                         <TextField
                             value={link}
@@ -241,58 +276,120 @@ function VerReunion(props) {
                     </Grid>
                     <Grid item xs={12}>
                         <Typography variant="h6" color="primary">
-                            Invitados
+                            Nombre Proyecto
                         </Typography>
+                        <TextField
+                            value={nombreProyecto}
+                            multiline
+                            rows={1}
+                            required
+                            fullWidth
+                            spellCheck={false}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
                         <Grid container spacing={0}>
                             <Grid item xs={6}>
-                                {cliente.nombre_repr && (
-                                    <React.Fragment>
-                                        <Checkbox
-                                            checked={clienteChecked}
-                                            color="primary"
-                                        />
-                                        <Typography variant="body2" display="inline">
-                                            Cliente - {cliente.nombre_repr}
-                                        </Typography>
-                                    </React.Fragment>
-                                )}
+                                <Typography variant="h6" color="primary">
+                                    Invitados
+                                </Typography>
                             </Grid>
                             <Grid item xs={6}>
-                                {director.nombre && (
-                                    <React.Fragment>
-                                        <Checkbox
-                                            checked={directorChecked}
-                                            color="primary"
-                                        />
-                                        <Typography variant="body2" display="inline">
-                                            Director - {director.nombre}
-                                        </Typography>
-                                    </React.Fragment>
-                                )}
+                                <Typography variant="h6" color="primary">
+                                    Asistencia
+                                </Typography>
                             </Grid>
-                            <Grid item xs={6}>
-                                {lector.nombre && (
-                                    <React.Fragment>
-                                        <Checkbox
-                                            checked={lectorChecked}
-                                            color="primary"
-                                        />
-                                        <Typography variant="body2" display="inline">
-                                            Lector - {lector.nombre}
-                                        </Typography>
-                                    </React.Fragment>
-                                )}
-                            </Grid>
+                        </Grid >
+                        <Grid container spacing={0} sx={{ mb: '10px' }}>
+                            {cliente.nombre_repr && (
+                                <>
+                                    <Grid container spacing={1} alignItems="center">
+                                        <Grid item xs={6}>
+                                            <Checkbox checked={clienteChecked} color="primary" />
+                                            <Typography variant="body2" display="inline">
+                                                Cliente - {cliente.nombre_repr}
+                                            </Typography>
+                                        </Grid>
+                                        {clienteChecked && (
+                                            <Grid item xs={6}>
+                                                <Typography variant="body2" display="inline">
+                                                    {clienteAsistencia || "Sin especificar"}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </>
+                            )}
+
+                            {director.nombre && (
+                                <>
+                                    <Grid container spacing={1} alignItems="center">
+                                        <Grid item xs={6}>
+                                            <React.Fragment>
+                                                <Checkbox
+                                                    checked={directorChecked}
+                                                    color="primary"
+                                                />
+                                                <Typography variant="body2" display="inline">
+                                                    Director - {director.nombre}
+                                                </Typography>
+                                            </React.Fragment>
+                                        </Grid>
+                                        {directorChecked && (
+                                            <Grid item xs={6}>
+                                                <Typography variant="body2" display="inline">
+                                                    {directorAsistencia || "Sin especificar"}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </>
+                            )}
+                            {lector.nombre && (
+                                <>
+                                    <Grid container spacing={1} alignItems="center">
+                                        <Grid item xs={6}>
+                                            <React.Fragment>
+                                                <Checkbox
+                                                    checked={lectorChecked}
+                                                    color="primary"
+                                                />
+                                                <Typography variant="body2" display="inline">
+                                                    Lector - {lector.nombre}
+                                                </Typography>
+                                            </React.Fragment>
+                                        </Grid>
+                                        {lectorChecked && (
+                                            <Grid item xs={6}>
+                                                <Typography variant="body2" display="inline">
+                                                    {lectorAsistencia || "Sin especificar"}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </>
+                            )}
                             {jurado.length > 0 && jurado.map((juradoMember, index) => (
-                                <Grid item xs={6} key={index}>
-                                    <Checkbox
-                                        checked={juradoChecked[index] || false}
-                                        color="primary"
-                                    />
-                                    <Typography variant="body2" display="inline">
-                                        Jurado - {juradoMember.nombre}
-                                    </Typography>
-                                </Grid>
+                                <>
+                                    <Grid container spacing={1} alignItems="center">
+                                        <Grid item xs={6} key={index}>
+                                            <Checkbox
+                                                checked={juradoChecked[index] || false}
+                                                color="primary"
+                                            />
+                                            <Typography variant="body2" display="inline">
+                                                Jurado - {juradoMember.nombre}
+                                            </Typography>
+                                        </Grid>
+                                        {juradoChecked[index] && (
+                                            <Grid item xs={6}>
+                                                <Typography variant="body2" display="inline" sx={{ mt: '10px' }}>
+                                                    {juradoAsistencia[index] || "Sin especificar"}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </>
                             ))}
                         </Grid>
                     </Grid>
@@ -316,7 +413,7 @@ function VerReunion(props) {
             <DialogActions>
                 <Button onClick={handleCancel}>Cerrar</Button>
             </DialogActions>
-        </Dialog>
+        </Dialog >
     );
 }
 VerReunion.propTypes = {

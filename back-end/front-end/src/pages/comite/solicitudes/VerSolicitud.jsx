@@ -35,6 +35,8 @@ function VerSolicitud(props) {
 
     const [aprobaciones, setAprobaciones] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleEntering = () => {
         obtenerInfoSolicitud(id_solicitud)
         obtenerAprobacionesSolicitud(id_solicitud)
@@ -90,6 +92,7 @@ function VerSolicitud(props) {
     };
     const handleSave = async () => {
         setLoading(true);
+        setIsLoading(true);
         try {
             const response = await fetch("http://localhost:5000/comite/solicitudes/agregarAprobacion", {
                 method: "POST",
@@ -117,6 +120,7 @@ function VerSolicitud(props) {
             mostrarMensaje("Lo siento, ha ocurrido un error de autenticación. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.", "error")
         }
         setLoading(false);
+        setIsLoading(false);
     };
 
     const columns = [
@@ -234,7 +238,7 @@ function VerSolicitud(props) {
                                                     Comentarios
                                                 </Typography>
                                                 <TextField fullWidth multiline maxRows={5} required placeholder="Agregue comentarios" value={comments} onChange={handleCommentsChange} />
-                                                <Button variant="contained" color="primary" disabled={!isFormValid} onClick={handleSave} sx={{
+                                                <Button variant="contained" color="primary" disabled={!isFormValid || isLoading} onClick={handleSave} sx={{
                                                     width: 150,
                                                 }}>
                                                     Guardar

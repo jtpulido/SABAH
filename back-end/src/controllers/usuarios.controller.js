@@ -1,6 +1,6 @@
 const pool = require('../database')
 
-const { nuevaReunionUser, cancelarReunionUser, cambioAsistencia, editarReunionUser, nuevaSolicitudUser, mailCambioEstadoProyecto } = require('../controllers/mail.controller');
+const { nuevaReunionUser, solicitudDirector, cancelarReunionUser, cambioAsistencia, editarReunionUser, nuevaSolicitudUser, mailCambioEstadoProyecto } = require('../controllers/mail.controller');
 
 const obtenerProyectosDesarrolloRol = async (req, res) => {
     const { idUsuario, idRol } = req.params;
@@ -232,7 +232,7 @@ const obtenerReunionesCompletas = async (req, res) => {
 
     try {
         const result = await pool.query(`SELECT * FROM (
-            SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion, r.id_estado, pr.id AS id_proyecto, pr.nombre AS nombre_proyecto, asi.id AS asistencia_id, asi.nombre AS nombre_asistencia,
+            SELECT r.id, r.nombre, TO_CHAR(r.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, r.enlace, r.justificacion, r.id_estado, pr.id AS id_proyecto, pr.nombre AS nombre_proyecto, asi.id AS asistencia_id, asi.nombre AS nombre_asistencia, ac.id AS id_acta,
                 COALESCE(
                     STRING_AGG(DISTINCT
                         CASE
@@ -253,8 +253,9 @@ const obtenerReunionesCompletas = async (req, res) => {
             LEFT JOIN asistencia asi ON asi.id = inv.id_asistencia
             JOIN usuario_rol ur ON inv.id_usuario_rol = ur.id
             JOIN proyecto pr ON ur.id_proyecto = pr.id
+            LEFT JOIN acta_reunion ac ON ac.id_reunion = r.id
             WHERE e.nombre = 'Completa' AND ur.id_usuario = $1
-            GROUP BY r.id, r.nombre, r.fecha, r.enlace, pr.id, pr.nombre, asi.id, asi.nombre
+            GROUP BY r.id, r.nombre, r.fecha, r.enlace, pr.id, pr.nombre, asi.id, asi.nombre, ac.id
           ) AS subconsulta
           WHERE subconsulta.roles_invitados ILIKE $2
           ORDER BY subconsulta.fecha ASC;`, [idUsuario, `%${rol}%`]);
@@ -566,7 +567,7 @@ const agregarAprobacion = async (req, res) => {
         await pool.query(
             "INSERT INTO public.aprobado_solicitud_director (aprobado, comentario, id_solicitud) VALUES ($1, $2, $3)",
             [aprobado, comentario, id_solicitud],
-            (error, result) => {
+            async (error, result) => {
                 if (error) {
                     if (error.code === "23505") {
                         return res.status(400).json({ success: false, message: "Ya fue aprobada esta solicitud." });
@@ -575,7 +576,24 @@ const agregarAprobacion = async (req, res) => {
                 }
 
                 if (result.rowCount > 0) {
-                    return res.json({ success: true, message: 'Aprobación guardada correctamente.' });
+                    if (aprobado) {
+
+                        // Enviar correo
+                        const resultProyecto = await pool.query(`SELECT pr.nombre FROM proyecto pr JOIN solicitud s ON s.id_proyecto = pr.id WHERE s.id=$1`, [id_solicitud]);
+                        const nombre_proyecto = resultProyecto.rows[0].nombre;
+
+                        const resultUsuario = await pool.query(`SELECT u.correo, u.nombre FROM usuario u JOIN usuario_rol ur ON ur.id_usuario = u.id JOIN proyecto pr ON pr.id = ur.id_proyecto JOIN solicitud s ON s.id_proyecto = pr.id WHERE s.id = $1 AND ur.id_rol=1 AND ur.estado = true`, [id_solicitud]);
+                        const infoUsuario = resultUsuario.rows[0];
+
+                        const resultTipo = await pool.query(`SELECT t.nombre FROM tipo_solicitud t JOIN solicitud s ON t.id = s.id_tipo_solicitud WHERE s.id=$1`, [id_solicitud]);
+                        const nombre_tipo = resultTipo.rows[0].nombre;
+
+                        await solicitudDirector(nombre_tipo, aprobado, comentario, nombre_proyecto, infoUsuario.nombre, infoUsuario.correo);
+
+                        return res.json({ success: true, message: 'La aprobación ha sido guardada correctamente. Se le ha notificado al Comité, y se le ha enviado una copia.' });
+                    } else {
+                        return res.json({ success: true, message: 'La aprobación ha sido guardada correctamente.' });
+                    }
                 }
             }
         );
@@ -1024,8 +1042,47 @@ const cambiarEstadoEntregasFinales = async (req, res) => {
         res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
     }
 };
+
+const obtenerInfoActa = async (req, res) => {
+    const { idReunion } = req.params;
+    try {
+        const result = await pool.query(`SELECT TO_CHAR(t1.fecha, 'DD-MM-YYYY HH24:MI') AS fecha, t1.nombre, t2.compromisos, t2.descrip_obj, t2.tareas_ant, t2.resultados_reu FROM acta_reunion t2 LEFT JOIN reunion t1 ON t1.id = t2.id_reunion WHERE t2.id_reunion = $1`, [idReunion]);
+        const acta = result.rows[0];
+        if (result.rowCount > 0) {
+            return res.json({ success: true, acta });
+        } else {
+            return res.status(203).json({ success: false, message: 'No existe una acta para esta reunión.' });
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Ha ocurrido un error al recuperar el acta. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
+const obtenerInvitados = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+      SELECT i.id as id_tabla_invitados, i.id_reunion, i.id_usuario_rol, i.id_asistencia, i.id_cliente, 
+      c.id AS id_tabla_cliente, c.nombre_empresa, c.nombre_repr, c.correo_repr,
+      u.id AS id_tabla_usuario, u.nombre AS nombre_usuario, u.correo,
+      r.id AS id_tabla_rol, r.nombre AS nombre_rol
+      FROM invitados i
+      LEFT JOIN cliente c ON i.id_cliente = c.id
+      LEFT JOIN usuario_rol ur ON i.id_usuario_rol = ur.id
+      LEFT JOIN usuario u ON ur.id_usuario = u.id
+      LEFT JOIN rol r ON ur.id_rol = r.id
+      WHERE i.id_reunion=$1`, [id]);
+        const invitados = result.rows;
+        if (result.rowCount > 0) {
+            return res.json({ success: true, invitados });
+        }
+    } catch (error) {
+        res.status(502).json({ success: false, message: 'Lo siento, ha ocurrido un error. Por favor, intente de nuevo más tarde o póngase en contacto con el administrador del sistema para obtener ayuda.' });
+    }
+};
+
 module.exports = {
-    obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
+    obtenerInfoActa, obtenerInvitados, obtenerProyectosDesarrolloRol, obtenerProyectosCerradosRol, obtenerProyecto, rolDirector, rolJurado, rolLector, verUsuario,
     obtenerSolicitudesPendientesResponderDirector, obtenerSolicitudesPendientesResponderComite, obtenerSolicitudesCerradasAprobadas, obtenerSolicitudesCerradasRechazadas, guardarSolicitud,
     agregarAprobacion, obtenerListaProyectos, guardarCalificacion, crearReunionInvitados, ultIdReunion, editarReunion, obtenerAsistencia, cancelarReunion,
     obtenerReunion, obtenerReunionesPendientes, obtenerReunionesCompletas, obtenerReunionesCanceladas,

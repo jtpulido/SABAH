@@ -12,15 +12,6 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
-const { obtenerInfoDirector, obtenerInfoLector, obtenerInfoJurado, obtenerInfoCliente } = require('../controllers/proyecto.controller')
-
-router.post('/comite/obtenerInfoDirector', passport.authenticate('jwt', { session: false }), obtenerInfoDirector);
-router.post('/comite/obtenerInfoLector', passport.authenticate('jwt', { session: false }), obtenerInfoLector);
-router.post('/comite/obtenerInfoJurado', passport.authenticate('jwt', { session: false }), obtenerInfoJurado);
-router.post('/comite/obtenerInfoCliente', passport.authenticate('jwt', { session: false }), obtenerInfoCliente);
-
-
-
 const {
   obtenerProyecto,
   obtenerProyectosTerminados,
@@ -63,7 +54,9 @@ const {
   programarSustentacion,
   modificarSustentacion,
   obtenerProyectosSustentacion,
-  cambiarEstadoTerminado
+  cambiarEstadoTerminado,
+  obtenerInfoActa, obtenerLinkProyecto,
+  obtenerInfoDirector, obtenerInfoLector, obtenerInfoJurado, obtenerInfoCliente
 } = require('../controllers/comite.controller')
 
 const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtenerAspectoPorId,
@@ -76,6 +69,8 @@ const { crearAspecto, eliminarAspecto, modificarAspecto, obtenerAspectos, obtene
   verEntregasRealizadasSinCalificar,
   verAspectosEspacio, validarModificarRubrica, verCalificacionAspectos, obtenerEstados
 } = require('../controllers/entregas.controller')
+
+const { generarPDF } = require('../controllers/pdf.controller');
 
 const { verInfoDocEntregado, descargarDocumento, descargarDocumentoRetroalimentacion, verInfoDocRetroalimentacion } = require('../controllers/documento.controller');
 const { obtenerVistasDisponibles, obtenerColumnasDisponibles, generarReporte } = require('../controllers/reportes.controller');
@@ -178,5 +173,14 @@ router.get('/comite/sustentacion', authenticateJWT, obtenerSustentacionProyectos
 router.put('/comite/sustentacion/:id', authenticateJWT, modificarSustentacion);
 router.post('/comite/programarSustentacion', passport.authenticate('jwt', { session: false }), programarSustentacion);
 
+router.get('/comite/obtenerInfoActa/:idReunion', passport.authenticate('jwt', { session: false }), obtenerInfoActa);
+router.post('/comite/generarPDF', passport.authenticate('jwt', { session: false }), generarPDF);
+
+router.get('/comite/obtenerInfoDirector/:id', passport.authenticate('jwt', { session: false }), obtenerInfoDirector);
+router.get('/comite/obtenerInfoLector/:id', passport.authenticate('jwt', { session: false }), obtenerInfoLector);
+router.get('/comite/obtenerInfoJurado/:id', passport.authenticate('jwt', { session: false }), obtenerInfoJurado);
+router.get('/comite/obtenerInfoCliente/:id', passport.authenticate('jwt', { session: false }), obtenerInfoCliente);
+
+router.get('/comite/obtenerLink/:id', authenticateJWT, obtenerLinkProyecto);
 
 module.exports = router;
